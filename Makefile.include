@@ -1,0 +1,47 @@
+# project Makefiles must define ROOT before including this file
+
+.DEFAULT_GOAL := all
+
+BIN=${ROOT}/bin
+LIB=${ROOT}/lib
+
+CC=gcc -c -I. -I${COMMON}
+AR=ar
+LD=gcc -Wl,-s
+ASM=C:/Development/fasm/fasm
+
+ASMSRC=${ROOT}/asm
+TOOLS=${ROOT}/tools
+COMMON=${TOOLS}/common
+
+TOOLS_LIB=${LIB}/tools
+COMMON_LIB=${TOOLS_LIB}/common
+RESET_LIB=${TOOLS_LIB}/reset
+CFG_LIB=${TOOLS_LIB}/cfg
+PATCH_LIB=${TOOLS_LIB}/patch
+BINPATCH_LIB=${TOOLS_LIB}/binpatch
+TLK_LIB=${TOOLS_LIB}/tlk
+U2BIN=${BIN}/u2
+U3BIN=${BIN}/u3
+U5BIN=${BIN}/u5
+UTILBIN=${BIN}/util
+
+# game locations (for installation)
+ULTIMA2=C:/Development/Workshop/Ultima2
+ULTIMA3=C:/Development/Workshop/Ultima3
+ULTIMA5=C:/Development/Workshop/Ultima5
+
+${BIN}:
+	mkdir -p ${BIN}
+
+${U2BIN}:
+	mkdir -p ${U2BIN}
+
+${U3BIN}:
+	mkdir -p ${U3BIN}
+
+${U5BIN}:
+	mkdir -p ${U5BIN}
+
+${UTILBIN}:
+	mkdir -p ${UTILBIN}

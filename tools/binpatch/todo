@@ -1,0 +1,2 @@
+verify FZ/DZ headers in binpatch
+don't add FZ header if files don't differ
