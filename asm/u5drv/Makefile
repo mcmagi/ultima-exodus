@@ -1,5 +1,5 @@
 ROOT=../..
-include ${ROOT}/Makefile.include
+include ${ROOT}/Makefile.dos.include
 
 all: mkdirs ${U5BIN}/mid.drv
 

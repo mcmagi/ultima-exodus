@@ -1,5 +1,5 @@
 ROOT=../..
-include ${ROOT}/Makefile.include
+include ${ROOT}/Makefile.dos.include
 
 all: mkdirs ${UTILBIN}/color.com ${UTILBIN}/vga.com ${UTILBIN}/cgacomp.com \
         ${UTILBIN}/vgacolor.com

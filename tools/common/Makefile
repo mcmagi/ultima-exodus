@@ -1,5 +1,5 @@
 ROOT=../..
-include ${ROOT}/Makefile.include
+include ${ROOT}/Makefile.${TARGET}.include
 
 all: mkdirs ${COMMON_LIB}/File.o
 
@@ -9,8 +9,8 @@ ${COMMON_LIB}:
 	mkdir -p ${COMMON_LIB}
 
 # object files
-${COMMON_LIB}/File.o: File.h gendefs.h
-	${CC} -c File.c -o ${COMMON_LIB}/File.o
+${COMMON_LIB}/File.o: File.c File.h gendefs.h
+	$(call compile, ${COMMON_LIB}/File.o, File.c)
 
 # clean
 clean:

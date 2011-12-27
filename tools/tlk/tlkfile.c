@@ -30,10 +30,11 @@ struct u2tlk load_tlk_data(File *tlkfile)
 /* writes tlk data from u2tlk structure to file */
 void save_tlk_data(File *tlkfile, struct u2tlk tlk)
 {
-	unsigned char encoded_data[tlk.size];	/* copy of tlk data */
+	unsigned char *encoded_data;	    /* copy of tlk data */
 
 
 	/* copy data for encoding */
+	encoded_data = (unsigned char *) malloc(tlk.size);
 	strncpy(encoded_data, tlk.data, tlk.size);
 
 	/* point tlk structure to copy of data for encoding */
@@ -45,6 +46,8 @@ void save_tlk_data(File *tlkfile, struct u2tlk tlk)
 	/* write out tlk data to file */
 	seek_through_file(tlkfile, 0, SEEK_SET);
 	write_to_file(tlkfile, tlk.data, tlk.size);
+
+    free(encoded_data);
 }
 
 /* Frees resources used by the tlk data structure */

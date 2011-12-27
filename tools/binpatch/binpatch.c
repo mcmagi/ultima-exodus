@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 
 	printf("Patch successful\n");
 
-	return;
+	return SUCCESS;
 }
 
 void print_help_message()
@@ -49,7 +49,7 @@ void print_help_message()
 
 void apply_patch(File *patch)
 {
-	const char hdrtype[HDR_SZ];			/* holds header type */
+	char hdrtype[HDR_SZ];			    /* holds header type */
 	struct file_header fz;				/* header for patched file */
 	struct data_header dz;				/* header for patch data */
 	File *old = NULL, *new = NULL;		/* input/output file handles */

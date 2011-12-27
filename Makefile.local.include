@@ -1,0 +1,14 @@
+# project Makefiles must define ROOT before including this file
+
+TARGET_ARCH := $(shell gcc -dumpmachine)
+
+CC=gcc -c -I. -I${COMMON}
+AR=ar
+LD=gcc -Wl,-s
+ASM=C:/Development/fasm/fasm
+
+compile = ${CC} -o ${1} ${2}
+archive = ${AR} -r ${1} ${2}
+link = ${LD} -o ${1} ${2}
+
+include ${ROOT}/Makefile.include

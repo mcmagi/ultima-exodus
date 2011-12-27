@@ -1,0 +1,18 @@
+# project Makefiles must define ROOT before including this file
+
+TARGET_ARCH := i386-dos
+
+WATCOM=C:/Development/WATCOM
+
+CC=${WATCOM}/binnt/wcc -q -i=$(call dospath,${WATCOM}/h) -i=. -i=$(call dospath,${COMMON}) -bt=DOS -3
+AR=ar
+LD=${WATCOM}/binnt/wlink system dos
+ASM=C:/Development/fasm/fasm
+
+dospath = $(subst /,\\,"$(strip ${1})")
+compile = ${CC} -fo=$(call dospath,${1}) ${2}
+#compile = ${CC} -fo=$(call dospath,${1}) $(foreach file,${2},$(call dospath,$file))
+archive = ${AR} -r ${1} ${2}
+link = ${LD} name $(call dospath,${1}) file $(foreach file,${2},$(call dospath,${file}),)
+
+include ${ROOT}/Makefile.include

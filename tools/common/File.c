@@ -123,18 +123,24 @@ BOOL end_of_file(File *file)
 
 void copy_file(File *infile, File *outfile)
 {
-	unsigned char *data;
 	long size;
 
 
 	/* get input file size */
 	size = file_size(infile);
+    copy_file_n(infile, outfile, 0, size);
+}
+
+void copy_file_n(File *infile, File *outfile, off_t start, size_t size)
+{
+	unsigned char *data;
+
 
 	/* allocate space for file data */
 	data = malloc(size);
 
-	/* seek to beginning of both files */
-	rewind(infile->fp);
+	/* seek to starting offset of infile, beginning of both outfile */
+    seek_through_file(infile, start, SEEK_SET);
 	rewind(outfile->fp);
 
 	/* read data from infile into memory and write to outfile */
@@ -160,12 +166,40 @@ long file_size(File *file)
 
 	/* reset stream offset */
 	seek_through_file(file, offset, SEEK_SET);
+
+    return size;
 }
 
 void truncate_file(File *file, long offset)
 {
+#ifdef __GNUC__
 	if (ftruncate(fileno(file->fp), offset) != SUCCESS)
 		file_error(file, "Could not truncate file");
+#else
+    /* ftruncate is not defined in OpenWatcom,
+     * so the strategy is to read the data into memory, reopen the file, and rewrite */
+
+    unsigned char *data;
+
+
+    /* ftruncate() preserves the seek cursor */
+    int current_offset = ftell(file->fp);
+
+    /* read the file data up to offset */
+    rewind(file->fp);
+    data = malloc(offset);
+    read_from_file(file, data, offset);
+
+	/* reopen the file */
+    reopen_file(file, OVERWRITE_MODE);
+
+    /* rewrite the truncated file data */
+    write_to_file(file, data, offset);
+    free(data);
+
+    /* restore seek cursor; constrain by new file size */
+    seek_through_file(file, current_offset > offset ? offset : current_offset, SEEK_SET);
+#endif
 }
 
 /* error handling function */

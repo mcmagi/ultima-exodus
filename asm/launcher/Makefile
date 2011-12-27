@@ -1,5 +1,5 @@
 ROOT=../..
-include ${ROOT}/Makefile.include
+include ${ROOT}/Makefile.dos.include
 
 all: mkdirs ${U2BIN}/ultima2.com ${U3BIN}/ultima3.com ${U5BIN}/ultima5.com
 

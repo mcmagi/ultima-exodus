@@ -1,5 +1,5 @@
 ROOT=../..
-include ${ROOT}/Makefile.include
+include ${ROOT}/Makefile.dos.include
 
 all: mkdirs ${U3BIN}/cga.drv ${U3BIN}/cgacomp.drv ${U3BIN}/ega.drv ${U3BIN}/vga.drv \
         ${U3BIN}/midpak.drv ${U3BIN}/nomidi.drv

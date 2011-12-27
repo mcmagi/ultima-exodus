@@ -2,13 +2,8 @@
 
 .DEFAULT_GOAL := all
 
-BIN=${ROOT}/bin
-LIB=${ROOT}/lib
-
-CC=gcc -c -I. -I${COMMON}
-AR=ar
-LD=gcc -Wl,-s
-ASM=C:/Development/fasm/fasm
+BIN=${ROOT}/bin/${TARGET_ARCH}
+LIB=${ROOT}/lib/${TARGET_ARCH}
 
 ASMSRC=${ROOT}/asm
 TOOLS=${ROOT}/tools

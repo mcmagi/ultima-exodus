@@ -1,6 +1,8 @@
 /* u3reset.c */
 
 
+#include	<stdio.h>           /* printf */
+#include	<string.h>          /* strcmp */
 #include	"gendefs.h"
 #include	"File.h"
 #include	"FileUtil.h"

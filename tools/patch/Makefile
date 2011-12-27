@@ -1,5 +1,5 @@
 ROOT=../..
-include ${ROOT}/Makefile.include
+include ${ROOT}/Makefile.${TARGET}.include
 
 COMMON_HEADERS=${COMMON}/File.h ${COMMON}/gendefs.h
 
@@ -12,26 +12,26 @@ ${PATCH_LIB}:
 
 # object files
 ${PATCH_LIB}/cgapatch.o: cgapatch.c u2patch.h ${COMMON_HEADERS}
-	${CC} cgapatch.c -o ${PATCH_LIB}/cgapatch.o
+	$(call compile, ${PATCH_LIB}/cgapatch.o, cgapatch.c)
 
 ${PATCH_LIB}/dngpatch.o: dngpatch.c u2patch.h ${COMMON_HEADERS}
-	${CC} dngpatch.c -o ${PATCH_LIB}/dngpatch.o
+	$(call compile, ${PATCH_LIB}/dngpatch.o, dngpatch.c)
 
 ${PATCH_LIB}/u5data.o: u5data.c u5patch.h ${COMMON_HEADERS}
-	${CC} u5data.c -o ${PATCH_LIB}/u5data.o
+	$(call compile, ${PATCH_LIB}/u5data.o, u5data.c)
 
 ${PATCH_LIB}/patch.o: patch.c ${COMMON_HEADERS}
-	${CC} patch.c -o ${PATCH_LIB}/patch.o
+	$(call compile, ${PATCH_LIB}/patch.o, patch.c)
 
 # binary files
 ${U2BIN}/cgapatch: ${COMMON_LIB}/File.o ${PATCH_LIB}/cgapatch.o
-	${LD} -o ${U2BIN}/cgapatch ${COMMON_LIB}/File.o ${PATCH_LIB}/cgapatch.o
+	$(call link, ${U2BIN}/cgapatch, ${COMMON_LIB}/File.o ${PATCH_LIB}/cgapatch.o)
 
 ${U2BIN}/dngpatch: ${COMMON_LIB}/File.o ${PATCH_LIB}/dngpatch.o
-	${LD} -o ${U2BIN}/dngpatch ${COMMON_LIB}/File.o ${PATCH_LIB}/dngpatch.o
+	$(call link, ${U2BIN}/dngpatch, ${COMMON_LIB}/File.o ${PATCH_LIB}/dngpatch.o)
 
 ${U5BIN}/u5data: ${COMMON_LIB}/File.o ${PATCH_LIB}/u5data.o ${PATCH_LIB}/patch.o
-	${LD} -o ${U5BIN}/u5data ${COMMON_LIB}/File.o ${PATCH_LIB}/u5data.o ${PATCH_LIB}/patch.o
+	$(call link, ${U5BIN}/u5data, ${COMMON_LIB}/File.o ${PATCH_LIB}/u5data.o ${PATCH_LIB}/patch.o)
 
 # clean
 clean:

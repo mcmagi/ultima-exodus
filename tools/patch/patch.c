@@ -2,6 +2,7 @@
 
 
 #include	<stdio.h>
+#include	<string.h>          /* memcmp */
 #include	"gendefs.h"
 #include	"File.h"
 

@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
 	printf("file '%s', size %d\n", patch->filename, patch->buf.st_size);
 
-	return;
+	return SUCCESS;
 }
 
 /* fills PatchArgs structure */

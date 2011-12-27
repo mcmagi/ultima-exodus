@@ -1,6 +1,7 @@
 /* fileutil.c */
 
 
+#include    <malloc.h>      /* malloc, free */
 #include	"FileUtil.h"
 
 
@@ -18,11 +19,15 @@ void init_blanks(unsigned char blanks[], int size)
 void clear_file(File *zerofile)
 {
 	int size = zerofile->buf.st_size;	/* size of blank array */
-	unsigned char blanks[size];		/* blank array */
+	unsigned char *blanks;		        /* blank array */
+
+    blanks = (unsigned char *) malloc(size);
 
 	/* get blanks array */
 	init_blanks(blanks, size);
 
 	seek_through_file(zerofile, 0, SEEK_SET);
 	write_to_file(zerofile, blanks, size);
+
+    free(blanks);
 }
