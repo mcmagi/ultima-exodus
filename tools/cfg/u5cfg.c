@@ -12,65 +12,36 @@
 
 int main(int argc, const char *argv[])
 {
-	BOOL midi;						/* midi flag */
-	BOOL autosave;						/* autosave flag */
-	BOOL framelimiter;					/* framelimiter flag */
-	BOOL vga;							/* vga flag */
+    struct u5cfg cfg;
 	int option;						/* option */
-	
-	unsigned char defaults[CFG_SZ];		/* 4-byte data string */
-	unsigned char data[CFG_SZ];			/* 4-byte data string */
-	
 	File *file;						/* File pointer */
 
 
-	/* set defaults values */
-	set_defaults(defaults);
-
 	/* get file structure, then get data from it */
 	file = stat_file(CFG);
-	get_cfg_data(file, data, defaults);
-
-	/* get current info on all flags */
-	midi = get_status(data, MIDI_INDEX);
-	autosave = get_status(data, AUTOSAVE_INDEX);
-	framelimiter = get_status(data, FRAMELIMITER_INDEX);
-	vga = get_status(data, EGAVGA_INDEX);
+	cfg = get_u5cfg(file);
 
 	do
 	{
 		/* get user selection */
-		option = menu(midi, autosave, framelimiter, vga);
+		option = menu(cfg);
 
 		switch (option)
 		{
-		  case MIDI:
-			midi = ! midi;
-			set_status(data, MIDI_INDEX, midi);
-			break;
+		    case MUSIC_OPT:
+                if (cfg.music == MUSIC_MIDI)
+                    cfg.music = MUSIC_NONE;
+                else
+                    cfg.music = MUSIC_MIDI;
+			    break;
 
-		  /*case AUTOSAVE:
-			autosave = ! autosave;
-			set_status(data, AUTOSAVE_INDEX, autosave);
-			break;
-
-		  case FRAMELIMITER:
-			framelimiter = ! framelimiter;
-			set_status(data, FRAMELIMITER_INDEX, framelimiter);
-			break;
-
-		  case EGAVGA:
-			vga = ! vga;
-			set_status(data, EGAVGA_INDEX, vga);
-			break;*/
-
-		  case SAVE_QUIT:
-			save_cfg_data(file, data);
-			option = QUIT;
-			break;
+		    case SAVE_QUIT_OPT:
+			    save_u5cfg(file, cfg);
+			    option = QUIT_OPT;
+			    break;
 		}
 	}
-	while (option != QUIT);
+	while (option != QUIT_OPT);
 
 	/* close the file */
 	close_file(file);
@@ -79,48 +50,22 @@ int main(int argc, const char *argv[])
 }
 
 
-int menu(BOOL midi, BOOL autosave, BOOL framelimiter, BOOL vga)
+int menu(struct u5cfg cfg)
 {
 	char input[BUFSIZ];						/* unedited input */
 
 	int option = 0;						/* edited option */
 	int i;								/* loop counter */
 
-	char midi_stat[STATUS_STR_SZ+1];			/* midi status string */
-	char autosave_stat[STATUS_STR_SZ+1];		/* autosave status string */
-	char framelimiter_stat[STATUS_STR_SZ+1];	/* framelimiter status string */
-	char vga_stat[EGA_VGA_SZ+1];				/* vga status string */
-
-
-	/* set status strings */
-	if (midi)
-		strcpy(midi_stat, DISABLE_STR);
-	else
-		strcpy(midi_stat, ENABLE_STR);
-
-	if (autosave)
-		strcpy(autosave_stat, DISABLE_STR);
-	else
-		strcpy(autosave_stat, ENABLE_STR);
-
-	if (framelimiter)
-		strcpy(framelimiter_stat, DISABLE_STR);
-	else
-		strcpy(framelimiter_stat, ENABLE_STR);
-
-	if (vga)
-		strcpy(vga_stat, EGA_STR);
-	else
-		strcpy(vga_stat, VGA_STR);
 
 	/* print the menu */
 	printf("\nU5 Upgrade Configuration\n\n");
-	printf("%d - %s the MIDI music\n", MIDI, midi_stat);
-	/*printf("%d - %s the Autosave\n", AUTOSAVE, autosave_stat);*/
-	/*printf("%d - %s the Frame Limiter\n", FRAMELIMITER, framelimiter_stat);*/
-	/*printf("%d - Set graphics mode to %s\n", EGAVGA, vga_stat);*/
-	printf("%d - Save & Quit\n", SAVE_QUIT);
-	printf("%d - Quit without Saving\n", QUIT);
+	printf("%d - Music:          %s\n", MUSIC_OPT,
+         cfg.music == MUSIC_NONE ? MUSIC_NONE_STR :
+         cfg.music == MUSIC_MIDI ? MUSIC_MIDI_STR :
+             EMPTY_STR);
+	printf("%d - Save & Quit\n", SAVE_QUIT_OPT);
+	printf("%d - Quit without Saving\n", QUIT_OPT);
 	printf("\noption: ");
 
 	/* get input */
@@ -134,11 +79,46 @@ int menu(BOOL midi, BOOL autosave, BOOL framelimiter, BOOL vga)
 	return option;
 }
 
-
-void set_defaults(unsigned char defaults[])
+void set_defaults(unsigned char data[])
 {
-	defaults[MIDI_INDEX] = ON;
-	defaults[AUTOSAVE_INDEX] = OFF;
-	defaults[FRAMELIMITER_INDEX] = ON;
-	defaults[EGAVGA_INDEX] = OFF;
+	data[MUSIC_INDEX] = ON;
+	data[AUTOSAVE_INDEX] = OFF;
+	data[FRAMELIMITER_INDEX] = ON;
+	data[VIDEO_INDEX] = VIDEO_EGA;
+	data[U5_NONE_INDEX] = OFF;
+	data[MOONGATE_INDEX] = MOONGATE_CYCLE;
+}
+
+struct u5cfg get_u5cfg(File *file)
+{
+	unsigned char data[CFG_SZ];			/* data string */
+    struct u5cfg cfg;
+
+    /* initialize data array to defaults */
+    set_defaults(data);
+
+    /* read config file */
+    get_cfg_data(file, data);
+
+    /* populate struct */
+	cfg.video = get_status(data, VIDEO_INDEX);
+	cfg.music = get_status(data, MUSIC_INDEX);
+
+    return cfg;
+}
+
+void save_u5cfg(File *file, struct u5cfg cfg)
+{
+	unsigned char data[CFG_SZ];			/* data string */
+
+    /* populate data array */
+	set_status(data, VIDEO_INDEX, cfg.video);
+	set_status(data, MUSIC_INDEX, cfg.music);
+	set_status_bool(data, AUTOSAVE_INDEX, FALSE);
+	set_status_bool(data, FRAMELIMITER_INDEX, FALSE);
+	set_status_bool(data, U5_NONE_INDEX, FALSE);
+	set_status(data, MOONGATE_INDEX, OFF);
+
+    /* overwrite file data */
+    save_cfg_data(file, data);
 }
