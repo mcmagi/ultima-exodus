@@ -88,13 +88,13 @@ void verify_patch_header(File *patch)
 	else if (pz.ver != PATCH_VER)
 	{
 		/* wrong version */
-		fprintf(stderr, "Patch file incorrect version! Verify failed!\n");
+		fprintf(stderr, "Patch file incorrect version! (expected=%c, actual=%c) Verify failed!\n", PATCH_VER, pz.ver);
 		exit(FAILURE);
 	}
 	else if (pz.size != patch->buf.st_size)
 	{
 		/* wrong size */
-		fprintf(stderr, "File size does not match size in header! Verify failed!\n");
+		fprintf(stderr, "File size does not match size in header! (expected=%d, actual=%d) Verify failed!\n", pz.size, patch->buf.st_size);
 		exit(FAILURE);
 	}
 	else

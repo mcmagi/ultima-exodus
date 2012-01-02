@@ -1,9 +1,9 @@
 # Makefile for TLK proggies
 ROOT=../..
-include ${ROOT}/Makefile.${TARGET}.include
+include ${ROOT}/Makefile.include
 
 
-all: mkdirs ${U2BIN}/viewtlk
+compile: mkdirs ${U2BIN}/viewtlk
 
 mkdirs: ${TLK_LIB} ${U2BIN}
 

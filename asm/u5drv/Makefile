@@ -1,7 +1,7 @@
 ROOT=../..
-include ${ROOT}/Makefile.dos.include
+include ${ROOT}/Makefile.include
 
-all: mkdirs ${U5BIN}/mid.drv
+compile: mkdirs ${U5BIN}/mid.drv
 
 mkdirs: ${U5BIN}
 
@@ -10,3 +10,8 @@ ${U5BIN}/mid.drv: midi.asm
 
 clean:
 	rm ${U5BIN}/mid.drv
+
+package: package_u5
+
+package_u5:
+	cp -f ${U5BIN}/mid.drv ${U5PKG}

@@ -17,45 +17,47 @@ int main(int argc, char *argv[])
 	File *patch;					/* patch file */
 	PatchArgs args;					/* args structure */
 	long filesize;					/* actual filesize */
+    int num_diffs;                  /* number of differences found */
 
 
 	args = get_args(argc, argv);
 
 	/* open patch file */
 	patch = stat_file(args.patchfile);
-	open_file(patch, APPEND_MODE);
 
-	/* create or verify patch header */
-	if (patch->buf.st_size == 0)
+	/* verify patch header */
+	if (! patch->newfile)
 	{
-		printf("New patch file - creating\n");
-		write_patch_header(patch, sizeof(struct patch_header));
+	    open_file(patch, APPEND_MODE);
 
-		/* seek to end of patch header */
-		seek_through_file(patch, sizeof(struct patch_header), SEEK_SET);
-	}
-	else /* (patch->buf.st_size != 0) */
-	{
 		printf("Found existing file - verifying\n");
 		verify_patch_header(patch);
 
 		/* seek to end of file */
-		seek_through_file(patch, patch->buf.st_size, SEEK_SET);
+		seek_through_file(patch, 0, SEEK_END);
 	}
 
 	/* copies diff data from old/new files to patch file */
-	diff(args.oldfile, args.newfile, patch, args.usenew);
+	num_diffs = diff(args.oldfile, args.newfile, patch, args.usenew);
 
-	/* close patch file */
+    if (num_diffs > 0)
+    {
+	    /* write patch header with updated size */
+        int newsize = file_size(patch);
+
+        /* must reopen to write to beginning of file */
+        reopen_file(patch, READWRITE_MODE);
+	    write_patch_header(patch, newsize);
+
+	    printf("patch file '%s', size %d, number of differences %d\n", patch->filename, newsize, num_diffs);
+    }
+    else
+    {
+	    printf("no differences found\n");
+    }
+
+
 	close_file(patch);
-
-	/* write patch header with updated size */
-	patch = stat_file(args.patchfile);
-	open_file(patch, READWRITE_MODE);
-	write_patch_header(patch, patch->buf.st_size);
-	close_file(patch);
-
-	printf("file '%s', size %d\n", patch->filename, patch->buf.st_size);
 
 	return SUCCESS;
 }
@@ -104,13 +106,4 @@ void print_help_message()
 	fprintf(stderr, "\t-n\tName of new (or target) file\n");
 	fprintf(stderr, "\t-p\tName of patchfile\n\n");
 	exit(HELPMSG);
-}
-
-void write_patch_header(File *patch, long size)
-{
-	struct patch_header pz;
-
-	pz = build_patch_header(size);
-	seek_through_file(patch, 0, SEEK_SET);
-	write_to_file(patch, &pz, sizeof(struct patch_header));
 }

@@ -1,9 +1,9 @@
 ROOT=../..
-include ${ROOT}/Makefile.${TARGET}.include
+include ${ROOT}/Makefile.include
 
 COMMON_HEADERS=${COMMON}/File.h ${COMMON}/gendefs.h
 
-all: mkdirs ${U2BIN}/cgapatch ${U2BIN}/dngpatch ${U5BIN}/u5data
+compile: mkdirs ${U2BIN}/cgapatch ${U2BIN}/dngpatch ${U5BIN}/u5data
 
 mkdirs: ${PATCH_LIB} ${U2BIN} ${U5BIN}
 
@@ -39,3 +39,5 @@ clean:
 	rm ${U2BIN}/cgapatch
 	rm ${U2BIN}/dngpatch
 	rm ${U5BIN}/u5data
+
+# these tools no longer get packaged, in favor of binpatch

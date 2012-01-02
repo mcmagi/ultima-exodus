@@ -1,7 +1,7 @@
 ROOT=../..
-include ${ROOT}/Makefile.dos.include
+include ${ROOT}/Makefile.include
 
-all: mkdirs ${U3BIN}/cga.drv ${U3BIN}/cgacomp.drv ${U3BIN}/ega.drv ${U3BIN}/vga.drv \
+compile: mkdirs ${U3BIN}/cga.drv ${U3BIN}/cgacomp.drv ${U3BIN}/ega.drv ${U3BIN}/vga.drv \
         ${U3BIN}/midpak.drv ${U3BIN}/nomidi.drv
 
 mkdirs: ${U3BIN}
@@ -34,3 +34,13 @@ clean:
 	rm ${U3BIN}/vga.drv
 	rm ${U3BIN}/midpak.drv
 	rm ${U3BIN}/nomidi.drv
+
+package: package_u3
+
+package_u3:
+	cp -f ${U3BIN}/cga.drv ${U3PKG}
+	cp -f ${U3BIN}/cgacomp.drv ${U3PKG}
+	cp -f ${U3BIN}/ega.drv ${U3PKG}
+	cp -f ${U3BIN}/vga.drv ${U3PKG}
+	cp -f ${U3BIN}/nomidi.drv ${U3PKG}
+	cp -f ${U3BIN}/midpak.drv ${U3PKG}

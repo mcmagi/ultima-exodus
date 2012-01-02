@@ -1,8 +1,8 @@
 # Makefile for reset proggies
 ROOT=../..
-include ${ROOT}/Makefile.${TARGET}.include
+include ${ROOT}/Makefile.include
 
-all: mkdirs ${U2BIN}/u2reset ${U3BIN}/u3reset
+compile: mkdirs ${U2BIN}/u2reset ${U3BIN}/u3reset
 
 mkdirs: ${RESET_LIB} ${U2BIN} ${U3BIN}
 
@@ -44,3 +44,12 @@ clean:
 	rm ${U2BIN}/u2reset.exe
 	rm ${U3BIN}/u3reset.exe
 	rm ${RESET_LIB}/*.o
+
+# package
+package: package_u2 package_u3
+
+package_u2: ${U2PKG} ${U2BIN}/u2reset.exe
+	cp -f ${U2BIN}/u2reset.exe ${U2PKG}
+
+package_u3: ${U3PKG} ${U#BIN}/u3reset.exe
+	cp -f ${U3BIN}/u3reset.exe ${U3PKG}

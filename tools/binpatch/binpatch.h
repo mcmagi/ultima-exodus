@@ -4,6 +4,7 @@
 
 #include	"gendefs.h"
 #include	"File.h"
+#include	"patch.h"
 
 
 #define HELPMSG			1

@@ -2,13 +2,59 @@
 
 .DEFAULT_GOAL := all
 
-BIN=${ROOT}/bin/${TARGET_ARCH}
-LIB=${ROOT}/lib/${TARGET_ARCH}
+TARGET_ARCH_DOS := i386-dos
+TARGET_ARCH_LOCAL := $(shell gcc -dumpmachine)
 
+ifeq (${TARGET},local)
+    TARGET_ARCH := ${TARGET_ARCH_LOCAL}
+
+    # compilation programs
+    CC=gcc -c -I. -I${COMMON}
+    AR=ar
+    LD=gcc -Wl,-s
+    ASM=C:/Development/fasm/fasm
+
+    # compilation macros
+    compile = ${CC} -o ${1} ${2}
+    archive = ${AR} -r ${1} ${2}
+    link = ${LD} -o ${1} ${2}
+else
+    # dos is default target
+    TARGET_ARCH := ${TARGET_ARCH_DOS}
+
+    WATCOM=C:/Development/WATCOM
+
+    # compilation programs
+    CC=${WATCOM}/binnt/wcc -q -i=$(call dospath,${WATCOM}/h) -i=. -i=$(call dospath,${COMMON}) -bt=DOS -3
+    AR=ar
+    LD=${WATCOM}/binnt/wlink system dos
+
+    # compilation macros
+    dospath = $(subst /,\\,"$(strip ${1})")
+    compile = ${CC} -fo=$(call dospath,${1}) ${2}
+    #compile = ${CC} -fo=$(call dospath,${1}) $(foreach file,${2},$(call dospath,$file))
+    archive = ${AR} -r ${1} ${2}
+    link = ${LD} name $(call dospath,${1}) file $(foreach file,${2},$(call dospath,${file}),)
+endif
+
+stripdots = $(subst .,,$(strip ${1}))
+
+ASM=C:/Development/fasm/fasm
+ZIP=zip
+UNZIP=unzip
+
+# source locations
 ASMSRC=${ROOT}/asm
 TOOLS=${ROOT}/tools
 COMMON=${TOOLS}/common
 
+# build output locations
+BUILD=${ROOT}/build
+LIB=${BUILD}/lib/${TARGET_ARCH}
+BIN=${BUILD}/bin/${TARGET_ARCH}
+DMKIT=${BUILD}/dmkit
+
+# object file locations
 TOOLS_LIB=${LIB}/tools
 COMMON_LIB=${TOOLS_LIB}/common
 RESET_LIB=${TOOLS_LIB}/reset
@@ -16,15 +62,45 @@ CFG_LIB=${TOOLS_LIB}/cfg
 PATCH_LIB=${TOOLS_LIB}/patch
 BINPATCH_LIB=${TOOLS_LIB}/binpatch
 TLK_LIB=${TOOLS_LIB}/tlk
+
+# binary locations
 U2BIN=${BIN}/u2
 U3BIN=${BIN}/u3
 U5BIN=${BIN}/u5
 UTILBIN=${BIN}/util
 
-# game locations (for installation)
-ULTIMA2=C:/Development/Workshop/Ultima2
-ULTIMA3=C:/Development/Workshop/Ultima3
-ULTIMA5=C:/Development/Workshop/Ultima5
+# other locations
+PATCHES=${ROOT}/patches
+EXT=${ROOT}/ext
+DATA=${ROOT}/data
+DOC=${ROOT}/doc
+
+# game locations (for installation & patching)
+U2ORIGINAL=${ROOT}/game/u2orig
+U3ORIGINAL=${ROOT}/game/u3orig
+U5ORIGINAL=${ROOT}/game/u5orig
+U2UPGRADE=${ROOT}/game/u2up
+U3UPGRADE=${ROOT}/game/u3up
+U5UPGRADE=${ROOT}/game/u5up
+
+# upgrade package versions
+U2VER=1.1
+U3VER=3.0
+U5VER=1.0
+
+# upgrade package directories
+U2PKG=${BUILD}/u2pkg
+U3PKG=${BUILD}/u3pkg
+U5PKG=${BUILD}/u5pkg
+
+# upgrade packages
+U2PKG_ZIP=${BUILD}/u2upgrade-${U2VER}.zip
+U3PKG_ZIP=${BUILD}/u3upgrade-${U3VER}.zip
+U5PKG_ZIP=${BUILD}/u5upgrade-${U5VER}.zip
+
+# patcher locations
+PATCH=${BUILD}/bin/${TARGET_ARCH_LOCAL}/util/binpat
+DIFF=${BUILD}/bin/${TARGET_ARCH_LOCAL}/util/bindiff
 
 ${BIN}:
 	mkdir -p ${BIN}
@@ -40,3 +116,12 @@ ${U5BIN}:
 
 ${UTILBIN}:
 	mkdir -p ${UTILBIN}
+
+${U2PKG}:
+	mkdir -p ${U2PKG}
+
+${U3PKG}:
+	mkdir -p ${U3PKG}
+
+${U5PKG}:
+	mkdir -p ${U5PKG}

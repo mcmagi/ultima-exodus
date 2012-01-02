@@ -1,13 +1,23 @@
 # directories
 DIRS = common cfg patch reset tlk binpatch
 
-all:
+compile:
 	# construct both local and dos targets
 	for i in ${DIRS}; do \
 		if [ -d "$$i" ]; then \
 			cd $$i; \
-			TARGET=local $(MAKE); \
-			TARGET=dos $(MAKE); \
+			TARGET=local $(MAKE) compile; \
+			TARGET=dos $(MAKE) compile; \
+			cd ..; \
+		fi \
+	done
+
+package:
+	# package only dos targets
+	for i in ${DIRS}; do \
+		if [ -d "$$i" ]; then \
+			cd $$i; \
+			TARGET=dos $(MAKE) package; \
 			cd ..; \
 		fi \
 	done

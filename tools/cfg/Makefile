@@ -1,7 +1,7 @@
 ROOT=../..
-include ${ROOT}/Makefile.${TARGET}.include
+include ${ROOT}/Makefile.include
 
-all: mkdirs ${U2BIN}/u2cfg ${U3BIN}/u3cfg ${U5BIN}/u5cfg
+compile: mkdirs ${U2BIN}/u2cfg ${U3BIN}/u3cfg ${U5BIN}/u5cfg
 
 mkdirs: ${CFG_LIB} ${U2BIN} ${U3BIN} ${U5BIN}
 
@@ -37,3 +37,15 @@ clean:
 	rm ${U2BIN}/u2cfg
 	rm ${U3BIN}/u3cfg
 	rm ${U5BIN}/u5cfg
+
+# package
+package: package_u2 package_u3 package_u5
+
+package_u2: ${U2BIN}/u2cfg
+	cp -f ${U2BIN}/u2cfg ${U2PKG}
+
+package_u3: ${U3BIN}/u3cfg
+	cp -f ${U3BIN}/u3cfg ${U3PKG}
+
+package_u5: ${U5BIN}/u5cfg
+	cp -f ${U5BIN}/u5cfg ${U5PKG}

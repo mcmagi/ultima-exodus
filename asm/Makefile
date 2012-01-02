@@ -1,9 +1,15 @@
 # directories
 DIRS = color launcher u3drv u5drv
 
-all:
+compile:
 	for i in ${DIRS}; do \
-		cd $$i && $(MAKE); \
+		cd $$i && $(MAKE) compile; \
+		cd ..; \
+	done
+
+package:
+	for i in ${DIRS}; do \
+		cd $$i && $(MAKE) package; \
 		cd ..; \
 	done
 

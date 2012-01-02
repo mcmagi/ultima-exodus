@@ -21,7 +21,6 @@ typedef struct
 /* Function Prototypes */
 PatchArgs get_args(int argc, char *argv[]);
 void print_help_message();
-void write_patch_header(File *patch, long size);
 
 
 #endif

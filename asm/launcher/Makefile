@@ -1,7 +1,7 @@
 ROOT=../..
-include ${ROOT}/Makefile.dos.include
+include ${ROOT}/Makefile.include
 
-all: mkdirs ${U2BIN}/ultima2.com ${U3BIN}/ultima3.com ${U5BIN}/ultima5.com
+compile: mkdirs ${U2BIN}/ultima2.com ${U3BIN}/ultima3.com ${U5BIN}/ultima5.com
 
 mkdirs: ${U2BIN} ${U3BIN} ${U5BIN}
 
@@ -18,3 +18,14 @@ clean:
 	rm ${U2BIN}/ultima2.com
 	rm ${U3BIN}/ultima3.com
 	rm ${U5BIN}/ultima5.com
+
+package: package_u3
+
+package_u2:
+	cp -f ${U2BIN}/ultima2.com ${U2PKG}
+
+package_u3:
+	cp -f ${U3BIN}/ultima3.com ${U3PKG}
+
+package_u5:
+	cp -f ${U5BIN}/ultima5.com ${U5PKG}

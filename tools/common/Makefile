@@ -1,7 +1,7 @@
 ROOT=../..
-include ${ROOT}/Makefile.${TARGET}.include
+include ${ROOT}/Makefile.include
 
-all: mkdirs ${COMMON_LIB}/File.o
+compile: mkdirs ${COMMON_LIB}/File.o
 
 mkdirs: ${COMMON_LIB}
 

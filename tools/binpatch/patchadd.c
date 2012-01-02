@@ -10,11 +10,9 @@
 #include	"patchadd.h"
 
 
-static BOOL found_diff = FALSE;
-
 /* DIFF Functions */
 
-void diff(const char oldfile[], const char newfile[], File *patch, BOOL newflag)
+int diff(const char oldfile[], const char newfile[], File *patch, BOOL newflag)
 {
 	unsigned char oldbyte, newbyte;		/* storage for old and new bytes */
 	int idx;							/* index into file */
@@ -23,9 +21,8 @@ void diff(const char oldfile[], const char newfile[], File *patch, BOOL newflag)
 	File *old;							/* ptr to old file */
 	File *new;							/* ptr to new file */
 	const char *newname = NULL;			/* ptr to new filename */
+    int diffcount = 0;                  /* number of differences found */
 
-
-	found_diff = FALSE;
 
 	/* stat files */
 	old = stat_file(oldfile);
@@ -39,9 +36,13 @@ void diff(const char oldfile[], const char newfile[], File *patch, BOOL newflag)
 	if (newflag)
 		newname = newfile;
 
-	/* write file header to patch file */
+    /* create file header; wait to write it until we find our first difference */
 	fz = build_file_header(oldfile, newname, old->buf.st_size);
-	write_to_file(patch, &fz, sizeof(fz));
+
+    if (patch->fp != NULL)
+    {
+	    /* write file header to patch file if file exists */
+    }
 
 	/* loop through lower of two sizes */
 	max_idx = (old->buf.st_size > new->buf.st_size) ? new->buf.st_size : old->buf.st_size;
@@ -60,24 +61,54 @@ void diff(const char oldfile[], const char newfile[], File *patch, BOOL newflag)
 
 			/* found difference - must replace
 			 *  (and offset current index by patched data size) */
+
+            /* first diff found; write patch header and/or file header */
+            if (patch->fp == NULL)
+                create_patch_file(patch, fz);
+            else if (diffcount == 0)
+	            write_to_file(patch, &fz, sizeof(fz));
+
 			idx += patch_add_replace(old, new, patch, idx) - 1;
+            diffcount++;
 		}
 	}
 
 	/* determine if the file sizes are not equal */
 	if (old->buf.st_size > new->buf.st_size)
+    {
 		/* old file greater than new file - must truncate */
-		patch_add_truncate(old, patch, idx);
-	else if (old->buf.st_size < new->buf.st_size)
-		/* new file greater than old file - must append */
-		patch_add_append(new, patch, idx);
 
-	if (! found_diff)
+        /* first diff found; write patch header and/or file header */
+        if (patch->fp == NULL)
+            create_patch_file(patch, fz);
+        else if (diffcount == 0)
+            write_to_file(patch, &fz, sizeof(fz));
+
+		patch_add_truncate(old, patch, idx);
+        diffcount++;
+    }
+	else if (old->buf.st_size < new->buf.st_size)
+    {
+		/* new file greater than old file - must append */
+
+        /* first diff found; write patch header and/or file header */
+        if (patch->fp == NULL)
+            create_patch_file(patch, fz);
+        else if (diffcount == 0)
+            write_to_file(patch, &fz, sizeof(fz));
+
+		patch_add_append(new, patch, idx);
+        diffcount++;
+    }
+
+	if (diffcount == 0)
 		printf("Files %s and %s are identical\n", old->filename, new->filename);
 
 	/* close files */
 	close_file(old);
 	close_file(new);
+
+    return diffcount;
 }
 
 
@@ -125,8 +156,6 @@ long patch_add_one(File *in, File *patch, long idx, int type)
 	/* free memory */
 	free(data);
 
-	found_diff = TRUE;
-
 	return data_size;
 }
 
@@ -166,8 +195,6 @@ long patch_add_replace(File *old, File *new, File *patch, long idx)
 	/* free memory */
 	free(olddata);
 	free(newdata);
-
-	found_diff = TRUE;
 
 	/* return size of data patched */
 	return data_size;
@@ -209,4 +236,24 @@ long get_replace_size(File *old, File *new, long offset)
 	seek_through_file(new, offset, SEEK_SET);
 
 	return bytes;
+}
+
+void create_patch_file(File *patch, struct file_header fz)
+{
+	printf("New patch file - creating\n");
+	open_file(patch, APPEND_MODE);
+
+	write_patch_header(patch, sizeof(struct patch_header));
+
+    /* write file header to patch file */
+    write_to_file(patch, &fz, sizeof(fz));
+}
+
+void write_patch_header(File *patch, long size)
+{
+	struct patch_header pz;
+
+	pz = build_patch_header(size);
+	seek_through_file(patch, 0, SEEK_SET);
+	write_to_file(patch, &pz, sizeof(struct patch_header));
 }
