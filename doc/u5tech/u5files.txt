@@ -1,0 +1,170 @@
+
+00 - ULTIMA.EXE (no file entry)
+
+01 - TOWN.OVL
+	Load Segment:	081d
+	End Segment:	09a4
+	Difference:	0187
+	Data Size:	0187
+	Headers:	0
+
+02 - MAINOUT.OVL
+	Load Segment:	081d
+	End Segment:	09e8
+	Difference:	01cb
+	Data Size:	01cb
+	Headers:	0
+
+02 - DUNGEON.OVL
+	Load Segment:	081d
+	End Segment:	0a12
+	Difference:	01f5
+	Data Size:	01f5
+	Headers:	0
+
+04 - INTRO.OVL
+	Load Segment:	081d
+	End Segment:	0a29
+	Difference:	020c
+	Data Size:	020c
+	Headers:	2
+
+05 - FLAMES.OVL
+	Load Segment:	0a29
+	End Segment:	0a2b
+	Difference:	0002
+	Data Size:	0002
+	Headers:	0
+
+06 - NPC.OVL
+	Load Segment:	0a29
+	End Segment:	0b5c
+	Difference:	0133
+	Data Size:	0133
+	Headers:	0
+
+07 - COMBAT.OVL
+	Load Segment:	0a29
+	End Segment:	0bf8
+	Difference:	01cf
+	Data Size:	01cf
+	Headers:	0
+
+08 - BLCKTHRN.OVL
+	Load Segment:	0a29
+	End Segment:	0af0
+	Difference:	00c7
+	Data Size:	00c7
+	Headers:	0
+
+09 - LOOKOBJ.OVL
+	Load Segment:	0a29
+	End Segment:	0b46
+	Difference:	011d
+	Data Size:	011d
+	Headers:	0
+
+0a - DNGLOOK.OVL
+	Load Segment:	0a29
+	End Segment:	0b64
+	Difference:	013b
+	Data Size:	013b
+	Headers:	0
+
+0b - OUTSUBS.OVL
+	Load Segment:	0a29
+	End Segment:	0ac3
+	Difference:	009a
+	Data Size:	009a
+	Headers:	0
+
+0c - SHOPPES.OVL
+	Load Segment:	0a29
+	End Segment:	0b9c
+	Difference:	0173
+	Data Size:	0173
+	Headers:	0
+
+0d - ENDGAME.OVL
+	Load Segment:	0a29
+	End Segment:	0ad8 (0adc)
+	Difference:	00af (00b3)
+	Data Size:	00af (00b3)
+	Headers:	0
+
+0e - SJOG.OVL
+	Load Segment:	0bf8
+	End Segment:	0e1e
+	Difference:	0226
+	Data Size:	0226
+	Headers:	0
+
+0f - CMDS.OVL
+	Load Segment:	0bf8
+	End Segment:	0dc9
+	Difference:	01d1
+	Data Size:	01d1
+	Headers:	0
+
+10 - CAST.OVL
+	Load Segment:	0bf8
+	End Segment:	0e0f
+	Difference:	0217
+	Data Size:	0217
+	Headers:	0
+
+11 - TALK.OVL
+	Load Segment:	0bf8
+	End Segment:	0d29
+	Difference:	0131
+	Data Size:	0131
+	Headers:	0
+
+12 - CAST2.OVL
+	Load Segment:	0e1e
+	End Segment:	0f3a
+	Difference:	011c
+	Data Size:	011c
+	Headers:	0
+
+13 - ZSTATS.OVL
+	Load Segment:	0e1e
+	End Segment:	0f4f
+	Difference:	0131
+	Data Size:	0131
+	Headers:	0
+
+14 - COMSUBS.OVL
+	Load Segment:	0e1e
+	End Segment:	0f64
+	Difference:	0146
+	Data Size:	0146
+	Headers:	0
+
+15 - SHOPPES2.OVL
+	Load Segment:	0e1e
+	End Segment:	0ed0
+	Difference:	00b2
+	Data Size:	00b2
+	Headers:	0
+
+16 - SHOPPES3.OVL
+	Load Segment:	0e1e
+	End Segment:	0ebc
+	Difference:	009e
+	Data Size:	009e
+	Headers:	0
+
+17 - FONT.OVL
+	Load Segment:	0e1e
+	End Segment:	0f08
+	Difference:	00ea
+	Data Size:	00ea
+	Headers:	0
+
+18 - DATA.OVL
+	Load Segment:	0f64
+	End Segment:	1bb8
+	Difference:	0c54
+	Data Size:	0bd4
+	Headers:	3

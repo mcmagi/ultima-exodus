@@ -1,0 +1,39 @@
+
+Initial Loader Sequence
+-----------------------
+SS:SP = 096F:0064
+CS:IP = 081d:0000
+Header Size = 0080 paragraphs
+CS(file) = CS(header) + Header Size = 089d
+Entry point = 89d0 in file
+
+DS(header) = ES(header) = -0010
+DS(file) = ES(file) = DS(header) + header size = 0070
+Data/Extra segments start = 0100 before file begins
+
+
+Second Loader Sequence
+----------------------
+CS = DS + 1b48 - 140a = 07ae in file
+IP = 0322
+CS:IP = 07ae:0322 in file
+Start of new CS = 7ae0 in file
+Next Start point = 7e02 in file
+Range: 0010-03df
+
+ES = CS + 4a
+Start of new ES = 8280
+
+DS += 077c
+
+
+Start of Code
+-------------
+CS = DS + 0010 = 0000(header)
+IP = 017e
+CS(file) = CS(header) + header size = 0080
+Start of new CS = 0800 in file
+Next start point = 017e
+Range: 0000-7adf (endpt assumed)
+
+*5285 = psp = CS - 0010 = -0100(header) = 0700(file)

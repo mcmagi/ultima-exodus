@@ -1,0 +1,82 @@
+Towns/Dungeons (status byte 5893)
+
+Overworld: (Britannic Lands / Worlds Below)
+	00 - Overworld map
+
+Cities of Virtue: (Villager Tarantella)
+	01 - Moonglow
+	02 - Britain
+	03 - Jhelom
+	04 - Yew
+	05 - Minoc
+	06 - Trinsic
+	07 - Skara Brae
+	08 - New Magincia
+
+Lighthouses: (I Dream of Lady Nan)
+	09 - Fogsbane
+	0a - Stormcrow
+	0b - Greyhaven
+	0c - Waveguide
+
+Huts: (Greyson's Tale)
+	0d - Iolo's Hut
+	0e - b0,d0 (Sutek's hut)
+	0f - c9,3b (Sin V'rall's hut)
+	10 - 99,5b (Grendel's hut)
+
+Castles: (Missing Monarch / Lord Blackthorn)
+	11 - 56,6b (Castle of Lord British)
+	12 - c4,f5 (Palace of Blackthorn)
+
+Other Towns: (Greyson's Tale)
+	13 - West Britanny
+	14 - North Britanny
+	15 - East Britanny
+	16 - Paws
+	17 - Cove
+	18 - Buccaneer's Den
+
+Keeps: (?)
+	19 - Ararat
+	1a - Bordermarch
+	1b - Farthing
+	1c - Windemere
+	1d - Stonegate
+
+Keeps of Principle: (Fanfare for the Virtuous)
+	1e - The Lycaeum
+	1f - Empath Abbey
+	20 - Serpent's Hold
+
+Dungeons: (Halls of Doom)
+	21 - Deceit
+	22 - Despise
+	23 - Destard
+	24 - Wrong
+	25 - Covetous
+	26 - Shame
+	27 - Hythloth
+	28 - Doom
+
+Combat: (Engagement and Melee / Ultima Theme)
+	ff - Combat
+
+
+Song Numbers:
+	00 - Ultima Theme
+	01 - Britannic Lands
+	02 - Cap'n Johne's Hornpipe
+	03 - Engagement and Melee
+	04 - Stones
+	05 - Greyson's Tale
+	06 - Fanfare for the Virtuous
+	07 - The Missing Monarch
+	08 - Villager Tarantella
+	09 - Halls of Doom
+	0a - Worlds Below
+	0b - Lord Blackthorn
+	0c - Dream of Lady Nan
+	0d - Joyous Reunion
+	0e - Rule Britannia
+	0f - Amiga

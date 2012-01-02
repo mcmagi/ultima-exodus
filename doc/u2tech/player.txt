@@ -1,0 +1,96 @@
+0000-000f (0036-0045) - player name (16 chars)
+
+0010 (0046) - gender (M/F)
+0011 (0047) - class (00 = fighter, 01 = cleric, 02 = wizard, 03 = thief)
+0012 (0048) - race (00 = human...)
+0013 (0049) - first map byte
+0014 (004a) - second map byte
+0015 (004b) - strength
+0016 (004c) - agility
+0017 (004d) - stamina
+0018 (004e) - charisma
+0019 (004f) - wisdom
+001a (0050) - intelligence
+001b-001c (0051-0052) - hp
+001d-001e (0053-0054) - food
+001f (0055) - ?
+0020-0021 (0056-0057) - experience (0020 = level)
+0022-0023 (0058-0059) - gold
+0024 (005a) - char x coord (col)
+0025 (005b) - char y coord (row)
+0026 (005c)
+0027 (005d)
+0028 (005e)
+0029 (005f)
+002a (0060)
+002b (0061) - readied weapon (00-09)
+002c (0062) - worn armour (00-06)
+002d (0063) - magic spell (00-09)
+002e (0064) - torches
+002f (0065) - keys
+0030 (0066) - tools
+0031 (0067)
+0032 (0068)
+0033 (0069) - ?
+0034 (006a) - rocket x coord (col)
+0035 (006b) - rocket y coord (row)
+0036 (006c) - blessing (00 or 01)
+0037 (006d) - planet number (00 on earth; 01-09 in galaxy)
+0038 (006e) - gate number (0,2,4,6)
+0039 (006f) - moongate counter
+003a (0070) - tile under moongate
+
+Weapons:
+0040 (0076) - (rsvd for hands)
+0041 (0077) - daggers
+0042 (0078) - maces
+0043 (0079) - axes
+0044 (007a) - bows
+0045 (007b) - swords
+0046 (007c) - great swords
+0047 (007d) - light swords
+0048 (007e) - phasers
+0049 (007f) - quick swords
+
+Armour:
+0060 (0096) - (rsvd for skin)
+0061 (0097) - cloth
+0062 (0098) - leather
+0063 (0099) - chain
+0064 (009a) - plate
+0065 (009b) - reflect
+0066 (009c) - power
+
+Magic:
+0080 (00b6) - (rsvd for none)
+0081 (00b7) - lights
+0082 (00b8) - down ladders
+0083 (00b9) - up ladders
+0084 (00ba) - passwalls
+0085 (00bb) - surfaces
+0086 (00bc) - prayers
+0087 (00bd) - magic missiles
+0088 (00be) - blinks
+0089 (00bf) - kills
+
+Items:
+00a0 (00d6) - rings
+00a1 (00d7) - wands
+00a2 (00d8) - staffs
+00a3 (00d9) - boots
+00a4 (00da) - cloaks
+00a5 (00db) - helms
+00a6 (00dc) - gems
+00a7 (00dd) - ankhs
+00a8 (00de) - red gems
+00a9 (00df) - skull keys
+00aa (00e0) - green gems
+00ab (00e1) - brass buttons
+00ac (00e2) - blue tassles
+00ad (00e3) - strange coins
+00ae (00e4) - green idols
+00af (00e5) - tri-lithums
+
+U2 Upgrade:
+00fe (0134) - boarded vehicle (00 for none)
+00ff (0135) - Galatic map indicator

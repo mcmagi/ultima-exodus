@@ -1,0 +1,35 @@
+MAPxyz - map files
+MONxyz - monster files
+TLKxyz - talk files
+
+Values for x:
+ X - Earth maps
+ G - Galactic maps
+
+Values for y on Earth maps:
+ 0 - Legends
+ 1 - Pangea
+ 2 - BC
+ 3 - AD
+ 4 - Aftermath
+
+Values for y on Galactic maps:
+ 1 - Mercury
+ 2 - Venus
+ 3 - Mars
+ 4 - Jupiter
+ 5 - Saturn
+ 6 - Uranus
+ 7 - Neptune
+ 8 - Pluto
+ 9 - X
+
+Values for z:
+ 0 - overworld
+ 1 - village
+ 2 - town
+ 3 - castle
+ 4 - tower
+ 5 - dungeon
+
+There are no TLK files for towers and dungeons.

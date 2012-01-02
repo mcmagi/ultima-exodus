@@ -1,0 +1,30 @@
+mov word ptr [xxxx] (6 bytes)
+call far [xxxx] (4 bytes)
+-----------------------------
+10 bytes for each far call
+
+strategy for far calls:
+ - keep original video functions in code
+ - replace their content with far calls to call_video_drv(dx),
+   where dx is function offset at 3-byte intervals: (e.g.)
+	push dx
+	mov dx,0000
+	call CALL_VIDEO_DRV
+	pop dx
+	ret
+ - add call_video_drv(dx) function in available space
+	mov cs:[DRIVER_DWORD],dx
+	call far cs:[DRIVER_DWORD]
+	ret
+
+ - The tile data will be loaded by the driver into allocated space on the heap
+
+
+Graphics Engine
+---------------
+CGA Classic (4-color WMCK)
+CGA Alternate (4-color YRGB -- ???)
+CGA Composite (16-color artifacting)
+EGA Exodus (16-color)
+VGA Exodus (256-color)
+SVGA Exodus (16-bit color -- ???)

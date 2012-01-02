@@ -1,0 +1,51 @@
+
+		**** The Exodus Project ****
+		*    Ultima III Upgrade    *
+		*                          *
+		*        Release 2.5       *
+		****************************
+
+
+File List:
+
+	** Text Files:
+	README.TXT	- Readme file for U3 Upgrade
+	HISTORY.TXT	- History of updates to U3 Upgrade
+	FILES.TXT	- Describes files in package (this file)
+
+	** Music:
+	WANDER.XMI	- Utlima III Overworld Theme
+	TOWNS.XMI	- Towne Music
+	CASTLES.XMI	- Castle of Lord British
+	RULEBRIT.XMI	- Rule Britannia
+	COMBAT.XMI	- Combat Theme
+	DUNGEON.XMI	- Dungeon Theme
+	FANFARE.XMI	- Ambrosian Fanfare
+	EXODUS.XMI	- Exodus Theme
+	ALIVE.XMI	- Alive
+
+	** Programs:
+	ULTIMA3.COM	- U3 Launcher program
+	U3EGA.COM	- U3 Main EGA Binary
+	U3CFG.EXE	- U3 Configuration program
+	U3RESET.EXE	- Sosaria Map Reset program
+
+	** U3 Internal Code:
+	BOOTUP.EGA	- EGA Bootup code
+	EXODUS.EGA	- EGA Main Game code
+	DUNGEON.EGA	- EGA Dungeon code
+
+	** U3 Graphics Files:
+	BLANK.EGA	- EGA Initial Intro
+	EXOD.EGA	- EGA Final Intro
+	ANIMATE.EGA	- EGA Intro Dragon Animation
+	CHARSET.EGA	- EGA Character Set
+	SHAPES.EGA	- EGA Tiles
+
+	** MIDPAK Drivers:
+	*.ADV		- Midpak Soundcard Driver
+	*.ADD		- Midpak Soundcard MIDI Map
+	?MIDPAK.COM	- Midpak TSR's
+	FAT.OPL		- OPL chipset data file
+	SETM.XMI	- Test XMI for SETM.EXE
+	SETM.EXE	- Music configuration program

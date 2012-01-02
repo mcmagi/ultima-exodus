@@ -1,0 +1,66 @@
+
+		**** The Exodus Project:  ***
+		*     Ultima II Upgrade     *
+		*                           *
+		*        Release 1.1        *
+		*****************************
+
+File List:
+
+	** Text Files:
+	README.TXT	- Readme file for U2 Upgrade
+	HISTORY.TXT	- History of updates to U2 Upgrade
+	FILES.TXT	- Describes files in package (this file)
+	GCHANGES.TXT	- Readme/Changes for Galaxy Map Patch
+	U2-SPDFX.TXT	- Readme/Changes for Speed Fix
+
+	** Images:
+	PICCAS		- CGA Castle Demo Screen
+	PICDRA-E	- EGA Dragon Intro Screen
+	PICOUT-E	- EGA Outside Demo Screen
+	PICTWN-E	- EGA Town Demo Screen
+	PICCAS-E	- EGA Castle Demo Screen
+	PICDNG-E	- EGA Dungeon Demo Screen
+	PICSPA-E	- EGA Space Demo Screen
+	PICMIN-E	- EGA Minax Demo Screen
+
+	** Programs:
+	ULTIMA2.COM	- U2 Launcher program
+	U2CFG.EXE	- U2 Configuration program
+	U2EGA.EXE	- EGA Game Binary & tiles
+	U2RESET.EXE	- Save game reset program
+	DNGPATCH.EXE	- U2 Pangea Dungeon fix
+	CGAPATCH.EXE	- CGA U2 Update / fix
+
+	** Galaxy Map Patch Files:
+	RENGAL.BAT	- Automates Renaming of Galaxy Map files
+	MAPG10		- Mercury Overworld Map file
+	MAPG15		- Mercury Dungeon Map file
+	MAPG20		- Venus Overworld Map file
+	MAPG30		- Mars Overworld Map file
+	MAPG32		- Mars Town Map file
+	MAPG40		- Jupiter Overworld Map file
+	MAPG41		- Jupiter Village Map file
+	MAPG45		- Jupiter Dungeon Map file
+	MONG20		- Venus Monsters file
+	MONG32		- Mars Town Monsters file
+	MONG41		- Jupiter Village Monsters file
+
+	** Converted TLK files
+	TLKX03		- Legends Castle Talk file
+	TLKX11		- Pangea Village Talk file
+	TLKX21		- BC Village Talk file
+	TLKX22		- BC Town Talk file
+	TLKX23		- BC Castle Talk file
+	TLKX21		- AD Village Talk file
+	TLKX22		- AD Town Talk file
+	TLKX23		- AD Castle Talk file
+	TLKX41		- Aftermath Village Talk file
+	TLKG32		- Mars Town Talk file
+	TLKG41		- Jupiter Village Talk file
+	TLKG61		- Uranus Village Talk file
+	TLKG71		- Neptune Village Talk file
+	TLKG81		- Pluto Village Talk file
+	TLKG82		- Pluto Town Talk file
+	TLKG92		- X Town Talk file
+	TLKG93		- X Castle Talk file

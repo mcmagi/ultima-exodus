@@ -1,0 +1,210 @@
+(start+0000) - main code segment
+
+x 0000 = main cs
+x 72e0 = cs of second loader
+x 76c0 = (start+076c), ds of second loader
+x 7780 = (start+0788), es of second loader
+x 81d0 = cs of first loader
+x f640 = (start+0f64), DATA.OVL, main ds/ss
+
+
+(start+076c) - data segment on second loader
+
+w 0000 - inits to 00ff (dunno why)
+w 0002 - file handle
+t 0004-0083 - header address table (max 20 far addrs)
+
+w 008c - ptr to filename after opened or 0000 if file is closed
+w 008e - ptr to filename while opening
+b 0090 - error condition ?
+s 0092-009e - local copy of filename
+s 009f-00b2 - 0,"Error...Call OSI$",0
+x 00c0 = (start+0788)
+
+
+(start+0778) - extra segment on second loader
+
+w 0000 - 072e, difference between cs1 and cs2
+w 0002 - (appears unused)
+w 0004 - address of stack segment (start+1bb8)
+t 0006 - u5 file table
+
+	U5 file table begins at psp+0788:0006.  Each file
+	entry is 1 paragraph long (0x10 bytes).  The data
+	within this paragraph is organized as follows:
+
+	w 0006+i - loader info
+	w 0008+i - # of addresses in the file header
+	w 000a+i - segment where start of file is to be loaded
+	w 000c+i - segment after data in use by file
+	w 000e+i - ptr to filename (in psp+0788 segment)
+	w 0010+i - initial offset in paragraphs
+	w 0012+i - initial segment in 0x10 paragraphs
+	w 0014+i - data size w/o header
+
+
+(start+0f64) - main stack/data segment, DATA.OVL
+
+x 0000 = DATA.OVL is loaded here
+
+t 25ea - filename address table
+
+w 520e - top of data/stack seg
+w 5210 - initial sp (c53e)
+w 5212 - (appears unused?)
+w 5214 - mem used in data/stack seg (initially sp)
+w 5216 - (relocated segment)
+s 5266-5272 - ";C_FILE_INFO",00
+d 5273 - old int vector 00
+
+w 5285 - seg address of psp (cs - 0010)
+w 5287 - dos version
+
+b 528e - device fh 0
+b 528f - device fh 1
+b 5290 - device fh 2
+b 5291 - device fh 3
+b 5292 - device fh 4
+
+w 52a2 - argc = number of params on cmdline (w/ program name)
+w 52a4 - argv = address of parameter table
+w 52a6 - address of local environment param table
+w 52a8 - offset to program name in env seg
+w 52aa - (relocated) segment address of environment segment
+
+w 52b6
+w 52b8 - address of return from build_parameter_table() (=01fd)
+w 52ba - t/f for argv[1][0] == 'C' (force cga)
+
+w 52c8 - video (0=cga, 1=ega, 2=tandy, 3=mono,  ffff=none)
+w 52ca - machine type (0=PCjr, 2=IBM PC, 3=Tandy, 6=other)
+
+w 52ef - t/f for argv[1][0] == 'E' (force ega)
+w 52f1 - t/f for argv[1][0] == 'T' (force tandy)
+w 52f3 - t/f for argv[1][0] == 'H' (force herc)
+
+w 5304 - old video mode
+
+s 5322-5327 - "Tandy",0
+t 5328-532f - video driver string table
+s 5330-5337 - "CGA.DRV",0
+s 5338-533f - "EGA.DRV",0
+s 5340-5347 - "T1K.DRV",0
+s 5348-534f - "HER.DRV",0
+d 5350 - far address for video driver fcns
+w 5354 - segment of 3rd part of video buffer (a800)
+
+w 5356 - timer calibration (count of # of 0's in )
+w 5358 - memory size
+w 535a - current timer value
+
+w 535c - error codes after int21 fcns
+t 535e-537d - text window table (4 arrays of 8 bytes)
+	b 00 - left-most col
+	b 01 - top-most row
+	b 02 - right-most col
+	b 03 - bottom-most row
+	b 04 - current col (within text window)
+	b 05 - current row (within text window)
+	b 06 - text colors (ho = bh, lo = fg)
+	b 07 - text effects (flags in bits 0-2)
+
+w 5386 - charset id of offset in 539a and data in 53a4-53ab
+w 5388 - charset id of seg in 5398
+w 538a - t/f, indicates special keystroke
+w 538c - ? (used in keystroke)
+w 538e - cursor advance flag
+w 5390 - ? (1b38)
+
+d 5394 - far address for disk swap message
+w 5398 - segment address of current character set
+w 539a - address of text window data for current character set
+t 539c-53a3 - character set segment table (4 addrs max)
+w 53a4 - underline flag (bit 0 of byte 7)
+w 53a6 - ? flag (bit 1 of byte 7)
+w 53a8 - inverse flag (bit 2 of byte 7)
+b 53aa - text bg color (lo nibble of byte 6)
+b 53ab - text fg color (ho nibble of byte 6)
+
+w 53b4 - data ?
+w 53b6 - data ?
+w 53b8 - file handle
+w 53ba - first allocated segment (return)
+w 53bc - first allocated segment
+w 53be - second allocated segment
+
+w 53c0
+w 53c2
+w 53c4
+w 53c6
+w 53c8
+w 53ca - (unused)
+w 53cc - 0102
+w 53ce - (unused)
+w 53d0 - 0200
+w 53d2 - 0009
+b 53d4
+b 53d5
+
+t 53ea-5401 - character data from charset file (tandy=24, others=8)
+
+w 540c - ? (1b38)
+t 540e-5405 - bios scan code table
+t 5416-541d - special key table (corresponds to bios scan code table)
+b 541e - drive number
+w 5420 - ? (used in 207e)
+
+w 5448 - current timer value
+w 544a - # of timer ticks to wait
+d 544c - far address of original int 1c
+
+b 585b - # of party members
+b 5876 - first party member that is not dead or sleeping
+b 587c - party icon (13=horse,14=carpet,1c=avatar,24=frigate,28=skiff)
+b 5892 - wind/dung direction
+b 5893 - map number (40 if tileset is unloaded)
+b 5894 - backup map number (for combat)
+b 5895 - level
+b 5896 - map x coordinate
+b 5897 - map y coordinate
+b 58a3 - battle successful flag
+b 5958 - ?
+
+b a9bd - index to table a9c8
+b a9be - 00 (fcn 0000)
+b a9c2 - 01 (fcn 0000)
+t a9c8 - drive table
+	b a9c8 - actual current disk drive letter
+	b a9c9 - adjusted disk drive letter, 0xff for floppy
+	b a9ca - adjusted disk drive letter, 0xff for floppy
+	b a9cb - floppy (0xff)
+	b a9cc - (unused)
+	b a9cd - adjusted disk drive letter, 0xff for floppy
+
+x c53e = initial top of main stack (sp), later end of cmdline args
+t c53e - environment table
+x c540 = (start+1bb8), top of DATA.OVL
+
+
+(start+1b38) - stack segment on first loader
+
+x 0800 = (start+1bb8), top of 1st stack (sp)
+
+
+(start+1bb8) - stack segment on second loader
+
+x 0000 = top of DATA.OVL
+x 0100 = top of 2nd stack (sp)
+
+
+(video) - data in ega video driver's code segment
+
+w 0202 - segment for data buffer (a800)
+w 0204 - ?
+w 0206 - segment of loaded file
+
+w 0216 - text window width
+w 0222 = hight
+w 023c - supplied address
+
+w 0866 - ?

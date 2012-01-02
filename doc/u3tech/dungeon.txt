@@ -1,0 +1,45 @@
+58cc (b) - 01   (direction)
+		00 = north
+		01 = east
+		02 = south
+		03 = west
+15cf (b) - 00   (dungeon level)
+15cc (w) - 0101 (map position)
+
+initialized for dungeon at 1dba
+
+
+
+dungeon map key:
+
+	01 - time lord
+	02 - fountain
+	03 - winds
+	04 - trap
+	05 - mark
+	06 - gremlins
+	08 - misty writings
+
+	10 - up ladder
+	20 - down ladder
+	30 - up & down ladder
+	40 - chest
+	80 - wall
+	A0 - secret door
+	C0 - normal door
+
+First nibble:
+
+	First bit determines if object is a wall
+
+	0000
+	|||+- up ladder
+	||+-- down ladder
+	|+--- chest
+	+---- off = not wall
+
+	1000
+	|||+- ?
+	||+-- secret door
+	|+--- normal door
+	+---- on = wall

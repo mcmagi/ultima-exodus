@@ -1,0 +1,113 @@
+
+		**** The Exodus Project ****
+		*    Ultima III Upgrade    *
+		*                          *
+		*        Release 2.5       *
+		****************************
+
+
+Project Status:
+
+	01-08-2002 - Release 2.5:
+
+	I have made only one bugfix to this release:
+
+	- It looks like there was a problem updating the main Sosaria map
+	  when leaving Ambrosia.  It turned out to be a result of not having
+	  cached the main map to memory as the game does when entering a
+	  town.  I found the problem code and repaired it.
+
+	Please see below for an abbreviated project history or visit the
+	project website (http://exodus.voyd.net/) for the complete status
+	history.  I also post relevant information on project updates to
+	the rec.games.computer.ultima.series and .dragons newsgroups.
+
+
+Known Issues:
+
+	None at this time.
+
+
+Abbreviated History:
+
+	01-08-2002 - 2.5
+		- This release.  See above for full details.
+
+	08-31-2001 - 2.4
+		- Fixed bug that would save your game when your party dies
+		  with AutoSave disabled.
+		- U3RESET program added.  Disperse your party before use.
+
+	04-06-2001 - 2.3
+		- No longer opens all files in r/w mode.  It now chooses
+		  either the read or write modes depending on the use of
+		  the data.
+ 		- Updating some timing on intro
+
+	01-01-2001 - 2.2
+		- Fixed major AutoSave bug where Sosaria map was not
+		  getting cached and reloaded when you entered/exited a
+		  town.
+		- Created U3CFG.EXE to configure game options.
+		- Created launcher program ULTIMA3.COM which passes
+		  parameters to midpak, bypassing a bug in the Win2K
+		  command-line.  Reads game options from U3.CFG.
+		- Added int 66 wrapper to ULTIMA3.COM so NT/2K does not
+		  crash if MIDI is disabled.
+		- Game can no longer be launched from U3EGA.COM.
+		- Improved memory handling.
+		- Play "Alive" during endgame sequence.
+		- Upgraded file I/O (removed DOS 1.0 FCB's)
+
+	11-27-2000 - 2.1
+		- Created u3autosv.exe AutoSave patch
+		- Edited MIDI music to loop properly
+		- Fixed bug w/ AutoSave when entering or leaving Ambrosia
+
+	11-19-2000 - 2.0
+		- Added MIDI music via Midpak driver
+		- Disabled AutoSave (temporarily)
+		- Added special keystrokes to combat
+		- Removed erroneous cursor from endgame sequence
+		- Added mane to horse tile
+
+	09-10-2000 - 1.0
+		- Frame limiter support added improved overall
+		- Added frame limiter to peer gems, intro animations,
+		  and demonstration screen.
+		- Added special keystrokes ALT-X/R/M
+		- Finished coloring all tiles
+		- Colored intro dragon animation
+		- Slowed down sound in dragon breath so it is audible
+
+	08-29-2000 - 0.5 beta
+		- Colored peer-gems in overworld
+		- Transformed slow-down mechanism into a full-fleged
+		  frame limiter.
+
+	08-25-2000 - 0.4 alpha
+		- Dungeons work, now in color
+		- Peer gems work (although the colors are strange)
+		- Colored more tiles
+
+	08-22-2000 - 0.3 alpha
+		- Updated slow-down mechanism to yield to keyboard input
+		- Colored more tiles
+		- Screen blinks on area-affect spells
+		- Party member box blinks on hit or poison
+		- Number above party member box is highlighted when it
+		  is his/her turn in combat.
+	
+	08-15-2000 - 0.2 alpha
+		- Game now plays in all normal tile-based views.
+		- Dungeons and gems do not yet work.
+		- Added preliminary internal slow-down mechanism
+
+	08-13-2000 - 0.1 alpha
+		- First alpha release
+		- Added preliminary coloring to convert tiles to EGA
+		- Can only watch intro, watch demo, navigate main menu,
+		  and set up a party.
+		- The game itself does not play.
+
+	07-30-2000 - Project Begins

@@ -1,0 +1,10 @@
+MON files can hold data for up to 32 monsters
+
+m = monster from 00-1f (0-31 dec)
+
+0000 + m - column # (x)
+0020 + m - row # (y)
+0040 + m - (?) hit points
+0060 + m - monster tile * 4
+0080 + m - map tile * 4
+00a0 + m - ?
