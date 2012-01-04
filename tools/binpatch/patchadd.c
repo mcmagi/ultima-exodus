@@ -3,6 +3,7 @@
 
 #include	<malloc.h>
 #include	<string.h>
+#include	<libgen.h>				/* basename */
 
 #include	"File.h"
 #include	"gendefs.h"
@@ -12,7 +13,7 @@
 
 /* DIFF Functions */
 
-int diff(const char oldfile[], const char newfile[], File *patch, BOOL newflag)
+int diff(const char oldfile[], const char newfile[], File *patch, BOOL newflag, int strip)
 {
 	unsigned char oldbyte, newbyte;		/* storage for old and new bytes */
 	int idx;							/* index into file */
@@ -20,8 +21,10 @@ int diff(const char oldfile[], const char newfile[], File *patch, BOOL newflag)
 	struct file_header fz;				/* file header */
 	File *old;							/* ptr to old file */
 	File *new;							/* ptr to new file */
-	const char *newname = NULL;			/* ptr to new filename */
     int diffcount = 0;                  /* number of differences found */
+    char newfiletmp[BUFSIZ];            /* temp area for old filename */
+    char oldfiletmp[BUFSIZ];            /* temp area for old filename */
+    const char *filenametmp;            /* temp area for basename */
 
 
 	/* stat files */
@@ -34,10 +37,28 @@ int diff(const char oldfile[], const char newfile[], File *patch, BOOL newflag)
 
 	/* determine if we will use the new filename */
 	if (newflag)
-		newname = newfile;
+        strcpy(newfiletmp, newfile);
+    strcpy(oldfiletmp, oldfile);
+
+    /* strip leading path components if requested */
+    if (strip > 0)
+    {
+        /* strip old filename */
+        filenametmp = strip_path(oldfiletmp, strip);
+        if (filenametmp != NULL)
+            strcpy(oldfiletmp, filenametmp);
+
+        if (newfiletmp != NULL)
+        {
+            /* strip new filename */
+            filenametmp = strip_path(newfiletmp, strip);
+            if (filenametmp != NULL)
+                strcpy(newfiletmp, filenametmp);
+        }
+    }
 
     /* create file header; wait to write it until we find our first difference */
-	fz = build_file_header(oldfile, newname, old->buf.st_size);
+	fz = build_file_header(oldfiletmp, newfiletmp, old->buf.st_size);
 
     if (patch->fp != NULL)
     {
@@ -256,4 +277,20 @@ void write_patch_header(File *patch, long size)
 	pz = build_patch_header(size);
 	seek_through_file(patch, 0, SEEK_SET);
 	write_to_file(patch, &pz, sizeof(struct patch_header));
+}
+
+const char * strip_path(const char *path, int strip)
+{
+    int i = 0;
+    int stripcnt = 0;
+
+    /* count slash characters */
+    for (i = 0; stripcnt < strip && path[i] != '\0'; i++)
+    {
+        if ((path[i] == '/' || path[i] == '\\') && i != 0)
+            stripcnt++;
+    }
+
+    /* return null pointer if we reached the end of the string before we completed stripping */
+    return path[i] != '\0' ? &path[i] : NULL;
 }

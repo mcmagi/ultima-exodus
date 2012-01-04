@@ -47,6 +47,7 @@ struct data_header
 	long offset;				/* data offset */
 	long size;					/* data size */
 	short type;					/* data type = one of DT_* values */
+	short _padding;				/* must end on dword boundry */
 };
 
 

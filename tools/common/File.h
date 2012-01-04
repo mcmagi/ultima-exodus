@@ -34,6 +34,7 @@ void copy_file_n(File *infile, File *outfile, off_t start, size_t size);
 void truncate_file(File *file, long offset);
 long file_size(File *file);
 void file_error(const File *file, const char *text);
+const char * concat_path(const char *path1, const char *path2);
 
 
 /* read mode defines */

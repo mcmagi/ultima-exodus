@@ -15,6 +15,7 @@ typedef struct
 	char *newfile;
 	char *patchfile;
 	BOOL usenew;
+    int strip;
 } PatchArgs;
 
 

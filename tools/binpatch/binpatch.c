@@ -3,7 +3,7 @@
 
 #include	<stdio.h>				/* printf, fprintf */
 #include	<stdlib.h> 				/* malloc, free, exit */
-#include	<string.h>				/* strncmp, memcmp */
+#include	<string.h>				/* strcmp, strncmp, memcmp */
 
 #include	"File.h"
 #include	"gendefs.h"
@@ -13,24 +13,21 @@
 
 int main(int argc, char *argv[])
 {
-	char *filename;					/* patch filename */
 	File *patch;					/* patch file */
+	PatchArgs args;					/* args structure */
 
 
-	if (argc == 1)
-		print_help_message();
-
-	filename = argv[1];
+	args = get_args(argc, argv);
 
 	/* open patch file */
-	patch = stat_file(filename);
+	patch = stat_file(args.patch);
 	open_file(patch, READONLY_MODE);
 
 	printf("Found patch file - verifying\n");
 	verify_patch_header(patch);
 
 	/* copies diff data from patch file to old/new files */
-	apply_patch(patch);
+	apply_patch(patch, args.dir);
 
 	/* close patch file */
 	close_file(patch);
@@ -42,12 +39,38 @@ int main(int argc, char *argv[])
 
 void print_help_message()
 {
-	fprintf(stderr, "binpat <patchfile>\n\n");
+	fprintf(stderr, "binpat [-d <dir>] <patchfile>\n\n");
 	fprintf(stderr, "Applies <patchfile>.\n");
+	fprintf(stderr, " -d <dir>   Directory in which to apply patch\n");
 	exit(HELPMSG);
 }
 
-void apply_patch(File *patch)
+PatchArgs get_args(int argc, char *argv[])
+{
+    PatchArgs args;
+	int i;
+
+    /* initialize struct */
+    args.patch = NULL;
+    args.dir = NULL;
+
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-h") == MATCH)
+			print_help_message();
+        else if (strcmp(argv[i], "-d") == MATCH)
+			args.dir = argv[++i];
+        else
+            args.patch = argv[i];
+	}
+
+    if (args.patch == NULL)
+        print_help_message();
+
+    return args;
+}
+
+void apply_patch(File *patch, const char *dir)
 {
 	char hdrtype[HDR_SZ];			    /* holds header type */
 	struct file_header fz;				/* header for patched file */
@@ -56,6 +79,7 @@ void apply_patch(File *patch)
 	BOOL file_error;					/* indicates error during patching */
 	BOOL data_error;					/* indicates error during patching */
     int datasize;                       /* size of data to skip if error */
+    const char *filename;               /* filename */
 
 
 	/* read first header */
@@ -81,7 +105,10 @@ void apply_patch(File *patch)
 			printf("patching file %s%s%s\n", fz.name,
 					fz.newname_flag ? " -> " : "", fz.newname);
 
-			old = stat_file(fz.name);
+            /* prepend directory if specified */
+            filename = concat_path(dir, fz.name);
+
+			old = stat_file(filename);
 
 			if (fz.size != old->buf.st_size)
 			{
@@ -95,8 +122,11 @@ void apply_patch(File *patch)
 				/* open old file */
 				open_file(old, READONLY_MODE);
 
+                /* prepend directory if specified */
+                filename = concat_path(dir, fz.newname);
+
 				/* open new file */
-				new = stat_file(fz.newname);
+				new = stat_file(filename);
 				open_file(new, READWRITE_MODE);
 
 				/* copy file (from old to new) */
@@ -119,6 +149,8 @@ void apply_patch(File *patch)
 
             if (! file_error)
             {
+                patch_message(dz);
+
 			    /* perform operation based on patch type */
 			    switch (dz.type)
 			    {
@@ -170,8 +202,6 @@ void apply_patch(File *patch)
 
 BOOL patch_replace(File *patch, File *old, File *new, struct data_header dz)
 {
-	//printf("replacing...\n");
-
 	/* compares if data matches */
 	if (! compare_old_data(patch, old, dz))
 		return TRUE;
@@ -184,8 +214,6 @@ BOOL patch_replace(File *patch, File *old, File *new, struct data_header dz)
 
 BOOL patch_truncate(File *patch, File *old, struct data_header dz)
 {
-	//printf("truncating...\n");
-
 	/* compares if data matches */
 	if (! compare_old_data(patch, old, dz))
 		return TRUE;
@@ -198,8 +226,6 @@ BOOL patch_truncate(File *patch, File *old, struct data_header dz)
 
 BOOL patch_append(File *patch, File *new, struct data_header dz)
 {
-	//printf("appending...\n");
-
 	/* just appends data to file */
 	add_new_data(patch, new, dz);
 
@@ -245,4 +271,24 @@ void add_new_data(File *patch, File *new, struct data_header dz)
 	/* write replacement data to new file */
 	seek_through_file(new, dz.offset, SEEK_SET);
 	write_to_file(new, newdata, dz.size);
+}
+
+void patch_message(struct data_header dz)
+{
+    const char *typetext = NULL;
+
+    if (dz.type == DT_REPLACE)
+        typetext = REPLACE_TEXT;
+    else if (dz.type == DT_TRUNCATE)
+        typetext = TRUNCATE_TEXT;
+    else if (dz.type == DT_APPEND)
+        typetext = APPEND_TEXT;
+
+    if (typetext != NULL)
+    {
+	    printf("%s %d bytes", typetext, dz.size);
+	    printf(" at offset %d\n", dz.offset); /* bug in openwatcom? second long param shows as 0; need second printf */
+    }
+
+    return;
 }

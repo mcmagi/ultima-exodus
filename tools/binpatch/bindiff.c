@@ -2,7 +2,7 @@
 
 
 #include	<stdio.h>				/* fprintf, printf */
-#include	<stdlib.h>				/* exit */
+#include	<stdlib.h>				/* exit, atoi */
 #include	<string.h>				/* strcmp */
 
 #include	"File.h"
@@ -16,7 +16,6 @@ int main(int argc, char *argv[])
 {
 	File *patch;					/* patch file */
 	PatchArgs args;					/* args structure */
-	long filesize;					/* actual filesize */
     int num_diffs;                  /* number of differences found */
 
 
@@ -38,7 +37,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* copies diff data from old/new files to patch file */
-	num_diffs = diff(args.oldfile, args.newfile, patch, args.usenew);
+	num_diffs = diff(args.oldfile, args.newfile, patch, args.usenew, args.strip);
 
     if (num_diffs > 0)
     {
@@ -69,8 +68,12 @@ PatchArgs get_args(int argc, char *argv[])
 	int i;
 
 
-	/* default to no */
+	/* initialize struct */
+    args.oldfile = NULL;
+    args.newfile = NULL;
+    args.patchfile = NULL;
 	args.usenew = FALSE;
+    args.strip = 0;
 
 	for (i = 1; i < argc; i++)
 	{
@@ -86,6 +89,8 @@ PatchArgs get_args(int argc, char *argv[])
 				args.newfile = argv[++i];
 			else if (strcmp(argv[i], "-p") == MATCH)
 				args.patchfile = argv[++i];
+			else if (strcmp(argv[i], "-s") == MATCH)
+				args.strip = atoi(argv[++i]);
 			else
 				print_help_message();
 		}
@@ -99,11 +104,12 @@ PatchArgs get_args(int argc, char *argv[])
 
 void print_help_message()
 {
-	fprintf(stderr, "patchadd [-u] -o <oldfile> -n <newfile> -p <patchfile>\n\n");
+	fprintf(stderr, "bindiff [-u] [-s <num>] -o <oldfile> -n <newfile> -p <patchfile>\n\n");
 	fprintf(stderr, "Compares <oldfile> and <newfile>, applying difference to <patchfile>.\n");
 	fprintf(stderr, "\t-u\tUse new name when applying patch\n");
+	fprintf(stderr, "\t-s\tStrip <num> leading path components from file name\n\n");
 	fprintf(stderr, "\t-o\tName of old (or source) file\n");
 	fprintf(stderr, "\t-n\tName of new (or target) file\n");
-	fprintf(stderr, "\t-p\tName of patchfile\n\n");
+	fprintf(stderr, "\t-p\tName of patchfile\n");
 	exit(HELPMSG);
 }

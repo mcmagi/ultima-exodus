@@ -13,24 +13,21 @@
 
 int main(int argc, char *argv[])
 {
-	char *filename;					/* patch filename */
 	File *patch;					/* patch file */
+	PatchArgs args;					/* args structure */
 
 
-	if (argc == 1)
-		print_help_message();
-
-	filename = argv[1];
+	args = get_args(argc, argv);
 
 	/* open patch file */
-	patch = stat_file(filename);
+	patch = stat_file(args.patch);
 	open_file(patch, READONLY_MODE);
 
 	printf("Found patch file - verifying\n");
 	verify_patch_header(patch);
 
 	/* copies diff data from patch file to old/new files */
-	unapply_patch(patch);
+	unapply_patch(patch, args.dir);
 
 	/* close patch file */
 	close_file(patch);
@@ -42,12 +39,38 @@ int main(int argc, char *argv[])
 
 void print_help_message()
 {
-	fprintf(stderr, "binunpat <patchfile>\n\n");
+	fprintf(stderr, "binunpat [-d <dir>] <patchfile>\n\n");
 	fprintf(stderr, "Un-applies <patchfile>.\n");
+	fprintf(stderr, " -d <dir>   Directory in which to apply patch\n");
 	exit(HELPMSG);
 }
 
-void unapply_patch(File *patch)
+PatchArgs get_args(int argc, char *argv[])
+{
+    PatchArgs args;
+	int i;
+
+    /* initialize struct */
+    args.patch = NULL;
+    args.dir = NULL;
+
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-h") == MATCH)
+			print_help_message();
+        else if (strcmp(argv[i], "-d") == MATCH)
+			args.dir = argv[++i];
+        else
+            args.patch = argv[i];
+	}
+
+    if (args.patch == NULL)
+        print_help_message();
+
+    return args;
+}
+
+void unapply_patch(File *patch, const char *dir)
 {
 	char hdrtype[HDR_SZ];			    /* holds header type */
 	struct file_header fz;				/* header for patched file */
@@ -56,6 +79,7 @@ void unapply_patch(File *patch)
 	BOOL file_error;					/* indicates error during patching */
 	BOOL data_error;					/* indicates error during patching */
     int datasize;                       /* size of data to skip if error */
+    const char *filename;               /* filename */
 
 
 	/* read first header */
@@ -79,7 +103,10 @@ void unapply_patch(File *patch)
 			printf("unpatching file %s%s%s\n", fz.name,
 					fz.newname_flag ? " <- " : "", fz.newname);
 
-			file = stat_file(fz.newname_flag ? fz.newname : fz.name);
+            /* prepend directory if specified */
+            filename = concat_path(dir, fz.newname_flag ? fz.newname : fz.name);
+
+			file = stat_file(filename);
 
             if (file->newfile)
 			{
@@ -100,6 +127,8 @@ void unapply_patch(File *patch)
 
             if (! file_error)
             {
+                unpatch_message(dz);
+
 			    /* perform operation based on patch type */
 			    switch (dz.type)
 			    {
@@ -149,8 +178,6 @@ void unapply_patch(File *patch)
 
 BOOL patch_unreplace(File *patch, File *file, struct data_header dz)
 {
-	//printf("unreplacing...\n");
-
 	/* compares if data matches */
 	if (! compare_new_data(patch, file, dz))
 		return TRUE;
@@ -169,8 +196,6 @@ BOOL patch_unreplace(File *patch, File *file, struct data_header dz)
 
 BOOL patch_untruncate(File *patch, File *file, struct data_header dz)
 {
-	//printf("untruncating...\n");
-
     /* just appends data to file */
     add_old_data(patch, file, dz);
 
@@ -179,8 +204,6 @@ BOOL patch_untruncate(File *patch, File *file, struct data_header dz)
 
 BOOL patch_unappend(File *patch, File *file, struct data_header dz)
 {
-	//printf("unappending...\n");
-
 	/* compares if data matches */
 	if (! compare_new_data(patch, file, dz))
 		return TRUE;
@@ -234,4 +257,25 @@ void add_old_data(File *patch, File *file, struct data_header dz)
 	/* write replacement data to new file */
 	seek_through_file(file, dz.offset, SEEK_SET);
 	write_to_file(file, olddata, dz.size);
+}
+
+
+void unpatch_message(struct data_header dz)
+{
+    const char *typetext = NULL;
+
+    if (dz.type == DT_REPLACE)
+        typetext = UNREPLACE_TEXT;
+    else if (dz.type == DT_TRUNCATE)
+        typetext = UNTRUNCATE_TEXT;
+    else if (dz.type == DT_APPEND)
+        typetext = UNAPPEND_TEXT;
+
+    if (typetext != NULL)
+    {
+	    printf("%s %d bytes", typetext, dz.size);
+	    printf(" at offset %d\n", dz.offset); /* bug in openwatcom? second long param shows as 0; need second printf */
+    }
+
+    return;
 }

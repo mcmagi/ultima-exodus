@@ -1,8 +1,8 @@
 /* patch.c */
 
 
-#include	<string.h>
-#include    <stdlib.h>
+#include	<string.h>          /* strcpy, strncpy, strncmp, strlen */
+#include    <stdlib.h>          /* printf, fprintf */
 
 #include	"File.h"
 #include	"gendefs.h"
@@ -30,7 +30,7 @@ struct file_header build_file_header(const char filename[], const char newname[]
 	fz.ver = FILE_VER;
 	set_filename(fz.name, filename);
 
-	if (newname != NULL)
+	if (newname != NULL && strlen(newname) > 0)
 	{
 		set_filename(fz.newname, newname);
 		fz.newname_flag = TRUE;
