@@ -127,7 +127,7 @@ void apply_patch(File *patch, const char *dir)
 
 				/* open new file */
 				new = stat_file(filename);
-				open_file(new, READWRITE_MODE);
+				open_file(new, OVERWRITE_MODE);
 
 				/* copy file (from old to new) */
 				copy_file(old, new);
