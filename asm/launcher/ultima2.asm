@@ -113,7 +113,7 @@ GRAPHIC_MODE:
   pop bx
 
   ; if 4th byte == 01, jump to vga
-  cmp byte [bx+0x03],0x01
+  cmp byte [bx+0x03],0x03
   jz VGA
 
   ; set dx = offset of "u2ega.com"
