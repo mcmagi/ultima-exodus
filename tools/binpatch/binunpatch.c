@@ -273,7 +273,7 @@ void unpatch_message(struct data_header dz)
 
     if (typetext != NULL)
     {
-	    printf("%s %d bytes", typetext, dz.size);
+	    printf(" -> %s %d bytes", typetext, dz.size);
 	    printf(" at offset %d\n", dz.offset); /* bug in openwatcom? second long param shows as 0; need second printf */
     }
 
