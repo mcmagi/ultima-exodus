@@ -1,17 +1,15 @@
 ROOT=../..
 include ${ROOT}/Makefile.include
 
-compile: mkdirs ${U2BIN}/ultima2.com ${U3BIN}/ultima3.com ${U5BIN}/ultima5.com
+compile: ${U2BIN}/ultima2.com ${U3BIN}/ultima3.com ${U5BIN}/ultima5.com
 
-mkdirs: ${U2BIN} ${U3BIN} ${U5BIN}
-
-${U2BIN}/ultima2.com: ultima2.asm
+${U2BIN}/ultima2.com: ultima2.asm | ${U2BIN}
 	${ASM} ultima2.asm ${U2BIN}/ultima2.com
 
-${U3BIN}/ultima3.com: ultima3.asm ../common/loadfile.asm ../common/strcpy.asm
+${U3BIN}/ultima3.com: ultima3.asm ../common/loadfile.asm ../common/strcpy.asm | ${U3BIN}
 	${ASM} ultima3.asm ${U3BIN}/ultima3.com
 
-${U5BIN}/ultima5.com: ultima5.asm ${VIDDEPS}
+${U5BIN}/ultima5.com: ultima5.asm ${VIDDEPS} | ${U5BIN}
 	${ASM} ultima5.asm ${U5BIN}/ultima5.com
 
 clean:

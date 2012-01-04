@@ -1,11 +1,9 @@
 ROOT=../..
 include ${ROOT}/Makefile.include
 
-compile: mkdirs ${U5BIN}/mid.drv
+compile: ${U5BIN}/mid.drv
 
-mkdirs: ${U5BIN}
-
-${U5BIN}/mid.drv: midi.asm
+${U5BIN}/mid.drv: midi.asm | ${U5BIN}
 	${ASM} midi.asm ${U5BIN}/mid.drv
 
 clean:

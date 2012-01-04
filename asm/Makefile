@@ -1,20 +1,12 @@
 # directories
 DIRS = color launcher u3drv u5drv
 
-compile:
+
+%: FORCE
 	for i in ${DIRS}; do \
-		cd $$i && $(MAKE) compile; \
+		cd $$i && $(MAKE) $@; \
 		cd ..; \
 	done
 
-package:
-	for i in ${DIRS}; do \
-		cd $$i && $(MAKE) package; \
-		cd ..; \
-	done
-
-clean:
-	for i in ${DIRS}; do \
-		cd $$i && $(MAKE) clean; \
-		cd ..; \
-	done
+Makefile: ;
+FORCE: ;

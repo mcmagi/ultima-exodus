@@ -116,12 +116,3 @@ ${U5BIN}:
 
 ${UTILBIN}:
 	mkdir -p ${UTILBIN}
-
-${U2PKG}:
-	mkdir -p ${U2PKG}
-
-${U3PKG}:
-	mkdir -p ${U3PKG}
-
-${U5PKG}:
-	mkdir -p ${U5PKG}

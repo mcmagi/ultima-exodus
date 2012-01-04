@@ -1,21 +1,19 @@
 ROOT=../..
 include ${ROOT}/Makefile.include
 
-compile: mkdirs ${UTILBIN}/color.com ${UTILBIN}/vga.com ${UTILBIN}/cgacomp.com \
+compile: ${UTILBIN}/color.com ${UTILBIN}/vga.com ${UTILBIN}/cgacomp.com \
         ${UTILBIN}/vgacolor.com
 
-mkdirs: ${UTILBIN}
-
-${UTILBIN}/color.com: color.asm
+${UTILBIN}/color.com: color.asm | ${UTILBIN}
 	${ASM} color.asm ${UTILBIN}/color.com
 
-${UTILBIN}/vgacolor.com: vgacolor.asm ../common/loadfile.asm
+${UTILBIN}/vgacolor.com: vgacolor.asm ../common/loadfile.asm | ${UTILBIN}
 	${ASM} vgacolor.asm ${UTILBIN}/vgacolor.com
 
-${UTILBIN}/vga.com: vga.asm
+${UTILBIN}/vga.com: vga.asm | ${UTILBIN}
 	${ASM} vga.asm ${UTILBIN}/vga.com
 
-${UTILBIN}/cgacomp.com: cgacomp.asm ../common/savefile.asm
+${UTILBIN}/cgacomp.com: cgacomp.asm ../common/savefile.asm | ${UTILBIN}
 	${ASM} cgacomp.asm ${UTILBIN}/cgacomp.com
 
 clean:

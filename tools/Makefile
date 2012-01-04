@@ -1,34 +1,26 @@
 # directories
 DIRS = common cfg patch reset tlk binpatch
 
-compile:
-	# construct both local and dos targets
+%: FORCE
+	# operate on both local and dos targets
 	for i in ${DIRS}; do \
 		if [ -d "$$i" ]; then \
 			cd $$i; \
-			TARGET=local $(MAKE) compile; \
-			TARGET=dos $(MAKE) compile; \
+			TARGET=local $(MAKE) $@; \
+			TARGET=dos $(MAKE) $@; \
 			cd ..; \
 		fi \
 	done
 
-package:
+package%: FORCE
 	# package only dos targets
 	for i in ${DIRS}; do \
 		if [ -d "$$i" ]; then \
 			cd $$i; \
-			TARGET=dos $(MAKE) package; \
+			TARGET=dos $(MAKE) $@; \
 			cd ..; \
 		fi \
 	done
 
-clean:
-	# clean both local and dos targets
-	for i in ${DIRS}; do \
-		if [ -d "$$i" ]; then \
-			cd $$i; \
-			TARGET=local $(MAKE) clean; \
-			TARGET=dos $(MAKE) clean; \
-			cd ..; \
-		fi \
-	done
+Makefile: ;
+FORCE: ;
