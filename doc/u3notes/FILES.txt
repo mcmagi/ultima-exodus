@@ -2,7 +2,7 @@
 		**** The Exodus Project ****
 		*    Ultima III Upgrade    *
 		*                          *
-		*        Release 2.5       *
+		*        Release 3.0       *
 		****************************
 
 
@@ -26,21 +26,36 @@ File List:
 
 	** Programs:
 	ULTIMA3.COM	- U3 Launcher program
-	U3EGA.COM	- U3 Main EGA Binary
 	U3CFG.EXE	- U3 Configuration program
 	U3RESET.EXE	- Sosaria Map Reset program
 
-	** U3 Internal Code:
-	BOOTUP.EGA	- EGA Bootup code
-	EXODUS.EGA	- EGA Main Game code
-	DUNGEON.EGA	- EGA Dungeon code
+	** Binary Patch:
+	U3UP-30.PAT	- U3 Binary patch file
+	BINPAT.EXE	- Patcher program
+	BINUNPAT.EXE	- Unpatcher program
+
+	** Drivers:
+	CGA.DRV		- CGA Video Driver
+	CGACOMP.DRV	- CGA Composite Video Driver
+	EGA.DRV		- EGA Video Driver
+	VGA.DRV		- VGA Video Driver
+	NOMIDI.DRV	- No Music Driver
+	MIDPAK.DRV	- MIDPAK MIDI Music Driver
 
 	** U3 Graphics Files:
+	MOONS.ULT	- CGA Moon Icons
 	BLANK.EGA	- EGA Initial Intro
 	EXOD.EGA	- EGA Final Intro
 	ANIMATE.EGA	- EGA Intro Dragon Animation
 	CHARSET.EGA	- EGA Character Set
 	SHAPES.EGA	- EGA Tiles
+	MOONS.EGA	- EGA Moon Icons
+	BLANK.VGA	- VGA Initial Intro
+	EXOD.VGA	- VGA Final Intro
+	ANIMATE.VGA	- VGA Intro Dragon Animation
+	CHARSET.VGA	- VGA Character Set
+	SHAPES.VGA	- VGA Tiles
+	MOONS.VGA	- VGA Moon Icons
 
 	** MIDPAK Drivers:
 	*.ADV		- Midpak Soundcard Driver

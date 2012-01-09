@@ -2,20 +2,54 @@
 		**** The Exodus Project ****
 		*    Ultima III Upgrade    *
 		*                          *
-		*        Release 2.5       *
+		*        Release 3.0       *
 		****************************
 
 
 Project Status:
 
-	01-08-2002 - Release 2.5:
+	01-13-2011 - Release 3.0:
 
-	I have made only one bugfix to this release:
+		After many years, the 3.0 release is finally available.
+		The major feature of this release is its support for 256-
+		color VGA graphics.
 
-	- It looks like there was a problem updating the main Sosaria map
-	  when leaving Ambrosia.  It turned out to be a result of not having
-	  cached the main map to memory as the game does when entering a
-	  town.  I found the problem code and repaired it.
+		It's worthwhile to note that the video and music code was
+		entirely re-written and extracted into external drivers.
+		This makes it easier for me to maintain, but also enabled
+		the ability to "switch" between video modes with a config
+		program by merely swapping drivers.
+
+		In addition to headline VGA graphics, users have the
+		option of playing in EGA and CGA modes if they so choose.
+		Furthermore, for "classic mode" enthusiasts, there is now
+		a CGA Composite driver which simulates the blending of
+		CGA colors on composite monitors.  This is actually how
+		U3 on the IBM PC was intended to be played!
+
+		Besides the graphics drivers, a number of other things
+		have been updated/added:
+
+		- You can replace those 0-7 moon phase numbers with actual
+		  moon phase icons.  Make sure "moon phases" is set as
+		  "enabled" in the config.
+		- The EXE programs included with the upgrade (U3CFG.EXE
+		  and U3RESET.EXE) have been recompiled to work properly
+		  under 16-bit DOS without a DPMI interface (e.g. DOS4GW).
+		- A bug was fixed that would give inaccurate Marks/Cards
+		  information in Ztats.
+		- The Exodus Project is now open source!  Find us on
+		  SourceForge at the following URL:
+		  https://sourceforge.net/projects/ultima-exodus/
+
+		Lastly, I no longer include the modified binaries in the
+		release packages.  I found that as I modified more and
+		more of the files in the Ultima games I was coming
+		awefully close to including the entire game in the zip
+		file.  Now, the release packages include a patch file that
+		contains only the differences.  You'll need to use the
+		binpat program to patch your executable and data files.
+		There's more on this in the install instructions.
 
 	Please see below for an abbreviated project history or visit the
 	project website (http://exodus.voyd.net/) for the complete status
@@ -31,7 +65,8 @@ Known Issues:
 Abbreviated History:
 
 	01-08-2002 - 2.5
-		- This release.  See above for full details.
+		- Fixed bug with Sosaria map getting reset when entering
+		  or leaving Ambrosia.
 
 	08-31-2001 - 2.4
 		- Fixed bug that would save your game when your party dies
