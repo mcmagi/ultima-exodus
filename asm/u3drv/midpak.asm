@@ -402,6 +402,7 @@ PLAY_MUSIC:
     ;  al = song number
     pushf
     push ax
+    push bx
 
     ; if song num midi == 0xff, use current song num
     cmp al,0xff
@@ -437,6 +438,7 @@ PLAY_MUSIC:
     call PLAY_MIDI
 
   PLAY_MUSIC_DONE:
+    pop bx
     pop ax
     popf
     ret

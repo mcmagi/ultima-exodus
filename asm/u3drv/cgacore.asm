@@ -583,6 +583,31 @@ DISPLAY_CHAR:
     ;  cl = column position (in 8x8 characters)
     ;  ch = row position (in 8x8 characters)
 
+    push bx
+    push dx
+    push si
+
+    ; dx:si => charset file
+    lea bx,[CHARSET_ADDR]
+    mov si,[bx]
+    mov dx,[bx+0x02]
+
+    call DISPLAY_CHAR_COMMON
+
+    pop si
+    pop dx
+    pop bx
+    ret
+
+
+; Displays a character with a provided charset in dx:si
+DISPLAY_CHAR_COMMON:
+    ; parameters:
+    ;  al = ASCII character
+    ;  cl = column position (in 8x8 characters)
+    ;  ch = row position (in 8x8 characters)
+    ;  dx:si => charset file
+
     pushf
     push ax
     push bx
@@ -596,11 +621,6 @@ DISPLAY_CHAR:
 
     ; get video segment
     mov es,[VIDEO_SEGMENT]
-
-    ; dx:si => charset file
-    lea bx,[CHARSET_ADDR]
-    mov si,[bx]
-    mov dx,[bx+0x02]
 
     ; check that charset is loaded
     and dx,dx
@@ -694,33 +714,32 @@ DISPLAY_CHAR:
     jmp DISPLAY_CHAR_DONE
 
 
-; Translates an ASCII code to a moon character for display
+; Translates a moon number to a moon character for display
 DISPLAY_MOON_CHAR:
     ; parameters:
-    ;  al = ASCII character
-    ;  ah = 01 for moon icon; 00 for ascii
+    ;  al = moon number (0-7)
     ;  cl = column position
     ;  ch = row position
 
     pushf
     push ax
+    push bx
+    push dx
+    push si
 
-    cmp ah,0x00
-    jz DISPLAY_MOON_CHAR_ASCII
+    ; remove high bits
+    and al,0x07
 
-    ; make sure char is 0 <= al <= 7
-    cmp al,0x30
-    jb DISPLAY_MOON_CHAR_ASCII
-    cmp al,0x37
-    ja DISPLAY_MOON_CHAR_ASCII
+    ; dx:si => charset file
+    lea bx,[MOONS_ADDR]
+    mov si,[bx]
+    mov dx,[bx+0x02]
 
-    ; translate char code to moon icon in charset
-    sub al,0x1c
+    call DISPLAY_CHAR_COMMON
 
-  DISPLAY_MOON_CHAR_ASCII:
-    call DISPLAY_CHAR
-
-  DISPLAY_MOON_CHAR_DONE:
+    pop si
+    pop dx
+    pop bx
     pop ax
     popf
     ret
@@ -1735,7 +1754,13 @@ LOAD_CHARSET_FILE:
     lea dx,[CHARSET_FILE]
     lea bx,[CHARSET_ADDR]
     call LOAD_GRAPHIC_FILE
+    jc LOAD_CHARSET_FILE_DONE
 
+    lea dx,[MOONS_FILE]
+    lea bx,[MOONS_ADDR]
+    call LOAD_GRAPHIC_FILE
+
+  LOAD_CHARSET_FILE_DONE:
     pop dx
     pop bx
     ret

@@ -9,6 +9,10 @@ jmp PLAY_MUSIC_FAR                  ; 0009
 jmp STOP_MUSIC_FAR                  ; 000c
 jmp PLAY_MUSIC_ONCE_FAR             ; 000f
 
+; ===== data here =====
+
+EMPTY db 0x100 dup 0        ; empty 100 bytes to ensure the above jmp instructions use
+                            ; 16-bit displacement addresses (and will thus be 3 bytes long)
 
 ; ===== far functions here (jumped to from above) =====
 
@@ -30,4 +34,3 @@ STOP_MUSIC_FAR:
 
 PLAY_MUSIC_ONCE_FAR:
     retf
-

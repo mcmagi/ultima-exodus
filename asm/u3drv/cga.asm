@@ -14,6 +14,7 @@ include 'vidjmp.asm'
 
 CHARSET_FILE    db      "CHARSET.ULT",0
 SHAPES_FILE     db      "SHAPES.ULT",0
+MOONS_FILE      db      "MOONS.ULT",0
 BLANK_FILE      db      "BLANK.IBM",0
 EXOD_FILE       db      "EXOD.IBM",0
 ANIMATE_FILE    db      "ANIMATE.DAT",0
@@ -22,6 +23,7 @@ VIDEO_SEGMENT   dw      0xb800
 DRIVER_INIT     db      0
 CHARSET_ADDR    dd      0
 SHAPES_ADDR     dd      0
+MOONS_ADDR      dd      0
 BLANK_ADDR      dd      0
 EXOD_ADDR       dd      0
 ANIMATE_ADDR    dd      0
@@ -66,28 +68,27 @@ CLOSE_DRIVER:
     push bx
 
     ; free shapes
-    lea bx,[SHAPES_ADDR+0x02]
-    mov bx,[bx]
+    lea bx,[SHAPES_ADDR]
     call FREE_GRAPHIC_FILE
 
     ; free charset
-    lea bx,[CHARSET_ADDR+0x02]
-    mov bx,[bx]
+    lea bx,[CHARSET_ADDR]
+    call FREE_GRAPHIC_FILE
+
+    ; free moons
+    lea bx,[MOONS_ADDR]
     call FREE_GRAPHIC_FILE
 
     ; free blank image
-    lea bx,[BLANK_ADDR+0x02]
-    mov bx,[bx]
+    lea bx,[BLANK_ADDR]
     call FREE_GRAPHIC_FILE
 
     ; free exodus image
-    lea bx,[EXOD_ADDR+0x02]
-    mov bx,[bx]
+    lea bx,[EXOD_ADDR]
     call FREE_GRAPHIC_FILE
 
     ; free intro animation
-    lea bx,[ANIMATE_ADDR+0x02]
-    mov bx,[bx]
+    lea bx,[ANIMATE_ADDR]
     call FREE_GRAPHIC_FILE
 
     pop bx

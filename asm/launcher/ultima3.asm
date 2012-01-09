@@ -25,7 +25,8 @@ LAUNCH_ERROR    db  "Error launching Ultima III",0x0a,0x0d,"$"
 FREE_ERROR      db  "Error releasing memory for driver",0x0a,0x0d,"$"
 I_DATA          db  0x0c dup 0
 I_FLAG          db  0
-CFGDATA         db  0x04 dup 0        ; index: 00 = midi driver, 01 = autosave, 02 = framelimiter, 03 = video driver
+CFGDATA         db  0x06 dup 0        ; index: 00 = midi driver, 01 = autosave, 02 = framelimiter, 03 = video driver
+                                      ;        04 = moon phases, 05 = vga moongate type
 PRM_BLOCK       db  0x16 dup 0
 FCB             db  0x20 dup 0
 VIDEO_DRV_ADDR  dd  0
@@ -54,7 +55,7 @@ START:
     ; read u3.cfg into cfgdata location
     mov al,0x00
     lea bx,[CFGDATA]
-    mov cx,0x0004
+    mov cx,0x0006
     lea dx,[U3CFG]
     call LOAD_FILE
 
@@ -82,8 +83,9 @@ START:
     lea bx,[CFGDATA]
 
   MUSIC_MODE:
-    ; get graphic driver id from config
+    ; get music driver id from config
     mov si,[bx]
+    and si,0x00ff
 
     ; lookup driver in table
     shl si,1
@@ -107,6 +109,7 @@ START:
   GRAPHIC_MODE:
     ; get graphic driver id from config
     mov si,[bx+0x03]
+    and si,0x00ff
 
     ; lookup driver in table
     shl si,1
@@ -118,7 +121,7 @@ START:
     mov [ds:bp+0x02],ax
 
   LAUNCH_PROGRAM:
-    ; set dx = offset of "u3ega.com"
+    ; set dx = offset of "ultima.com"
     lea dx,[ULTIMA_COM]
 
     ; fill parameter block
@@ -217,7 +220,7 @@ START:
 
 LOAD_DRIVER:
     ; parameters:
-    ;  ds:dx = offset to video driver name
+    ;  ds:dx = offset to driver name
     ; returns:
     ;  ax:0000 = segment:offset of loaded driver
 
@@ -227,7 +230,7 @@ LOAD_DRIVER:
     push si
     push di
 
-    ; load video driver
+    ; load driver
     mov al,0x01
     xor cx,cx
     call LOAD_FILE
@@ -283,6 +286,10 @@ ULTIMA3_INT:
     cmp ah,0x03
     jz GET_MUSIC_DRV
 
+    ; fcn 04 = moon phase check
+    cmp ah,0x04
+    jz MOONPHASE
+
     jmp RETURN
 
   AUTOSAVE:
@@ -307,6 +314,12 @@ ULTIMA3_INT:
     mov bp,MUSIC_DRV_ADDR
     mov ax,[cs:bp]
     mov dx,[cs:bp+02]
+    jmp RETURN
+
+  MOONPHASE:
+    ; returns al=01 if moon phases enabled
+    mov al,[cs:bx+0x04]
+    jmp RETURN
 
   RETURN:
     pop bp
