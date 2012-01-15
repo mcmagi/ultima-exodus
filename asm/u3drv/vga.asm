@@ -15,7 +15,7 @@ SHAPES_FILE     db      "SHAPES.VGA",0
 MOONS_FILE      db      "MOONS.VGA",0
 BLANK_FILE      db      "BLANK.VGA",0
 EXOD_FILE       db      "EXOD.VGA",0
-ANIMATE_FILE    db      "ANIMATE.EGA",0
+ANIMATE_FILE    db      "ANIMATE.VGA",0
 PALETTE_FILE    db      "U3VGA.PAL",0
 ENDGAME_MASK    dw      0x0e0e,0x0c0c,0x0909,0x0e0e,0x0909,0x0505,0x0606
 VIDEO_SEGMENT   dw      0xa000
@@ -1653,8 +1653,8 @@ DISPLAY_ANIMATION_FRAME:
     ; es:di => animation location in video buffer
     call GET_VGA_OFFSET
 
-    ; si = offset to desired sequence in ANIMATE.EGA
-    mov cx,0x0b80           ; # of bytes per sequence
+    ; si = offset to desired sequence in ANIMATE.VGA
+    mov cx,0x1700           ; # of bytes per sequence
     mul cx
     mov si,ax
 
@@ -1662,12 +1662,12 @@ DISPLAY_ANIMATION_FRAME:
     mov dx,bx
     and dx,0x0003           ; dx = 0 for frame 0, 2 for frame 1
 
-    ; si = offset to desired frame in ANIMATE.EGA
-    mov ax,0x02e0           ; 1/2 size of frame (since dx is double)
+    ; si = offset to desired frame in ANIMATE.VGA
+    mov ax,0x05c0           ; 1/2 size of frame (since dx is double)
     mul dx
     add si,ax
 
-    ; ds:si => starting pixel in ANIMATE.EGA
+    ; ds:si => starting pixel in ANIMATE.VGA
     lea bx,[ANIMATE_ADDR]
     add si,[bx]
     mov ax,[bx+0x02]
@@ -1683,10 +1683,8 @@ DISPLAY_ANIMATION_FRAME:
     ; column loop counter (counts every two pixels)
     mov dl,0x002e
   DISPLAY_ANIMATION_FRAME_COL_LOOP:
-    ; read a byte, unpack, it and store as word
-    lodsb
-    call UNPACK_VIDEO_DATA
-    stosw
+    ; transfer the word from input to output
+    movsw
 
     ; advance to next column
     dec dl
