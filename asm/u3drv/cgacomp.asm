@@ -219,6 +219,10 @@ FLUSH_BUFFER_LINE:
 
     cld
 
+    ; handle pixels immediately before and after
+    dec bx
+    add cx,0x0002
+
     ; make sure we don't loop past end of row
     mov ax,bx
     add ax,cx
