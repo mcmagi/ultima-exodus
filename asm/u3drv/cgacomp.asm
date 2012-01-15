@@ -219,10 +219,24 @@ FLUSH_BUFFER_LINE:
 
     cld
 
-    ; handle pixels immediately before and after
-    dec bx
-    add cx,0x0002
+    ; handle pixel immediately after
+    inc cx
 
+    ; handle pixel immediately before (if not at beginning)
+    and bx,bx
+    jz FLUSH_BUFFER_LINE_CHECK_END
+    dec bx
+    inc cx
+
+  FLUSH_BUFFER_LINE_CHECK_PAIR:
+    test bx,0x0001
+    jz FLUSH_BUFFER_LINE_CHECK_END
+
+    ; if we start in the middle of a pixel pair, move to the beginning of the pair
+    dec bx
+    inc cx
+
+  FLUSH_BUFFER_LINE_CHECK_END:
     ; make sure we don't loop past end of row
     mov ax,bx
     add ax,cx
