@@ -15,8 +15,8 @@
 #define	FRAMELIMITER_OPT        4
 #define	MOON_PHASE_OPT          5
 #define	MOONGATE_OPT            6
-#define	SAVE_QUIT_OPT           7
-#define	QUIT_OPT                8
+#define	SAVE_QUIT_OPT           6
+#define	QUIT_OPT                7
 
 /* video menu options */
 #define VIDEO_CGA_OPT           1

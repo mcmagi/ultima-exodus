@@ -63,7 +63,8 @@ int main(int argc, const char *argv[])
 			    cfg.framelimiter = ! cfg.framelimiter;
 			    break;
 
-		    case MOONGATE_OPT:
+            /* I've decided to handle this a different way, and not in this release. */
+		    /* case MOONGATE_OPT:
                 do
                 {
 			        moongate_option = moongate_menu(cfg.moongate);
@@ -72,7 +73,7 @@ int main(int argc, const char *argv[])
 
                 if (moongate_option != MOONGATE_BACK_OPT)
                     cfg.moongate = moongate_option - 1;
-			    break;
+			    break; */
 
 		    case MOON_PHASE_OPT:
 			    cfg.moon_phases = ! cfg.moon_phases;
@@ -120,7 +121,7 @@ int menu(struct u3cfg cfg)
 	printf("%d - Frame Limiter:  %s\n", FRAMELIMITER_OPT, cfg.framelimiter ? ENABLED_STR : DISABLED_STR);
 	printf("%d - Moon Phases:    %s\n", MOON_PHASE_OPT, cfg.moon_phases ? ENABLED_STR : DISABLED_STR);
 
-    if (cfg.video == VIDEO_VGA)
+    /* if (cfg.video == VIDEO_VGA)
     {
 	    printf("%d - Moongate:       %s\n", MOONGATE_OPT,
              cfg.moongate == MOONGATE_CYCLE ? MOONGATE_CYCLE_STR :
@@ -129,7 +130,7 @@ int menu(struct u3cfg cfg)
                  EMPTY_STR);
     }
     else
-	    printf("    Moongate:       %s\n", MOONGATE_SCROLL_STR);
+	    printf("    Moongate:       %s\n", MOONGATE_SCROLL_STR); */
 
 	printf("%d - Save & Quit\n", SAVE_QUIT_OPT);
 	printf("%d - Quit without Saving\n", QUIT_OPT);
@@ -209,7 +210,8 @@ void set_defaults(unsigned char data[])
 	data[FRAMELIMITER_INDEX] = ON;
 	data[VIDEO_INDEX] = VIDEO_VGA;
 	data[U3_MOONS_INDEX] = ON;
-	data[MOONGATE_INDEX] = MOONGATE_CYCLE;
+	/* data[MOONGATE_INDEX] = MOONGATE_CYCLE; */
+	data[MOONGATE_INDEX] = OFF;
 }
 
 struct u3cfg get_u3cfg(File *file)
@@ -229,7 +231,8 @@ struct u3cfg get_u3cfg(File *file)
 	cfg.autosave = get_status_bool(data, AUTOSAVE_INDEX);
 	cfg.framelimiter = get_status_bool(data, FRAMELIMITER_INDEX);
 	cfg.moon_phases = get_status_bool(data, U3_MOONS_INDEX);
-	cfg.moongate = get_status(data, MOONGATE_INDEX);
+	/* cfg.moongate = get_status(data, MOONGATE_INDEX); */
+	cfg.moongate = OFF;
 
     return cfg;
 }
