@@ -88,6 +88,11 @@ CLOSE_DRIVER:
     ret
 
 
+; no buffer in EGA mode
+FLUSH_GAME_MAP:
+    ret
+
+
 ; Outputs pixels to the appropriate location on the peer gem window
 ; for a given map object.
 DRAW_GEM_BLOCK:

@@ -246,3 +246,10 @@ DRAW_DUNGEON_LADDER_PIXEL_FAR:
     call DRAW_DUNGEON_LADDER_PIXEL
     pop ds
     retf
+
+FLUSH_GAME_MAP_FAR:
+    push ds
+    call SET_SEGMENT
+    call FLUSH_GAME_MAP
+    pop ds
+    retf

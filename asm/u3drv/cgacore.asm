@@ -852,10 +852,11 @@ DISPLAY_TILE:
     add di,0x4c             ; distance to next row (0x50 - 0x04)
     loop DISPLAY_TILE_ODD_ROWS
 
+    ; ** FLUSH_GAME_MAP is now called from the game to improve performance **
     ; flush tile in buffer
-    mov cx,0x0010
-    mov dh,0x10
-    call FLUSH_BUFFER_RECT
+    ;mov cx,0x0010
+    ;mov dh,0x10
+    ;call FLUSH_BUFFER_RECT
 
     pop es
     pop ds
@@ -1654,8 +1655,9 @@ DRAW_VERTICAL_LINE:
     ; or pixel into video buffer
     or [es:di],al
 
+    ; ** FLUSH_GAME_MAP is now called from the game to improve performance **
     ; flush pixel
-    call FLUSH_BUFFER_PIXEL
+    ;call FLUSH_BUFFER_PIXEL
 
     ; advance to next row
     inc dl
@@ -1677,8 +1679,9 @@ DRAW_VERTICAL_LINE:
     ; and pixel into video buffer
     and [es:di],al
 
+    ; ** FLUSH_GAME_MAP is now called from the game to improve performance **
     ; flush pixel
-    call FLUSH_BUFFER_PIXEL
+    ;call FLUSH_BUFFER_PIXEL
 
     ; advance to next row
     inc dl
@@ -1722,8 +1725,9 @@ DRAW_DUNGEON_LADDER_PIXEL:
 
     call WRITE_PIXEL
 
+    ; ** FLUSH_GAME_MAP is now called from the game to improve performance **
     ; flush this row (dl = row number, bx = column number)
-    call FLUSH_BUFFER_PIXEL
+    ;call FLUSH_BUFFER_PIXEL
 
     pop dx
     pop cx

@@ -133,6 +133,39 @@ SETUP_BUFFER:
     ret
 
 
+FLUSH_GAME_MAP:
+    ; parameters:
+    ;  ah = height in tiles
+    ;  al = width in tiles
+    ;  bx = starting pixel column of game map
+    ;  dl = starting pixel row of game map
+
+    pushf
+    push cx
+    push dx
+
+    ; save cl=width, dh=height (in tiles)
+    mov cl,al
+    mov dh,ah
+
+    ; set cx = width in pixels
+    mov ax,0x0010
+    mul cl
+    mov cx,ax
+
+    ; set dh = height in pixels
+    mov ax,0x0010
+    mul dh
+    mov dh,al
+
+    call FLUSH_BUFFER_RECT
+
+    pop dx
+    pop cx 
+    popf
+    ret
+
+
 ; Copies data from the buffered video area to the real video segment
 FLUSH_BUFFER:
     pushf
@@ -207,13 +240,7 @@ FLUSH_BUFFER_LINE:
     ;  dl = row
 
     pushf
-    push ax
-    push bx
-    push cx
-    push dx
-    push si
-    push di
-    push bp
+    pusha ; woot! my first 80286 instruction, yay!
     push ds
     push es
 
@@ -307,10 +334,8 @@ FLUSH_BUFFER_LINE:
     ;  dh = current byte (for saving)
     ;  dl = previous byte
 
-    mov cl,0x06
-    shl dl,cl           ; dl = p(-1),00,00,00
-    mov cl,0x02
-    shr al,cl           ; al = 00,p0,p1,p2
+    shl dl,6            ; dl = p(-1),00,00,00
+    shr al,2            ; al = 00,p0,p1,p2
     or al,dl            ; al = p(-1),p0,p1,p2
 
     ; set bp = lookup address (al*2)
@@ -337,10 +362,8 @@ FLUSH_BUFFER_LINE:
     ;  dh = current byte
     ;  dl = next byte (for saving)
 
-    mov cl,0x02
-    shl dh,cl           ; dh = p1,p2,p3,00
-    mov cl,0x06
-    shr al,cl           ; al = 00,00,00,p4
+    shl dh,2            ; dh = p1,p2,p3,00
+    shr al,6            ; al = 00,00,00,p4
     or al,dh            ; al = p1,p2,p3,p4
 
     ; set bp = lookup address (al*2)
@@ -354,8 +377,7 @@ FLUSH_BUFFER_LINE:
 
     ; adjust registers for next iteration
     xchg dh,dl          ; dl = p1,p2,p3,00; dh = p4,p5,p6,p7 (for saving)
-    mov cl,0x02
-    shr dl,cl           ; dl = 00,p1,p2,p3 (we can forget p0; we really only need p3)
+    shr dl,2            ; dl = 00,p1,p2,p3 (we can forget p0; we really only need p3)
     mov al,dh           ; al = p4,p5,p6,p7 (next p0,p1,p2,p3)
 
     ; update counters & check if we're done looping
@@ -366,13 +388,7 @@ FLUSH_BUFFER_LINE:
   FLUSH_BUFFER_LINE_DONE:
     pop es
     pop ds
-    pop bp
-    pop di
-    pop si
-    pop dx
-    pop cx
-    pop bx
-    pop ax
+    popa
     popf
     ret
 
@@ -427,8 +443,7 @@ GET_CGA_OFFSET:
     shl cl,1                ; two bits per pixel
 
     ; calculate column offset (there are 4 pixels per byte)
-    shr bx,1
-    shr bx,1
+    shr bx,2
 
     ; di = offset to pixel in video buffer
     add di,bx
@@ -480,8 +495,7 @@ GET_CGA_OFFSET_REAL:
     shl cl,1                ; two bits per pixel
 
     ; calculate column offset (there are 4 pixels per byte)
-    shr bx,1
-    shr bx,1
+    shr bx,2
 
     ; di = offset to pixel in video buffer
     add di,bx
@@ -651,29 +665,19 @@ BUILD_COMPOSITE_LOOKUP_TABLE:
     ; derive dl = p1
     mov dl,bl
     and dl,0x0c     ; dl = 00,00,p1,00
-    shr dl,1
-    shr dl,1        ; dl = 00,00,00,p1
+    shr dl,2        ; dl = 00,00,00,p1
     ; derive ch = p0
     mov ch,bl
     and ch,0x30     ; ch = 00,p0,00,00
-    shr ch,1
-    shr ch,1
-    shr ch,1
-    shr ch,1        ; ch = 00,00,00,p0
+    shr ch,4        ; ch = 00,00,00,p0
     ; derive cl = p(-1)
     mov cl,bl
     and cl,0xc0     ; cl = p(-1),00,00,00
-    shr cl,1
-    shr cl,1
-    shr cl,1
-    shr cl,1
-    shr cl,1
-    shr cl,1        ; cl = 00,00,00,p(-1)
+    shr cl,6        ; cl = 00,00,00,p(-1)
 
     ; derive bh = composite color index (p0,p1)
     mov bh,bl       ; bh = p(-1),p0,p1,p2
-    shr bh,1
-    shr bh,1        ; bh = 00,p(-1),p0,p1
+    shr bh,2        ; bh = 00,p(-1),p0,p1
     and bh,0x0f     ; bh = 00,00,p0,p1
 
     ; now we derive the color for each pixel in the p0,p1 pair
@@ -691,8 +695,7 @@ BUILD_COMPOSITE_LOOKUP_TABLE:
   BUILD_COMPOSITE_LOOKUP_TABLE_LEFT_SOLID:
     ; set al = left pixel (p0) color = solid color
     mov al,ch       ; al = 00,00,00,p0
-    shl al,1
-    shl al,1        ; al = 00,00,p0,00
+    shl al,2        ; al = 00,00,p0,00
     or al,ch        ; al = 00,00,p0,p0
 
   BUILD_COMPOSITE_LOOKUP_TABLE_RIGHT_PIXEL:
@@ -709,8 +712,7 @@ BUILD_COMPOSITE_LOOKUP_TABLE:
   BUILD_COMPOSITE_LOOKUP_TABLE_RIGHT_SOLID:
     ; set ah = right pixel (p1) color = solid color
     mov ah,dl       ; ah = 00,00,00,p1
-    shl ah,1
-    shl ah,1        ; ah = 00,00,p1,00
+    shl ah,2        ; ah = 00,00,p1,00
     or ah,dl        ; ah = 00,00,p1,p1
 
   BUILD_COMPOSITE_LOOKUP_TABLE_STORE_PIXEL:

@@ -97,6 +97,7 @@ CLOSE_DRIVER:
 
 
 ; These have no implementation in the CGA (4-color) driver
+FLUSH_GAME_MAP:
 FLUSH_BUFFER:
 FLUSH_BUFFER_ROW:
 FLUSH_BUFFER_RECT:
