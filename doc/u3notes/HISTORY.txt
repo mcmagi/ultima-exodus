@@ -20,12 +20,13 @@ Project Status:
 		the ability to "switch" between video modes with a config
 		program by merely swapping drivers.
 
-		In addition to headline VGA graphics, users have the
+		In addition to the headline VGA graphics, users have the
 		option of playing in EGA and CGA modes if they so choose.
 		Furthermore, for "classic mode" enthusiasts, there is now
 		a CGA Composite driver which simulates the blending of
 		CGA colors on composite monitors.  This is actually how
-		U3 on the IBM PC was intended to be played!
+		U3 on the IBM PC was intended to be played!  More info
+		at https://sourceforge.net/p/ultima-exodus/wiki/CGA%20Composite/
 
 		Besides the graphics drivers, a number of other things
 		have been updated/added:
@@ -38,6 +39,9 @@ Project Status:
 		  under 16-bit DOS without a DPMI interface (e.g. DOS4GW).
 		- A bug was fixed that would give inaccurate Marks/Cards
 		  information in Ztats.
+		- The frame limiter was rewritten using the PIT (Programmable
+		  Interrupt Timer) as opposed to date milisecond comparisons.
+		  Some of the timings have been adjusted.
 		- The Exodus Project is now open source!  Find us on
 		  SourceForge at the following URL:
 		  https://sourceforge.net/projects/ultima-exodus/
