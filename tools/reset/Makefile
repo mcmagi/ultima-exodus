@@ -46,8 +46,8 @@ clean:
 # package
 package: package_u2 package_u3
 
-package_u2: ${U2PKG} ${U2BIN}/u2reset.exe
+package_u2: ${U2PKG} ${U2BIN}/u2reset
 	cp -f ${U2BIN}/u2reset ${U2PKG}
 
-package_u3: ${U3PKG} ${U3BIN}/u3reset.exe
+package_u3: ${U3PKG} ${U3BIN}/u3reset
 	cp -f ${U3BIN}/u3reset ${U3PKG}
