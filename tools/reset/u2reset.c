@@ -66,7 +66,7 @@ unsigned char reset_player_file()
 
 	/* open player party file */
 	player = stat_file(PLAYER);
-	open_file(player, APPEND_MODE);
+	open_file(player, READWRITE_MODE);
 
 	if (debug)
 		printf("Saving moongate tile from player file\n");
@@ -112,9 +112,9 @@ void reset_map_file(const char *mapfn, const char *monfn, int start,
 
 		/* open map and monster files */
 		mon = stat_file(monfile);
-		open_file(mon, APPEND_MODE);
+		open_file(mon, READWRITE_MODE);
 		map = stat_file(mapfile);
-		open_file(map, APPEND_MODE);
+		open_file(map, READWRITE_MODE);
 
 		/* remove transports from map */
 		remove_transport(map, mg_tile);
