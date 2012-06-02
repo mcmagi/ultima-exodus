@@ -80,7 +80,7 @@ void remove_transport(File *map, unsigned char mg_tile)
 					" col 0x%02x\n", mapbyte, i, i/64, i%64);
 
 			/* write replacement tile to map */
-			seek_through_file(map, i, SEEK_CUR);
+			seek_through_file(map, i, SEEK_SET);
 			write_to_file(map, &tile, 1);
 		}
 	}
