@@ -90,15 +90,15 @@ ${U5PKG}:
 
 ${U2PKG_ZIP}: ${U2PKG}
 	### creating U2 Upgrade zip
-	${ZIP} ${U2PKG_ZIP} ${U2PKG}/*
+	${ZIP} -j ${U2PKG_ZIP} ${U2PKG}/*
 
 ${U3PKG_ZIP}: ${U3PKG}
 	### creating U3 Upgrade zip
-	${ZIP} ${U3PKG_ZIP} ${U3PKG}/*
+	${ZIP} -j ${U3PKG_ZIP} ${U3PKG}/*
 
 ${U5PKG_ZIP}: ${U5PKG}
 	### creating U5 Upgrade zip
-	${ZIP} ${U5PKG_ZIP} ${U5PKG}/*
+	${ZIP} -j ${U5PKG_ZIP} ${U5PKG}/*
 
 ### install build targets ###
 
