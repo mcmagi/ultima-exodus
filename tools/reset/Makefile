@@ -47,7 +47,7 @@ clean:
 package: package_u2 package_u3
 
 package_u2: ${U2PKG} ${U2BIN}/u2reset
-	cp -f ${U2BIN}/u2reset ${U2PKG}
+	cp -f ${U2BIN}/u2reset ${U2PKG}/u2reset${BINSUFFIX}
 
 package_u3: ${U3PKG} ${U3BIN}/u3reset
-	cp -f ${U3BIN}/u3reset ${U3PKG}
+	cp -f ${U3BIN}/u3reset ${U3PKG}/u3reset${BINSUFFIX}
