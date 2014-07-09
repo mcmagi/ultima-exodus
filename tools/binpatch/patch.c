@@ -37,7 +37,7 @@ struct file_header build_file_header(const char filename[], const char newname[]
 	}
 	else
 	{
-		strcpy(fz.newname, EMPTY_STR);
+		set_filename(fz.newname, EMPTY_STR);
 		fz.newname_flag = FALSE;
 	}
 
@@ -64,6 +64,13 @@ struct data_header build_data_header(long offset, long size, short type)
 /* sets charptr out with the filename in, checking size */
 void set_filename(char *out, const char *in)
 {
+	int i;
+
+	/* first, blank out string */
+	for (i = 0; i < FT_NAME_SZ; i++)
+		out[i] = 0;
+
+	/* truncate if > max length */
 	if (strlen(in) > FT_NAME_SZ)
 		strncpy(out, in, FT_NAME_SZ);
 	else
