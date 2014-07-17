@@ -13,20 +13,25 @@
 int main(int argc, const char *argv[])
 {
     struct u3cfg cfg;
+	BOOL gen_defaults = FALSE;		/* flag to generate defaults only */
 	int option;                     /* option */
 	int video_option;               /* option */
-	int moongate_option;            /* option */
 	File *file;						/* File pointer */
 
+	if (argc >= 2 && strcmp(argv[1], OPT_GEN_DEFAULTS) == MATCH)
+		gen_defaults = TRUE;
 
 	/* get file structure, then get data from it */
 	file = stat_file(CFG);
-	cfg = get_u3cfg(file);
+	cfg = get_u3cfg(file, gen_defaults);
 
 	do
 	{
-		/* get user selection */
-		option = menu(cfg);
+		if (! gen_defaults)
+			/* get user selection */
+			option = menu(cfg);
+		else
+			option = SAVE_QUIT_OPT;
 
 		switch (option)
 		{
@@ -38,14 +43,7 @@ int main(int argc, const char *argv[])
                 while (video_option < VIDEO_CGA_OPT || video_option > VIDEO_BACK_OPT);
 
                 if (video_option != VIDEO_BACK_OPT)
-                {
                     cfg.video = video_option - 1;
-
-                    if (cfg.video == VIDEO_VGA)
-                        cfg.moongate = MOONGATE_CYCLE;
-                    else
-                        cfg.moongate = MOONGATE_SCROLL;
-                }
 			    break;
 
 		    case MUSIC_OPT:
@@ -63,17 +61,9 @@ int main(int argc, const char *argv[])
 			    cfg.framelimiter = ! cfg.framelimiter;
 			    break;
 
-            /* I've decided to handle this a different way, and not in this release. */
-		    /* case MOONGATE_OPT:
-                do
-                {
-			        moongate_option = moongate_menu(cfg.moongate);
-                }
-                while (moongate_option < MOONGATE_NONE_OPT || moongate_option > MOONGATE_BACK_OPT);
-
-                if (moongate_option != MOONGATE_BACK_OPT)
-                    cfg.moongate = moongate_option - 1;
-			    break; */
+		    case GAMEPLAY_FIXES_OPT:
+				cfg.gameplay_fixes = ! cfg.gameplay_fixes;
+			    break;
 
 		    case MOON_PHASE_OPT:
 			    cfg.moon_phases = ! cfg.moon_phases;
@@ -120,18 +110,7 @@ int menu(struct u3cfg cfg)
 	printf("%d - Autosave:       %s\n", AUTOSAVE_OPT, cfg.autosave ? ENABLED_STR : DISABLED_STR);
 	printf("%d - Frame Limiter:  %s\n", FRAMELIMITER_OPT, cfg.framelimiter ? ENABLED_STR : DISABLED_STR);
 	printf("%d - Moon Phases:    %s\n", MOON_PHASE_OPT, cfg.moon_phases ? ENABLED_STR : DISABLED_STR);
-
-    /* if (cfg.video == VIDEO_VGA)
-    {
-	    printf("%d - Moongate:       %s\n", MOONGATE_OPT,
-             cfg.moongate == MOONGATE_CYCLE ? MOONGATE_CYCLE_STR :
-             cfg.moongate == MOONGATE_SCROLL ? MOONGATE_SCROLL_STR :
-             cfg.moongate == MOONGATE_NONE ? MOONGATE_NONE_STR :
-                 EMPTY_STR);
-    }
-    else
-	    printf("    Moongate:       %s\n", MOONGATE_SCROLL_STR); */
-
+	printf("%d - Gameplay Fixes: %s\n", GAMEPLAY_FIXES_OPT, cfg.gameplay_fixes ? ENABLED_STR : DISABLED_STR);
 	printf("%d - Save & Quit\n", SAVE_QUIT_OPT);
 	printf("%d - Quit without Saving\n", QUIT_OPT);
 	printf("\noption: ");
@@ -176,33 +155,6 @@ int video_menu(int video)
 	return option;
 }
 
-int moongate_menu(int moongate)
-{
-	char input[BUFSIZ];						/* unedited input */
-	int option = 0;						/* edited option */
-    int i;
-
-
-	printf("\nU3 Upgrade Configuration - Moongate Animation\n\n");
-	printf("%d - No Animation %s\n", MOONGATE_NONE_OPT,
-         moongate == MOONGATE_NONE ? SELECTED_STR : EMPTY_STR);
-	printf("%d - Vertical Scroll %s\n", MOONGATE_SCROLL_OPT,
-         moongate == MOONGATE_SCROLL ? SELECTED_STR : EMPTY_STR);
-	printf("%d - Color Cycle (Recommended) %s\n", MOONGATE_CYCLE_OPT,
-         moongate == MOONGATE_CYCLE ? SELECTED_STR : EMPTY_STR);
-	printf("%d - Return to Main Menu\n", MOONGATE_BACK_OPT);
-	printf("\noption: ");
-
-	/* get input */
-	for (i = 0; (input[i] = getchar()) != '\n'; i++);
-
-	/* option is only returned if there is one character and it is an integer */
-	if (i = 1 && input[0] >= 0x30 && input[0] <= 0x39)
-		option = atoi(input);
-
-	return option;
-}
-
 void set_defaults(unsigned char data[])
 {
 	data[MUSIC_INDEX] = ON;
@@ -210,11 +162,10 @@ void set_defaults(unsigned char data[])
 	data[FRAMELIMITER_INDEX] = ON;
 	data[VIDEO_INDEX] = VIDEO_VGA;
 	data[U3_MOONS_INDEX] = ON;
-	/* data[MOONGATE_INDEX] = MOONGATE_CYCLE; */
-	data[MOONGATE_INDEX] = OFF;
+	data[GAMEPLAY_FIXES_INDEX] = ON;
 }
 
-struct u3cfg get_u3cfg(File *file)
+struct u3cfg get_u3cfg(File *file, BOOL gen_defaults)
 {
 	unsigned char data[CFG_SZ];			/* data string */
     struct u3cfg cfg;
@@ -223,7 +174,8 @@ struct u3cfg get_u3cfg(File *file)
     set_defaults(data);
 
     /* read config file */
-    get_cfg_data(file, data);
+	if (! gen_defaults)
+    	get_cfg_data(file, data);
 
     /* populate struct */
 	cfg.video = get_status(data, VIDEO_INDEX);
@@ -231,8 +183,7 @@ struct u3cfg get_u3cfg(File *file)
 	cfg.autosave = get_status_bool(data, AUTOSAVE_INDEX);
 	cfg.framelimiter = get_status_bool(data, FRAMELIMITER_INDEX);
 	cfg.moon_phases = get_status_bool(data, U3_MOONS_INDEX);
-	/* cfg.moongate = get_status(data, MOONGATE_INDEX); */
-	cfg.moongate = OFF;
+	cfg.gameplay_fixes = get_status_bool(data, GAMEPLAY_FIXES_INDEX);
 
     return cfg;
 }
@@ -247,7 +198,7 @@ void save_u3cfg(File *file, struct u3cfg cfg)
 	set_status_bool(data, AUTOSAVE_INDEX, cfg.autosave);
 	set_status_bool(data, FRAMELIMITER_INDEX, cfg.framelimiter);
 	set_status_bool(data, U3_MOONS_INDEX, cfg.moon_phases);
-	set_status(data, MOONGATE_INDEX, cfg.moongate);
+	set_status(data, GAMEPLAY_FIXES_INDEX, cfg.gameplay_fixes);
 
     /* overwrite file data */
     save_cfg_data(file, data);

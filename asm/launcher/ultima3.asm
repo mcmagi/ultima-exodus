@@ -29,7 +29,7 @@ OLD_CONFIG_INT  dd  0
 OLD_MIDPAK_INT  dd  0
 I_FLAG          db  0
 CFGDATA         db  0x06 dup 0        ; index: 00 = midi driver, 01 = autosave, 02 = framelimiter, 03 = video driver
-                                      ;        04 = moon phases, 05 = vga moongate type
+                                      ;        04 = moon phases, 05 = gameplay fixes
 PRM_BLOCK       db  0x16 dup 0
 FCB             db  0x20 dup 0
 VIDEO_DRV_ADDR  dd  0
@@ -307,6 +307,10 @@ CONFIG_INT:
     cmp ah,0x06
     jz CONFIG_INT_GET_TIMER
 
+	; fcn 07 = gameplay fixes check
+	cmp ah,0x07
+	jz CONFIC_INT_FIXES
+
     jmp CONFIG_INT_RETURN
 
   CONFIG_INT_AUTOSAVE:
@@ -346,6 +350,11 @@ CONFIG_INT:
   CONFIG_INT_GET_TIMER:
     ; returns cx=counter
     mov cx,[cs:TIMER_COUNTER]
+    jmp CONFIG_INT_RETURN
+
+  CONFIG_INT_FIXES:
+    ; returns al=01 if gameplay fixes enabled
+    mov al,[cs:bx+0x05]
 
   CONFIG_INT_RETURN:
     pop bp
