@@ -309,7 +309,7 @@ CONFIG_INT:
 
 	; fcn 07 = gameplay fixes check
 	cmp ah,0x07
-	jz CONFIC_INT_FIXES
+	jz CONFIG_INT_FIXES
 
     jmp CONFIG_INT_RETURN
 
