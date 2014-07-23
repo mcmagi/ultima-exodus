@@ -41,6 +41,7 @@ Project Status:
         - The DOS 16-bit version of U3RESET was missing from the v3.0
           package.  It's included again now.
         - A bugfix where a resurrection would cause the game to crash.
+        - A minor VGA graphics update to the dragon animation on startup.
 
 	01-13-2011 - Release 3.0:
 
