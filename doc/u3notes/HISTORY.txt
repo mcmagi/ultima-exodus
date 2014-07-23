@@ -21,9 +21,12 @@ Project Status:
             of the largest complaints of this port of U3 is the low
             monster generation rate and, by extension, the ship
             generation rate.
-          - Increase the dungeon monster generation rate by about 50%.
-            Note that the rate scales with dungeon level.  This results
-            in more lucrative dungeon runs, but also more dangerous.
+          - Increase the dungeon monster generation rate.  Rate increase
+            varies by level such that it is double the original on the
+            first level, but only 25% more on the bottom level.  Note
+            that the effective rate increases with each dungeon level.
+            This results in more lucrative dungeon runs, but also
+            potentially more dangerous.
           - Halve the food consumption rate.  Food is supposed to be
             taxing on a party, but weighs to heavily against poorer
             parties.
