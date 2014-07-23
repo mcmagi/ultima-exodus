@@ -2,11 +2,45 @@
 		**** The Exodus Project ****
 		*    Ultima III Upgrade    *
 		*                          *
-		*        Release 3.0       *
+		*        Release 3.1       *
 		****************************
 
 
 Project Status:
+
+    07-23-2014 - Release 3.1:
+
+        This release adds a few gameplay fixes to the game and
+        addresses a few issues/concerns folks had with version 3.0.
+
+        - A set of gameplay fixes that can be enabled/disabled in the
+          configuration program.  The fixes must be toggled as a group;
+          they cannot be toggled individually.  If enabled, they will
+          do the following:
+          - Double the overworld monster generation rate.  Perhaps one
+            of the largest complaints of this port of U3 is the low
+            monster generation rate and, by extension, the ship
+            generation rate.
+          - Increase the dungeon monster generation rate by about 50%.
+            Note that the rate scales with dungeon level.  This results
+            in more lucrative dungeon runs, but also more dangerous.
+          - Halve the food consumption rate.  Food is supposed to be
+            taxing on a party, but weighs to heavily against poorer
+            parties.
+        - A streamlined installation procedure.  This package ships with
+          default configuration for the most common or recommended
+          settings.  You are of course free to customize it as needed,
+          but it's no longer required.
+        - Windows-native (32-bit) and Linux-native (i686 ELF) versions
+          of the U3RESET, U3CFG, and BINPAT tools.  Windows versions
+          end in "w" and Linux versions end in "l".  This should make it
+          simpler to run these programs without having to boot into
+          Dosbox and manually run them.  Sorry MacOS users - I'd love to
+          have OSX native versions as well, but I don't have a great
+          cross-compile solution to build Mac binaries from Windows.
+        - The DOS 16-bit version of U3RESET was missing from the v3.0
+          package.  It's included again now.
+        - A bugfix where a resurrection would cause the game to crash.
 
 	01-13-2011 - Release 3.0:
 
