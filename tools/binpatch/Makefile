@@ -50,13 +50,13 @@ clean:
 package: package_u2 package_u3 package_u5
 
 package_u2: ${UTILBIN}/binpat ${UTILBIN}/binunpat
-	cp -f ${UTILBIN}/binpat ${U2PKG}
-	cp -f ${UTILBIN}/binunpat ${U2PKG}
+	cp -f ${UTILBIN}/binpat ${U2PKG}/binpat${BINSUFFIX}
+	cp -f ${UTILBIN}/binunpat ${U2PKG}/binunpat${BINSUFFIX}
 
 package_u3: ${UTILBIN}/binpat ${UTILBIN}/binunpat
-	cp -f ${UTILBIN}/binpat ${U3PKG}
-	cp -f ${UTILBIN}/binunpat ${U3PKG}
+	cp -f ${UTILBIN}/binpat ${U3PKG}/binpat${BINSUFFIX}
+	cp -f ${UTILBIN}/binunpat ${U3PKG}/binunpat${BINSUFFIX}
 
 package_u5: ${UTILBIN}/binpat ${UTILBIN}/binunpat
-	cp -f ${UTILBIN}/binpat ${U5PKG}
-	cp -f ${UTILBIN}/binunpat ${U5PKG}
+	cp -f ${UTILBIN}/binpat ${U5PKG}/binpat${BINSUFFIX}
+	cp -f ${UTILBIN}/binunpat ${U5PKG}/binunpat${BINSUFFIX}

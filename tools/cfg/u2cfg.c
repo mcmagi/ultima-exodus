@@ -85,7 +85,7 @@ void set_defaults(unsigned char data[])
 	data[FRAMELIMITER_INDEX] = ON;
 	data[VIDEO_INDEX] = VIDEO_EGA;
 	data[U2_ENHANCED_INDEX] = OFF;
-	data[MOONGATE_INDEX] = MOONGATE_NONE;
+	data[GAMEPLAY_FIXES_INDEX] = OFF;
 }
 
 struct u2cfg get_u2cfg(File *file)
@@ -117,7 +117,7 @@ void save_u2cfg(File *file, struct u2cfg cfg)
 	set_status_bool(data, AUTOSAVE_INDEX, cfg.autosave);
 	set_status_bool(data, FRAMELIMITER_INDEX, cfg.framelimiter);
 	set_status_bool(data, U2_ENHANCED_INDEX, FALSE);
-	set_status(data, MOONGATE_INDEX, MOONGATE_NONE);
+	set_status(data, GAMEPLAY_FIXES_INDEX, OFF);
 
     /* overwrite file data */
     save_cfg_data(file, data);

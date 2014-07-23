@@ -84,9 +84,8 @@ LOAD_FILE:
     ; handle failure
     jc LOAD_FAILURE
 
-    ; handle insufficient bytes read as failure
-    cmp ax,cx
-    jnz LOAD_FAILURE
+	; set cx = actual number of bytes read
+	mov cx,ax
 
     ; close the file
     mov ah,0x3e

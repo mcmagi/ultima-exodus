@@ -39,15 +39,15 @@ ${U3BIN}/u3reset: ${RESET_LIB}/fileutil.o ${RESET_LIB}/u3reset.o \
 
 # clean
 clean:
-	rm ${U2BIN}/u2reset.exe
-	rm ${U3BIN}/u3reset.exe
+	rm ${U2BIN}/u2reset
+	rm ${U3BIN}/u3reset
 	rm ${RESET_LIB}/*.o
 
 # package
 package: package_u2 package_u3
 
-package_u2: ${U2PKG} ${U2BIN}/u2reset.exe
-	cp -f ${U2BIN}/u2reset.exe ${U2PKG}
+package_u2: ${U2PKG} ${U2BIN}/u2reset
+	cp -f ${U2BIN}/u2reset ${U2PKG}/u2reset${BINSUFFIX}
 
-package_u3: ${U3PKG} ${U#BIN}/u3reset.exe
-	cp -f ${U3BIN}/u3reset.exe ${U3PKG}
+package_u3: ${U3PKG} ${U3BIN}/u3reset
+	cp -f ${U3BIN}/u3reset ${U3PKG}/u3reset${BINSUFFIX}

@@ -3,6 +3,8 @@
 .DEFAULT_GOAL := all
 
 TARGET_ARCH_DOS := i386-dos
+TARGET_ARCH_WINNT := i586-winnt
+TARGET_ARCH_LINUX := i586-linux
 TARGET_ARCH_LOCAL := $(shell gcc -dumpmachine)
 
 ifeq (${TARGET},local)
@@ -18,23 +20,48 @@ ifeq (${TARGET},local)
     compile = ${CC} -o ${1} ${2}
     archive = ${AR} -r ${1} ${2}
     link = ${LD} -o ${1} ${2}
+
+	BINSUFFIX=
 else
-    # dos is default target
-    TARGET_ARCH := ${TARGET_ARCH_DOS}
+   	# compilation macros
+   	dospath = $(subst /,\\,"$(strip ${1})")
+   	compile = ${CC} -fo=$(call dospath,${1}) ${2}
+   	#compile = ${CC} -fo=$(call dospath,${1}) $(foreach file,${2},$(call dospath,$file))
+   	archive = ${AR} -r ${1} ${2}
+   	link = ${LD} name $(call dospath,${1}) file $(foreach file,${2},$(call dospath,${file}),)
 
-    WATCOM=C:/Development/WATCOM
+    export WATCOM=C:/Development/WATCOM
+	export WLINK_LNK=${WATCOM}/binnt/wlink.lnk
 
-    # compilation programs
-    CC=${WATCOM}/binnt/wcc -q -i=$(call dospath,${WATCOM}/h) -i=. -i=$(call dospath,${COMMON}) -bt=DOS -3
-    AR=ar
-    LD=${WATCOM}/binnt/wlink system dos
+	ifeq (${TARGET},winnt)
+    	TARGET_ARCH := ${TARGET_ARCH_WINNT}
 
-    # compilation macros
-    dospath = $(subst /,\\,"$(strip ${1})")
-    compile = ${CC} -fo=$(call dospath,${1}) ${2}
-    #compile = ${CC} -fo=$(call dospath,${1}) $(foreach file,${2},$(call dospath,$file))
-    archive = ${AR} -r ${1} ${2}
-    link = ${LD} name $(call dospath,${1}) file $(foreach file,${2},$(call dospath,${file}),)
+    	# compilation programs
+    	CC=${WATCOM}/binnt/wcc386 -q -i=$(call dospath,${WATCOM}/h) -i=. -i=$(call dospath,${COMMON}) -bt=nt -5
+    	AR=ar
+    	LD=${WATCOM}/binnt/wlink system nt
+
+		BINSUFFIX=w
+	else ifeq (${TARGET},linux)
+    	TARGET_ARCH := ${TARGET_ARCH_LINUX}
+
+    	# compilation programs
+    	CC=${WATCOM}/binnt/wcc386 -q -i=$(call dospath,${WATCOM}/h) -i=. -i=$(call dospath,${COMMON}) -bt=linux -5
+    	AR=ar
+    	LD=${WATCOM}/binnt/wlink system linux option noextension
+
+		BINSUFFIX=l
+	else
+    	# dos is default target
+    	TARGET_ARCH := ${TARGET_ARCH_DOS}
+	
+    	# compilation programs
+    	CC=${WATCOM}/binnt/wcc -q -i=$(call dospath,${WATCOM}/h) -i=. -i=$(call dospath,${COMMON}) -bt=DOS -3
+    	AR=ar
+    	LD=${WATCOM}/binnt/wlink system dos
+	
+		BINSUFFIX=
+	endif
 endif
 
 stripdots = $(subst .,,$(strip ${1}))
@@ -85,7 +112,7 @@ U5UPGRADE=${ROOT}/game/u5up
 
 # upgrade package versions
 U2VER=1.1
-U3VER=3.0
+U3VER=3.1
 U5VER=1.0
 
 # upgrade package directories

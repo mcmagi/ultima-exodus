@@ -86,7 +86,7 @@ void set_defaults(unsigned char data[])
 	data[FRAMELIMITER_INDEX] = ON;
 	data[VIDEO_INDEX] = VIDEO_EGA;
 	data[U5_NONE_INDEX] = OFF;
-	data[MOONGATE_INDEX] = MOONGATE_CYCLE;
+	data[GAMEPLAY_FIXES_INDEX] = OFF;
 }
 
 struct u5cfg get_u5cfg(File *file)
@@ -117,7 +117,7 @@ void save_u5cfg(File *file, struct u5cfg cfg)
 	set_status_bool(data, AUTOSAVE_INDEX, FALSE);
 	set_status_bool(data, FRAMELIMITER_INDEX, FALSE);
 	set_status_bool(data, U5_NONE_INDEX, FALSE);
-	set_status(data, MOONGATE_INDEX, OFF);
+	set_status(data, GAMEPLAY_FIXES_INDEX, OFF);
 
     /* overwrite file data */
     save_cfg_data(file, data);

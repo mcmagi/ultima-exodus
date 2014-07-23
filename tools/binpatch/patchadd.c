@@ -22,8 +22,8 @@ int diff(const char oldfile[], const char newfile[], File *patch, BOOL newflag, 
 	File *old;							/* ptr to old file */
 	File *new;							/* ptr to new file */
     int diffcount = 0;                  /* number of differences found */
-    char newfiletmp[BUFSIZ];            /* temp area for old filename */
-    char oldfiletmp[BUFSIZ];            /* temp area for old filename */
+    char newfiletmp[BUFSIZ] = { 0 };    /* temp area for old filename */
+    char oldfiletmp[BUFSIZ] = { 0 };    /* temp area for old filename */
     const char *filenametmp;            /* temp area for basename */
 
 

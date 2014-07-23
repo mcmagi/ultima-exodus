@@ -14,6 +14,9 @@ void set_status_bool(unsigned char data[], int index, BOOL status);
 void get_cfg_data(File *file, unsigned char *data);
 void save_cfg_data(File *file, const unsigned char *data);
 
+/* command line options */
+#define OPT_GEN_DEFAULTS		"--gen-defaults"
+
 /* file size */
 #define	CFG_SZ                  6
 
@@ -25,7 +28,7 @@ void save_cfg_data(File *file, const unsigned char *data);
 #define	U2_ENHANCED_INDEX       4
 #define	U3_MOONS_INDEX          4
 #define	U5_NONE_INDEX           4
-#define	MOONGATE_INDEX          5
+#define	GAMEPLAY_FIXES_INDEX    5
 
 /* status strings */
 #define	DISABLED_STR            "Disabled"
@@ -37,9 +40,6 @@ void save_cfg_data(File *file, const unsigned char *data);
 #define	VIDEO_CGA_COMP_STR      "CGA Composite (16-color)"
 #define	VIDEO_EGA_STR           "EGA (16-color)"
 #define	VIDEO_VGA_STR           "VGA (256-color)"
-#define	MOONGATE_NONE_STR       "None"
-#define	MOONGATE_SCROLL_STR     "Scroll"
-#define	MOONGATE_CYCLE_STR      "Cycle"
 
 /* music status values */
 #define MUSIC_NONE              0
@@ -50,11 +50,6 @@ void save_cfg_data(File *file, const unsigned char *data);
 #define VIDEO_CGA_COMP          1
 #define VIDEO_EGA               2
 #define VIDEO_VGA               3
-
-/* vga moongate status values */
-#define MOONGATE_NONE           0
-#define MOONGATE_SCROLL         1
-#define MOONGATE_CYCLE          2
 
 /* status str sizes */
 #define	STATUS_STR_SZ           8

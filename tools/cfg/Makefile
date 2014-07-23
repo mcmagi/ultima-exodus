@@ -40,10 +40,12 @@ clean:
 package: package_u2 package_u3 package_u5
 
 package_u2: ${U2BIN}/u2cfg
-	cp -f ${U2BIN}/u2cfg ${U2PKG}
+	cp -f ${U2BIN}/u2cfg ${U2PKG}/u2cfg${BINSUFFIX}
 
 package_u3: ${U3BIN}/u3cfg
-	cp -f ${U3BIN}/u3cfg ${U3PKG}
-
+	cp -f ${U3BIN}/u3cfg ${U3PKG}/u3cfg${BINSUFFIX}
+	### generate default config file
+	cd ${U3PKG}; ${U3PKG}/u3cfg${BINSUFFIX} --gen-defaults
+	
 package_u5: ${U5BIN}/u5cfg
-	cp -f ${U5BIN}/u5cfg ${U5PKG}
+	cp -f ${U5BIN}/u5cfg ${U5PKG}/u5cfg${BINSUFFIX}

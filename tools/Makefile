@@ -6,8 +6,10 @@ DIRS = common cfg patch reset tlk binpatch
 	for i in ${DIRS}; do \
 		if [ -d "$$i" ]; then \
 			cd $$i; \
-			TARGET=local $(MAKE) $@; \
-			TARGET=dos $(MAKE) $@; \
+			TARGET=local $(MAKE) $@ || (echo "tools/$$i build ${TARGET} failed"; exit 1); \
+			TARGET=dos $(MAKE) $@ || (echo "tools/$$i build ${TARGET} failed"; exit 1); \
+			TARGET=winnt $(MAKE) $@ || (echo "tools/$$i build ${TARGET} failed"; exit 1); \
+			TARGET=linux $(MAKE) $@ || (echo "tools/$$i build ${TARGET} failed"; exit 1); \
 			cd ..; \
 		fi \
 	done
@@ -17,7 +19,9 @@ package%: FORCE
 	for i in ${DIRS}; do \
 		if [ -d "$$i" ]; then \
 			cd $$i; \
-			TARGET=dos $(MAKE) $@; \
+			TARGET=dos $(MAKE) $@ || (echo "tools/$$i build ${TARGET} failed"; exit 1); \
+			TARGET=winnt $(MAKE) $@ || (echo "tools/$$i build ${TARGET} failed"; exit 1); \
+			TARGET=linux $(MAKE) $@ || (echo "tools/$$i build ${TARGET} failed"; exit 1); \
 			cd ..; \
 		fi \
 	done

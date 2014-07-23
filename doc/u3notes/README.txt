@@ -2,7 +2,7 @@
 		**** The Exodus Project ****
 		*    Ultima III Upgrade    *
 		*                          *
-		*        Release 3.0       *
+		*        Release 3.1       *
 		****************************
 
 
@@ -68,7 +68,7 @@ Table of Contents:
 
 3 - Current Features:
 
-	This is currently Release 3.0, which supports the following
+	This is currently Release 3.1, which supports the following
 	features:
 
 		1) Fully colored VGA (256-color) tiles
@@ -87,38 +87,55 @@ Table of Contents:
 		8) Enhanced MIDI Music from the C64 and Apple II versions
 		9) Ability to Enable/Disable the AutoSave feature
 		10) Replaces the 0-7 moon phases with actual moon icons
+        11) Gameplay balance fixes related to monster generation and
+            food consumption rates.
 
 
 4 - Installation Instructions:
 
 	1. The PC version of Ultima 3 must already be installed on
 	   your hard drive.  If you have a previous version of the U3
-	   Upgrade installed, please replace it with a fresh copy of
-	   Ultima 3.  (be sure to back up your savegame files ROSTER.ULT
-	   and PARTY.ULT if you do)
+	   Upgrade installed, you may:
+        a) Replace it with a fresh copy of Ultima 3.  (be sure to
+           back up your savegame files ROSTER.ULT and PARTY.ULT if
+           you do)
+        b) Alternatively, if upgrading from v3.0, you may uninstall
+           it with "BINUNPAT U3UP-30.PAT".  This will reverse the
+           changes to the Ultima 3 binaries and restore it to its
+           original 1980's state.
 	2. Unzip the U3 Upgrade zip file into your Ultima 3 directory
 	   on your hard drive.  This step will not affect your current
 	   installation or saved games.
-	3. Start your DOS emulator (e.g. DOSBox) and navigate to the
-	   Ultima 3 directory.
-	4. Run BINPAT.EXE U3UP-30.PAT to apply the binary patch to the
-	   game files.
-	5. Run U3CFG.EXE to configure the game options.  If no prior
-	   configuration exists, the game options will be initialized to
-	   the default recommended options.  Modify them if you wish then
-	   press 7 to save the configuration and exit.
-	6. If you enabled MIDI music, run SETM.EXE from the Ultima 3
-	   directory to configure your sound card.
-	7. Run ULTIMA3.COM from the Ultima 3 directory to start the
-	   game.
-	8. Email me with suggestions and/or bugs.
+    3. Apply the binary patch to the game files:
+        a) If installing from Windows, open a Command Prompt and
+           navigate to the Ultima 3 directory.  Run "BINPATW
+           U3UP-31.PAT".
+        b) If installing from Linux, open a shell terminal and
+           navigate to the Ultima 3 directory.  Run "./binpatl
+           U3UP-31.PAT".
+        c) For all other systems, start your DOS emulator (e.g.
+           DOSBox) and navigate to the Ultima 3 directory.  Run
+           "BINPAT U3UP-31.PAT".
+    4. Run ULTIMA3.COM in a DOS enumalator to start the game.
 
 	Optional steps:
 
+	- This version ships with default configuration.  You can change
+      this configuration in one of the following ways:
+        a) If in Windows, run U3CFGW.
+        b) If in Linux, run u3cfgl.
+        c) You may start your DOS Emulator, navigate to the Ultima 3
+           directory and run "U3CFG". 
+      Modify them as you see fit and press 7 to save the configuration
+      and exit.
+    - This version ships with General MIDI as the default driver.  You
+      can change this by running SETM.EXE from the Ultima 3 directory
+      to configure a different sound card.  This must be done from a
+      DOS emulator.
 	- You can run U3RESET.EXE to reset the game map if you want
-	your party to enter an uncharted Sosaria.  Your party must
-	be dispersed in order to clear the map.  This program will
-	not affect the Roster.
+	  your party to enter an uncharted Sosaria.  Your party must
+	  be dispersed in order to clear the map.  This program will
+	  not affect the Roster.
 
 
 5 - More Information:
@@ -148,8 +165,11 @@ Table of Contents:
 	MobyGames, inspiring me to return to the U3 Upgrade and write a
 	Composite CGA simulator.
 
-	Thanks to the Ultima Dragons of rgcud for, well, just being the
-	outspoken group that they are.
+    Thanks to nakedbaby on GOG.com for asking about the status of
+    v3.1, prompting me to focus on getting this release out finally.
+
+	Thanks to the Ultima Dragons of rgcud and Facebook for, well, just
+    being the outspoken group that they are.
 
 	And thanks especially to Richard Garriot for creating Ultima III
 	in CGA and forcing us to play it on RGB monitors, thus inspiring
