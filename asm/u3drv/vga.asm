@@ -1,4 +1,4 @@
-; EGA.ASM
+; VGA.ASM
 ; Author: Michael C. Maggio
 ;
 ; Ultima 3 Upgrade VGA driver.  Outputs VGA data to video buffer at segment

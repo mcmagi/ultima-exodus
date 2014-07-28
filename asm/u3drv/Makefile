@@ -2,7 +2,7 @@ ROOT=../..
 include ${ROOT}/Makefile.include
 
 compile: ${U3BIN}/cga.drv ${U3BIN}/cgacomp.drv ${U3BIN}/ega.drv ${U3BIN}/vga.drv \
-        ${U3BIN}/midpak.drv ${U3BIN}/nomidi.drv
+        ${U3BIN}/midpak.drv ${U3BIN}/nomidi.drv ${U3BIN}/sfx.drv ${U3BIN}/sfxtest.com
 
 VIDDEPS=vidjmp.asm vidfile.asm vidfar.asm ../common/loadfile.asm \
     ../common/xchgs.asm ../common/memory.asm
@@ -25,6 +25,12 @@ ${U3BIN}/midpak.drv: midpak.asm | ${U3BIN}
 ${U3BIN}/nomidi.drv: nomidi.asm | ${U3BIN}
 	${ASM} nomidi.asm ${U3BIN}/nomidi.drv
 
+${U3BIN}/sfx.drv: sfx.asm sfxfar.asm sfxjmp.asm | ${U3BIN}
+	${ASM} sfx.asm ${U3BIN}/sfx.drv
+
+${U3BIN}/sfxtest.com: sfxtest.asm ../common/loadfile.asm ../common/xchgs.asm ../common/memory.asm | ${U3BIN}
+	${ASM} sfxtest.asm ${U3BIN}/sfxtest.com
+
 clean:
 	rm ${U3BIN}/cga.drv
 	rm ${U3BIN}/cgacomp.drv
@@ -32,6 +38,8 @@ clean:
 	rm ${U3BIN}/vga.drv
 	rm ${U3BIN}/midpak.drv
 	rm ${U3BIN}/nomidi.drv
+	rm ${U3BIN}/sfx.drv
+	rm ${U3BIN}/sfxtest.com
 
 package: package_u3
 
