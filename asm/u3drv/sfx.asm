@@ -15,6 +15,9 @@ SYSTEM_TIME_2	dw	0 dup 2
 ; ===== sound driver functions here =====
 
 INIT:
+	push cx
+	push dx
+
 	; save system time
 	mov ah,0x2c
 	int 0x21
@@ -31,6 +34,8 @@ INIT:
 	mov [SYSTEM_DATE_2+0x00],cx		; year
 	mov [SYSTEM_DATE_1+0x00],cx		; year
 
+	pop dx
+	pop cx
 	ret
 
 
@@ -127,7 +132,7 @@ INVALID_COMMAND:
 
 
 MOONGATE:
-    ; input: bh = ?, bl = ?
+    ; input: bh = duration, bl = frequency
 
     push bx
     push cx
@@ -456,6 +461,11 @@ GET_RANDOM_NUMBER:
 	push cx
 	push si
 	push di
+	push es
+
+	; set es = ds
+	push ds
+	pop es
 
 	; set direction flag
 	std
@@ -469,7 +479,7 @@ GET_RANDOM_NUMBER:
 	lea si,[SYSTEM_DATE_1]
 	add si,cx
 
-	;set di = si - 1
+	; set di = si - 1
 	mov di,si
 	dec di
 
@@ -508,6 +518,7 @@ GET_RANDOM_NUMBER:
 	jmp GET_RANDOM_NUMBER_LOOP_3
 
   GET_RANDOM_NUMBER_RETURN:
+	pop es
 	pop di
 	pop si
 	pop cx
