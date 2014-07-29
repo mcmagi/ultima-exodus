@@ -609,8 +609,8 @@ SET_CLOCK_SPEED:
     mov [CLOCK_SPEED],dx
 
     ; set channel 0 to mode 3
-    mov al,0x36
-    out 0x43,al
+    mov al,0x36			; 00,11,011,0 = counter 0, lsb->msb, mode 3, binary
+    out 0x43,al			; PIT control port
 
     ; if dx == 1 (normal) just set output word to 0,
     ; otherwise we need to do some division
@@ -628,9 +628,9 @@ SET_CLOCK_SPEED:
 
   SET_CLOCK_SPEED_OUTPUT:
     ; write word to counter 0
-    out 0x40,al
+    out 0x40,al			; lsb
     mov al,ah
-    out 0x40,al
+    out 0x40,al			; msb
 
   SET_CLOCK_SPEED_RETURN:
     pop dx
