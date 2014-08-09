@@ -7,12 +7,14 @@ jmp START
 
 ;===========DATA===========
 
-SFX_DRV			db	"SFX.DRV",0
+;SFX_DRV			db	"SFX.DRV",0
+SFX_DRV			db	"SFXTIMED.DRV",0
 SFX_DRV_ADDR	dd	0
 FREE_ERROR      db  "Error releasing memory for driver",0x0a,0x0d,"$"
 FILE_ERROR      db  "Error reading "
 FILE_ERROR_NAME db  "            ",0x0a,0x0d,"$"
 COMMAND			db	0
+I_FLAG          db  0
 
 ;===========CODE===========
 
@@ -32,6 +34,9 @@ START:
     add ax,0x0010
     mov ds,ax
     mov es,ax
+
+    ; set new interrupt vectors
+    call SET_VECTORS
 
     ; load sfx driver and store segment address in memory
 	lea dx,[SFX_DRV]
@@ -80,9 +85,10 @@ START:
 	jmp TERMINATE
 
   ERROR_EXIT:
-	mov al,0x01
-
   TERMINATE:
+    ; reset the interrupt vectors
+    call RESET_VECTORS
+
     ; exit with errorlevel al
     mov ah,0x4c
     int 0x21                ; exit
@@ -173,6 +179,50 @@ LOAD_DRIVER:
     ret
 
 
+SET_VECTORS:
+    push ax
+    push dx
+
+	call SET_TIMER_VECTORS
+
+    ; multiply clock speed by 16 (18.2 * 16 = 291.2 Hz)
+	mov ah,0x00
+    mov dx,0x0010
+	int 0x64
+
+    ; set I_FLAG to 01 (indicates we have set new interrupts)
+    mov byte [I_FLAG],0x01
+
+    ; return
+    pop dx
+    pop ax
+    ret
+
+
+RESET_VECTORS:
+	pushf
+    push ax
+    push dx
+
+    ; I_FLAG will be set to 01 if interrupt vectors have been set
+    cmp byte [I_FLAG],0x01
+	jnz RESET_VECTORS_RETURN
+
+    ; restore clock speed
+	mov ah,0x00
+	mov dx,0x0000
+	int 0x64
+
+	call RESET_TIMER_VECTORS
+
+  RESET_VECTORS_RETURN:
+    ; return
+    pop dx
+    pop ax
+	popf
+    ret
+
+
 MESSAGE:
     ; parameters:
     ;  dx = address of message text
@@ -200,3 +250,4 @@ ERROR:
 ; include supporting files
 include '../common/strcpy.asm'
 include '../common/loadfile.asm'
+include '../launcher/timer.asm'

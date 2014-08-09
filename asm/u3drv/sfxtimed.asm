@@ -6,10 +6,13 @@
 ; ===== start jumps into code here =====
 include 'sfxjmp.asm'
 
-SYSTEM_DATE_1	dw	0 dup 2
-SYSTEM_TIME_1	dw	0 dup 2
-SYSTEM_DATE_2	dw	0 dup 2
-SYSTEM_TIME_2	dw	0 dup 2
+SYSTEM_DATE_1		dw	0 dup 2
+SYSTEM_TIME_1		dw	0 dup 2
+SYSTEM_DATE_2		dw	0 dup 2
+SYSTEM_TIME_2		dw	0 dup 2
+WAVELENGTH_COUNTER	db	0
+DURATION_COUNTER	db	0
+OLD_CLOCK_SPEED		dw	0
 
 
 ; ===== sound driver functions here =====
@@ -40,12 +43,23 @@ INIT:
 
 
 INVALID_ACTION:
+	mov ax,0x3e80		; counter = 16000 (dec) -> 74 Hz (D2)
+	;mov cx,0x7d70		; loop for 32112 (dec) instructions
+	mov cx,0x0020
+	jmp PLAY_NOTE
     push bx
     push cx
 
     ; store speaker status
     in al,0x61
     push ax
+
+	mov al,0xb6			; 10,11,011,0 = counter 2, lsb->msb, mode 3, binary
+	out 0x43,al
+	mov ax,0x3d33
+	out 0x42,al			; lsb
+	mov al,ah
+	out 0x42,al			; msb
 
 	; clear bits 0-1 of al (to turn speaker off)
     and al,0xfc			; xxxxxx,0,0 = unchanged, disable speaker, disable timer 2
@@ -85,6 +99,10 @@ INVALID_ACTION:
 
 
 INVALID_COMMAND:
+	mov ax,0x1630		; counter = 5680 (dec) -> 210 Hz (Ab3)
+	;mov cx,0x8670		; loop for 34416 (dec) instructions
+	mov cx,0x0023
+	jmp PLAY_NOTE
     push bx
     push cx
 
@@ -126,6 +144,49 @@ INVALID_COMMAND:
     out 0x61,al
 
     ; restore and return
+    pop cx
+    pop bx
+    ret
+
+
+PLAY_NOTE:
+	; ax = frequency divider (1.193182 MHz / ax)
+	; cx = duration
+    push bx
+    push cx
+
+	mov bx,ax
+	mov al,0xb6			; 10,11,011,0 = counter 2, lsb->msb, mode 3, binary
+	out 0x43,al
+	mov ax,bx
+	out 0x42,al			; lsb
+	mov al,ah
+	out 0x42,al			; msb
+
+    ; store speaker status
+    in al,0x61
+	push ax
+
+	; turn speaker on
+	or al,0x03 			; xxxxxx,1,1 = unchanged, enable speaker, enable timer 2
+	out 0x61,al
+
+	; set counter = cx
+	mov ah,0x02
+	int 0x64				; set counter
+
+	; loop while counter != 0
+  PLAY_NOTE_DELAY:
+	mov ah,0x03
+	int 0x64				; get counter
+	and cx,cx
+	jnz PLAY_NOTE_DELAY
+
+    ; restore original speaker status
+    pop ax
+	and ax,0xfc
+    out 0x61,al
+
     pop cx
     pop bx
     ret
@@ -274,24 +335,121 @@ FORCE_FIELD:
 
 
 ATTACK:
-	push bx
+	pushf
+	push ax
+	push di
+
+	; save speaker state
 	in al,0x61
 	push ax
-	and al,0xfc
-	mov bl,0xfb
-  ATTACK_LOOP:
-	out 0x61,al
-	xor al,0x02
-	mov bh,bl
-  ATTACK_DELAY:
-	inc bh
-	jnz ATTACK_DELAY
-	dec bl
-	jnz ATTACK_LOOP
+
+	; initialize duration/wavelength counters
+	mov al,0xfb
+	mov [DURATION_COUNTER],al
+	mov [WAVELENGTH_COUNTER],al
+
+	; configure ATTACK_INT callback for sfx
+	lea di,[ATTACK_INT]
+	call CONFIGURE_SFX_TIMER
+
+	; wait until sound effect completes
+  ATTACK_WAIT:
+	cmp [DURATION_COUNTER],0x00
+	jnz ATTACK_WAIT
+
+	; callback / clock speed should be restored by ISR
+
+	; restore speaker state
 	pop ax
 	out 0x61,al
-	pop bx
+
+	pop di
+	pop ax
+	popf
     ret
+
+
+ATTACK_INT:
+	push ax
+
+	; if finished, return
+	mov ah,[DURATION_COUNTER]
+	and ah,ah
+	jz ATTACK_INT_RETURN
+
+	inc byte [WAVELENGTH_COUNTER]
+	jnz ATTACK_INT_RETURN
+
+	; toggle speaker
+	in al,0x61
+	xor al,0x02
+	out 0x61,al
+
+	; decrement duration counter, reset wavelength counter
+	dec ah
+	mov [DURATION_COUNTER],ah
+	mov [WAVELENGTH_COUNTER],ah
+	jnz ATTACK_INT_RETURN
+
+	; we just hit 0, so disable this callback & restore clock speed
+	call RESTORE_TIMER
+
+  ATTACK_INT_RETURN:
+	pop ax
+	iret
+
+
+; Configures a int 0x1c timer callback at es:di and bumps the clock speed to
+; 0x2000 interrupts per each full iteration of the counter.
+CONFIGURE_SFX_TIMER:
+	; parameters:
+	;   di = ISR offset
+
+	push ax
+	push dx
+	push es
+
+	; set es:di = ISR at cs:offset
+	push cs
+	pop es
+
+	; save current clock speed to OLD_CLOCK_SPEED
+	mov ah,0x01
+	int 0x64
+	mov [OLD_CLOCK_SPEED],dx
+
+	; increase clock speed
+	mov ah,0x00
+	mov dx,0x2000
+	int 0x64
+
+	; configure local interrupt callback
+	mov ah,0x04
+	int 0x64
+
+	pop es
+	pop dx
+	pop ax
+	ret
+
+
+; Returns the int 0x1c callback to its previous state.
+RESTORE_TIMER:
+	push ax
+	push dx
+
+	; disable callback
+	mov ah,0x05
+	int 0x64
+
+	; restore clock speed
+	mov ah,0x00
+	mov dx,[OLD_CLOCK_SPEED]
+	int 0x64
+
+	pop dx
+	pop ax
+	ret
 
 
 TRAP_EVADED:
