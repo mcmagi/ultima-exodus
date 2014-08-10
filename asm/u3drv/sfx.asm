@@ -6,10 +6,10 @@
 ; ===== start jumps into code here =====
 include 'sfxjmp.asm'
 
-SYSTEM_DATE_1	dw	0 dup 2
-SYSTEM_TIME_1	dw	0 dup 2
-SYSTEM_DATE_2	dw	0 dup 2
-SYSTEM_TIME_2	dw	0 dup 2
+SYSTEM_DATE_1	dw	0,0
+SYSTEM_TIME_1	dw	0,0
+SYSTEM_DATE_2	dw	0,0
+SYSTEM_TIME_2	dw	0,0
 
 
 ; ===== sound driver functions here =====

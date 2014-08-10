@@ -5,8 +5,7 @@ OLD_TIMER_CONTROL_INT	dd  0				; location of old int 0x64
 CLOCK_COUNTER			dw  0x0001
 CLOCK_SPEED				dw  0x0001
 TIMER_COUNTER			dw  0
-TIMER_CALLBACK_ENABLED	db  0				; whether int 0x1c programmable callback is enabled
-TIMER_CALLBACK_ADDR		dd  0				; location of int 0x1c programmable callback
+CLOCK_ENABLED			db  0x01			; whether to allow clock / int0x1c processing
 
 ; The clock interrupt (INT 0x08) is normally called 18.2 times every second.
 ; However, it may be adjusted by a call to SET_CLOCK_SPEED.  If so, use this
@@ -15,6 +14,10 @@ TIMER_CALLBACK_ADDR		dd  0				; location of int 0x1c programmable callback
 ; the custom timer interrupt (INT 0x1C) is called at the new frequency.
 CLOCK_INT:
     push ax
+
+	; check if clock is disabled
+	cmp byte [cs:CLOCK_ENABLED],0x00
+	je CLOCK_INT_RETURN
 
     ; decrement counter
     dec word [cs:CLOCK_COUNTER]
@@ -52,18 +55,9 @@ CLOCK_INT:
 TIMER_INT:
     ; do not decrement counter if it's at 0
     cmp word [cs:TIMER_COUNTER],0x0000
-    jz TIMER_INT_CALLBACK
+    je TIMER_INT_RETURN
     ; otherwise decrement counter
     dec word [cs:TIMER_COUNTER]
-
-  TIMER_INT_CALLBACK:
-	; check if timer callback is enabled
-	cmp byte [cs:TIMER_CALLBACK_ENABLED],0x00
-	jz TIMER_INT_RETURN
-
-	; if so, make a far call to it (expect iret return)
-	pushf
-	call far [cs:TIMER_CALLBACK_ADDR]
 
   TIMER_INT_RETURN:
     ; chain with the previous interrupt
@@ -76,37 +70,34 @@ TIMER_CONTROL_INT:
 	; parameters:
 	;  ah = function
 	;  (additional params/returns by function)
-	push ax
-    push bx
 
 	; fcn 00 = set clock speed
 	;	dx = multiplier
     cmp ah,0x00
-    jz TIMER_CONTROL_INT_SET_CLOCK_SPEED
+    je TIMER_CONTROL_INT_SET_CLOCK_SPEED
 
 	; fcn 01 = get clock speed
 	;   returns: dx = multiplier
 	cmp ah,0x01
-	jz TIMER_CONTROL_INT_GET_CLOCK_SPEED
+	je TIMER_CONTROL_INT_GET_CLOCK_SPEED
 
     ; fcn 02 = set timer 0
 	;	cx = counter value
     cmp ah,0x02
-    jz TIMER_CONTROL_INT_SET_TIMER
+    je TIMER_CONTROL_INT_SET_TIMER
 
     ; fcn 03 = get timer 0
 	;	returns: cx = counter value
     cmp ah,0x03
-    jz TIMER_CONTROL_INT_GET_TIMER
+    je TIMER_CONTROL_INT_GET_TIMER
 
-    ; fcn 04 = set timer callback
-	;	es:di = int 0x1c callback location
+    ; fcn 04 = disable clock
     cmp ah,0x04
-    jz TIMER_CONTROL_INT_SET_CALLBACK
+    je TIMER_CONTROL_INT_DISABLE_CLOCK
 
-    ; fcn 05 = clear callback
+    ; fcn 05 = enable clock
     cmp ah,0x05
-    jz TIMER_CONTROL_INT_CLEAR_CALLBACK
+    je TIMER_CONTROL_INT_ENABLE_CLOCK
 
     jmp TIMER_CONTROL_INT_RETURN
 
@@ -130,21 +121,15 @@ TIMER_CONTROL_INT:
     mov cx,[cs:TIMER_COUNTER]
     jmp TIMER_CONTROL_INT_RETURN
 
-  TIMER_CONTROL_INT_SET_CALLBACK:
-	push es
-	pop ax
-	mov word [cs:TIMER_CALLBACK_ADDR+0x02],ax		; segment
-	mov word [cs:TIMER_CALLBACK_ADDR+0x00],di		; offset
-	mov byte [cs:TIMER_CALLBACK_ENABLED],0x01		; enables callbacks to the above addr
+  TIMER_CONTROL_INT_DISABLE_CLOCK:
+	mov byte [cs:CLOCK_ENABLED],0x00		; disables the clock and int 0x1c callbacks
     jmp TIMER_CONTROL_INT_RETURN
 
-  TIMER_CONTROL_INT_CLEAR_CALLBACK:
-	mov byte [cs:TIMER_CALLBACK_ENABLED],0x00		; disables callbacks to the configured addr
+  TIMER_CONTROL_INT_ENABLE_CLOCK:
+	mov byte [cs:CLOCK_ENABLED],0x01		; enables the clock and int 0x1c callbacks
     jmp TIMER_CONTROL_INT_RETURN
 
   TIMER_CONTROL_INT_RETURN:
-    pop bx
-	pop ax
     iret
 
 
