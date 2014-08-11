@@ -11,7 +11,7 @@ SYSTEM_TIME_1		dw	0,0
 SYSTEM_DATE_2		dw	0,0
 SYSTEM_TIME_2		dw	0,0
 OLD_CLOCK_SPEED		dw	0
-INTERRUPT_COUNT		dw	0
+INTERRUPT_COUNT		dd	0
 
 
 ; ===== sound driver functions here =====
@@ -170,20 +170,14 @@ PLAY_NOTE:
 	or al,0x03 			; xxxxxx,1,1 = unchanged, enable speaker, enable timer 2
 	out 0x61,al
 
-	; set counter = cx
-	mov ah,0x02
-	int 0x64				; set counter
-
 	; loop while counter != 0
   PLAY_NOTE_DELAY:
-	mov ah,0x03
-	int 0x64				; get counter
-	and cx,cx
-	jnz PLAY_NOTE_DELAY
+	hlt					; wait for interrupt
+	loop PLAY_NOTE_DELAY
 
     ; restore original speaker status
     pop ax
-	and ax,0xfc
+	and al,0xfc
     out 0x61,al
 
     pop cx
@@ -651,7 +645,7 @@ WAIT_FOR_INTERRUPT:
 	; wait for next timer interrupt
 	hlt
 	; track how many times we're interrupted so we can update the clock
-	inc word [INTERRUPT_COUNT]
+	inc dword [INTERRUPT_COUNT]
 	ret
 
 
@@ -664,7 +658,7 @@ CONFIGURE_SFX_TIMER:
 	push es
 
 	; reset interrupt count
-	mov word [INTERRUPT_COUNT],0x0000
+	mov dword [INTERRUPT_COUNT],0x00000000
 
 	; set es:di = ISR at cs:offset
 	push cs
@@ -690,9 +684,13 @@ CONFIGURE_SFX_TIMER:
 	ret
 
 
-; Returns the int 0x08 callback to its previous state.
+; Returns the int 0x08 callback to its previous state.  Also updates the system
+; clock with the number of clock ticks missed (if any) while it was disabled.
 RESTORE_TIMER:
-	push ax
+	pushf
+	push eax
+	push bx
+	push cx
 	push dx
 
 	; restore clock speed
@@ -700,12 +698,36 @@ RESTORE_TIMER:
 	mov dx,[OLD_CLOCK_SPEED]
 	int 0x64
 
+	; calculate eax = the # of clock ticks missed (32 bits, yay!)
+	;  NOTE: result in eax, but we expect it to be small enough to fit in ax
+	mov eax,[INTERRUPT_COUNT]
+	mov edx,0x00000000
+	mov ecx,0x00001600
+	div ecx								; no of interrupts / clock multiplier
+
+	; check if adjustment necessary
+	and eax,eax
+	jz RESTORE_TIMER_ENABLE_CLOCK
+
+	; adjust the clock
+	mov bx,ax
+	mov ah,0x00
+	int 0x1a		; read the clock
+	add dx,bx
+	adc cx,0x00
+	mov ah,0x01
+	int 0x1a		; set the clock
+
+  RESTORE_TIMER_ENABLE_CLOCK:
 	; enable the clock
 	mov ah,0x05
 	int 0x64
 
 	pop dx
-	pop ax
+	pop cx
+	pop bx
+	pop eax
+	popf
 	ret
 
 

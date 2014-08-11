@@ -5,19 +5,14 @@ OLD_TIMER_CONTROL_INT	dd  0				; location of old int 0x64
 CLOCK_COUNTER			dw  0x0001
 CLOCK_SPEED				dw  0x0001
 TIMER_COUNTER			dw  0
-CLOCK_ENABLED			db  0x01			; whether to allow clock / int0x1c processing
 
 ; The clock interrupt (INT 0x08) is normally called 18.2 times every second.
-; However, it may be adjusted by a call to SET_CLOCK_SPEED.  If so, use this
+; However, it may be adjusted by a call to INT 0x64 fcn 0x00 .  If so, use this
 ; replacement interrupt handler to ensure the old INT 0x08 is called at the
 ; appropriate frequency, thus ensuring the system clock updates properly while
 ; the custom timer interrupt (INT 0x1C) is called at the new frequency.
 CLOCK_INT:
     push ax
-
-	; check if clock is disabled
-	cmp byte [cs:CLOCK_ENABLED],0x00
-	je CLOCK_INT_RETURN
 
     ; decrement counter
     dec word [cs:CLOCK_COUNTER]
@@ -38,6 +33,23 @@ CLOCK_INT:
     mov [cs:CLOCK_COUNTER],ax
 
   CLOCK_INT_RETURN:
+    ; re-enable lower-level interrupts
+    ; (not sure why this is needed yet)
+    mov al,0x20
+    out 0x20,al
+
+    pop ax
+    iret
+
+
+; Alternate implementation of INT 0x08 that does not update the clock or
+; invoke INT 0x1C.  Used for high-frequency interrupts where performance is
+; important.  Activated by INT 0x64 fcn 04 and deactivated by INT 0x64 fcn 05.
+; It's recommended that users of this implementation manually update the clock
+; as needed.
+NO_CLOCK_INT:
+	push ax
+
     ; re-enable lower-level interrupts
     ; (not sure why this is needed yet)
     mov al,0x20
@@ -70,6 +82,9 @@ TIMER_CONTROL_INT:
 	; parameters:
 	;  ah = function
 	;  (additional params/returns by function)
+	push ax
+	push bx
+	push es
 
 	; fcn 00 = set clock speed
 	;	dx = multiplier
@@ -122,14 +137,29 @@ TIMER_CONTROL_INT:
     jmp TIMER_CONTROL_INT_RETURN
 
   TIMER_CONTROL_INT_DISABLE_CLOCK:
-	mov byte [cs:CLOCK_ENABLED],0x00		; disables the clock and int 0x1c callbacks
+    ; replace int 0x08 with cs:NO_CLOCK_INT
+	cli
+    mov al,0x08
+	push cs
+	pop es
+    lea bx,[cs:NO_CLOCK_INT]
+    call REPLACE_VECTOR
     jmp TIMER_CONTROL_INT_RETURN
 
   TIMER_CONTROL_INT_ENABLE_CLOCK:
-	mov byte [cs:CLOCK_ENABLED],0x01		; enables the clock and int 0x1c callbacks
+    ; replace int 0x08 with cs:CLOCK_INT
+	cli
+    mov al,0x08
+	push cs
+	pop es
+    lea bx,[cs:CLOCK_INT]
+    call REPLACE_VECTOR
     jmp TIMER_CONTROL_INT_RETURN
 
   TIMER_CONTROL_INT_RETURN:
+	pop es
+	pop bx
+	pop ax
     iret
 
 
