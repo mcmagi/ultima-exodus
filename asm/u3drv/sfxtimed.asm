@@ -563,6 +563,52 @@ WHIRLPOOL:
     ret
 
 
+DRAGON_BREATH:
+	push ax
+	in al,0x61
+	mov ah,al
+	and al,0xfc
+
+	call CONFIGURE_SFX_TIMER
+
+	mov dh,0xff
+	mov cx,0x0400
+
+  DRAGON_BREATH_LOOP:
+	call GET_RANDOM_NUMBER
+
+  DRAGON_BREATH_DELAY:
+	call WAIT_FOR_INTERRUPT
+	dec dl
+	jnz DRAGON_BREATH_DELAY
+
+	; toggle pc speaker
+	out 0x61,al
+	xor al,0x02
+
+	loop DRAGON_BREATH_LOOP
+
+	call RESTORE_TIMER
+
+	; return pc speaker to initial state
+	mov al,ah
+	out 0x61,al
+
+	pop ax
+	ret
+
+
+TOGGLE_SPEAKER:
+	push ax
+	call WAIT_FOR_INTERRUPT
+	in al,0x61
+	xor al,0x02
+	and al,0xfe
+	out 0x61,al
+	pop ax
+	ret
+
+
 ; This function is copied from exodus.bin:0x514b, with the random seed
 ; (date/time) initialized locally rather than globally.
 GET_RANDOM_NUMBER:
@@ -652,7 +698,6 @@ WAIT_FOR_INTERRUPT:
 ; Configures a int 0x08 timer callback at 0x1600 interrupts per each full
 ; iteration of the counter (~104 kHz), and disables the system clock.
 CONFIGURE_SFX_TIMER:
-
 	push ax
 	push dx
 	push es
@@ -666,17 +711,17 @@ CONFIGURE_SFX_TIMER:
 
 	; save current clock speed to OLD_CLOCK_SPEED
 	mov ah,0x01
-	int 0x64
+	int 0x64					; fcn ah=0x01, get clock speed
 	mov [OLD_CLOCK_SPEED],dx
 
 	; disable the clock
 	mov ah,0x04
-	int 0x64
+	int 0x64					; fcn ah=0x04, disable clock int
 
 	; increase clock speed
 	mov ah,0x00
 	mov dx,0x1600
-	int 0x64
+	int 0x64					; fcn ah=0x00, set clock speed
 
 	pop es
 	pop dx
@@ -689,14 +734,13 @@ CONFIGURE_SFX_TIMER:
 RESTORE_TIMER:
 	pushf
 	push eax
-	push bx
-	push cx
-	push dx
+	push ecx
+	push edx
 
 	; restore clock speed
 	mov ah,0x00
 	mov dx,[OLD_CLOCK_SPEED]
-	int 0x64
+	int 0x64				; fcn ah=0x00, set clock speed
 
 	; calculate eax = the # of clock ticks missed (32 bits, yay!)
 	;  NOTE: result in eax, but we expect it to be small enough to fit in ax
@@ -710,22 +754,17 @@ RESTORE_TIMER:
 	jz RESTORE_TIMER_ENABLE_CLOCK
 
 	; adjust the clock
-	mov bx,ax
-	mov ah,0x00
-	int 0x1a		; read the clock
-	add dx,bx
-	adc cx,0x00
-	mov ah,0x01
-	int 0x1a		; set the clock
+	mov cx,ax
+	mov ah,0x06
+	int 0x64				; fcn ah=0x06, update clock
 
   RESTORE_TIMER_ENABLE_CLOCK:
-	; enable the clock
+	; re-enable the clock int 0x08
 	mov ah,0x05
-	int 0x64
+	int 0x64				; fcn ah=0x05, enable clock int
 
-	pop dx
-	pop cx
-	pop bx
+	pop edx
+	pop ecx
 	pop eax
 	popf
 	ret

@@ -451,6 +451,46 @@ WHIRLPOOL:
     ret
 
 
+DRAGON_BREATH:
+	push ax
+	in al,0x61
+	mov ah,al
+	and al,0xfc
+
+	mov dh,0xff
+	mov cx,0x0400
+
+  DRAGON_BREATH_LOOP:
+	call GET_RANDOM_NUMBER
+
+  DRAGON_BREATH_DELAY:
+	dec dl
+	jnz DRAGON_BREATH_DELAY
+
+	; toggle pc speaker
+	out 0x61,al
+	xor al,0x02
+
+	loop DRAGON_BREATH_LOOP
+
+	; return pc speaker to initial state
+	mov al,ah
+	out 0x61,al
+
+	pop ax
+	ret
+
+
+TOGGLE_SPEAKER:
+	push ax
+	in al,0x61
+	xor al,0x02
+	and al,0xfe
+	out 0x61,al
+	pop ax
+	ret
+
+
 ; This function is copied from exodus.bin:0x514b, with the random seed
 ; (date/time) initialized locally rather than globally.
 GET_RANDOM_NUMBER:

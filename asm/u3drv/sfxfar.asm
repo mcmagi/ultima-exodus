@@ -100,3 +100,17 @@ WHIRLPOOL_FAR:
 	call WHIRLPOOL
 	pop ds
 	retf
+
+DRAGON_BREATH_FAR:
+	push ds
+	call SET_SEGMENT
+	call DRAGON_BREATH
+	pop ds
+	retf
+
+TOGGLE_SPEAKER_FAR:
+	push ds
+	call SET_SEGMENT
+	call TOGGLE_SPEAKER
+	pop ds
+	retf

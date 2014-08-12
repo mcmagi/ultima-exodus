@@ -82,9 +82,7 @@ TIMER_CONTROL_INT:
 	; parameters:
 	;  ah = function
 	;  (additional params/returns by function)
-	push ax
 	push bx
-	push es
 
 	; fcn 00 = set clock speed
 	;	dx = multiplier
@@ -114,6 +112,16 @@ TIMER_CONTROL_INT:
     cmp ah,0x05
     je TIMER_CONTROL_INT_ENABLE_CLOCK
 
+    ; fcn 06 = update clock
+	;   cx = number of clock ticks
+    cmp ah,0x06
+    je TIMER_CONTROL_INT_UPDATE_CLOCK
+
+    ; fcn 07 = get cpu speed
+	;   returns: ax = number of loop iterations 
+    cmp ah,0x07
+    je TIMER_CONTROL_INT_GET_CPU_SPEED
+
     jmp TIMER_CONTROL_INT_RETURN
 
   TIMER_CONTROL_INT_SET_CLOCK_SPEED:
@@ -138,28 +146,28 @@ TIMER_CONTROL_INT:
 
   TIMER_CONTROL_INT_DISABLE_CLOCK:
     ; replace int 0x08 with cs:NO_CLOCK_INT
-	cli
-    mov al,0x08
-	push cs
-	pop es
     lea bx,[cs:NO_CLOCK_INT]
-    call REPLACE_VECTOR
+	call REPLACE_INT_08_VECTOR
     jmp TIMER_CONTROL_INT_RETURN
 
   TIMER_CONTROL_INT_ENABLE_CLOCK:
     ; replace int 0x08 with cs:CLOCK_INT
-	cli
-    mov al,0x08
-	push cs
-	pop es
     lea bx,[cs:CLOCK_INT]
-    call REPLACE_VECTOR
+	call REPLACE_INT_08_VECTOR
     jmp TIMER_CONTROL_INT_RETURN
 
+  TIMER_CONTROL_INT_UPDATE_CLOCK:
+	; passes cx = number of clock ticks
+	call UPDATE_SYSTEM_CLOCK
+	jmp TIMER_CONTROL_INT_RETURN
+
+  TIMER_CONTROL_INT_GET_CPU_SPEED:
+	; returns: ax = number of loop iterations 
+	call GET_CPU_SPEED
+	jmp TIMER_CONTROL_INT_RETURN
+
   TIMER_CONTROL_INT_RETURN:
-	pop es
 	pop bx
-	pop ax
     iret
 
 
@@ -292,6 +300,84 @@ SET_CLOCK_SPEED:
     pop ax
     popf
     ret
+
+
+REPLACE_INT_08_VECTOR:
+	; parameters:
+	;  cs:bx = new function
+	push ax
+	push es
+	cli
+
+	; set int 0x08 = es:bx
+    mov al,0x08
+	push cs
+	pop es
+    call REPLACE_VECTOR
+
+	sti
+	pop es
+	pop ax
+	ret
+
+
+UPDATE_SYSTEM_CLOCK:
+	; parameters:
+	;  cx = number of clock ticks to update
+
+	pushf
+	push ax
+	push bx
+	push cx
+	push dx
+
+	; set bx = number of clock ticks
+	mov bx,cx
+
+	; read the clock into cx:dx
+	mov ah,0x00
+	int 0x1a		; fcn 0x00 = read the clock
+
+	; add clock ticks to cx:dx
+	add dx,bx
+	adc cx,0x00
+
+	; set the clock using cx:dx
+	mov ah,0x01
+	int 0x1a		; fcn 0x01 = set the clock
+
+  UPDATE_SYSTEM_CLOCK_RETURN:
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	popf
+	ret
+
+
+GET_CPU_SPEED:
+	; returns:
+	;  ax = number of loop iterations 
+	pushf
+	push cx
+
+	; set counter = 0x0002
+    mov word [cs:TIMER_COUNTER],0x0010
+
+	; iterate through loop until timer counter or cx hits 0
+	mov cx,0xffff
+  GET_CPU_SPEED_LOOP:
+	cmp word [cs:TIMER_COUNTER],0x0000
+	loopnz GET_CPU_SPEED
+
+	; return ax = 0 - counter - 1 (number of iterations)
+	mov ax,0x0000
+	sub ax,cx
+	dec ax
+
+	pop cx
+	popf
+	ret
 
 
 include 'vector.asm'
