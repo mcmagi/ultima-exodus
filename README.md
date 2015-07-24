@@ -46,6 +46,10 @@ Ultima IV - Quest of the Avatar is not included in this project because it was a
 
 However, I did make alternative versions of the musical arrangements that can be plugged into both u4up and xu4, all available under [downloads](https://bitbucket.org/mcmagi/ultima-exodus/downloads).
 
+### What about Ultima 1? ###
+
+Originally this project aimed to provide only EGA upgrades and music from the Apple II version.  Now that I've made a foray into VGA upgrades -and- it's been discovered that the Apple IIgs version of Ultima 1 has music, that's something I may consider getting to in the future.  But since this is on my own time and for free I'm certainly not offering any guarantees.
+
 ### Setting Up ###
 
 I have detailed instructions on the wiki [here](https://bitbucket.org/mcmagi/ultima-exodus/wiki/Build_Environment) on how to set up the build environment.
