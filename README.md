@@ -39,9 +39,11 @@ You can buy them for real cheap and DRM-free on [GOG.com](http://www.gog.com/). 
 
 ### What about Ultima 4? ###
 
-Ultima IV - Quest of the Avatar is not included in this project because it was already upgraded by other people.  The [Ultima IV Upgrade Project](http://www.moongates.com/u4/upgrade/Upgrade.htm) was created by Aradindae Dragon and Wiltshire Dragon.  It was actually one of the sources of inspiration for the Exodus Project.
+Ultima IV - Quest of the Avatar is not included in this project because it was already upgraded by other people:
+* The [Ultima IV Upgrade Project](http://www.moongates.com/u4/upgrade/Upgrade.htm) was created by Aradindae Dragon and Wiltshire Dragon.  It was actually one of the sources of inspiration for the Exodus Project.
+* Additionally, the [xu4](http://xu4.sourceforge.net/) engine by Time Machine Dragon is another fantastic way to run Ultima IV natively on many platforms and without the need for Dosbox.
 
-Additionally, the [xu4](http://xu4.sourceforge.net/) engine by Time Machine Dragon is another fantastic way to run Ultima IV natively on many platforms and without the need for Dosbox.
+However, I did make alternative versions of the musical arrangements that can be plugged into both u4up and xu4, all available under [downloads](https://bitbucket.org/mcmagi/ultima-exodus/downloads).
 
 ### Setting Up ###
 
