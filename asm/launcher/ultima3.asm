@@ -7,7 +7,7 @@ jmp START
 
 ;===========DATA===========
 
-U3CFG           db  "U3.CFG",0
+CFG_FILE        db  "U3.CFG",0
 ULTIMA_COM      db  "ULTIMA.COM",0
 VIDEO_DRV_LIST  dw  CGA_DRV,CGA_COMP_DRV,EGA_DRV,VGA_DRV
 CGA_DRV         db  "CGA.DRV",0
@@ -23,8 +23,6 @@ FILE_ERROR_NAME db  "            ",0x0a,0x0d,"$"
 MUSIC_ERROR     db  "Error initializing Music Driver",0x0a,0x0d,"$"
 LAUNCH_ERROR    db  "Error launching Ultima III",0x0a,0x0d,"$"
 FREE_ERROR      db  "Error releasing memory for driver",0x0a,0x0d,"$"
-OLD_CLOCK_INT   dd  0
-OLD_TIMER_INT   dd  0
 OLD_CONFIG_INT  dd  0
 OLD_MIDPAK_INT  dd  0
 I_FLAG          db  0
@@ -34,9 +32,6 @@ PRM_BLOCK       db  0x16 dup 0
 FCB             db  0x20 dup 0
 VIDEO_DRV_ADDR  dd  0
 MUSIC_DRV_ADDR  dd  0
-CLOCK_COUNTER   dw  0x0001
-CLOCK_SPEED     dw  0x0001
-TIMER_COUNTER   dw  0
 
 
 ;===========CODE===========
@@ -62,7 +57,7 @@ START:
     mov al,0x00
     lea bx,[CFGDATA]
     mov cx,0x0006
-    lea dx,[U3CFG]
+    lea dx,[CFG_FILE]
     call LOAD_FILE
 
     ; handle failure
@@ -363,61 +358,28 @@ CONFIG_INT:
     iret
 
 
-; The clock interrupt (INT 0x08) is normally called 18.2 times every second.
-; However, it may be adjusted by a call to SET_CLOCK_SPEED.  If so, use this
-; replacement interrupt handler to ensure the old INT 0x08 is called at the
-; appropriate frequency, thus ensuring the system clock updates properly while
-; the custom timer interrupt (INT 0x1C) is called at the new frequency.
-CLOCK_INT:
-    push ax
-
-    ; decrement counter
-    dec word [cs:CLOCK_COUNTER]
-    jz CLOCK_INT_UPDATE
-
-    ; only call the custom timer int (0x1c)
-    int 0x1c                    ; custom timer
-    jmp CLOCK_INT_RETURN
-
-  CLOCK_INT_UPDATE:
-    ; when counter hits zero, call the old clock int (0x08),
-    ; this will also call the custom timer int (0x1c)
-    pushf                           ; pushf simulates INT call so iret works
-    call far [cs:OLD_CLOCK_INT]
-
-    ; also reset counter
-    mov ax,[cs:CLOCK_SPEED]
-    mov [cs:CLOCK_COUNTER],ax
-
-  CLOCK_INT_RETURN:
-    ; re-enable lower-level interrupts
-    ; (not sure why this is needed yet)
-    mov al,0x20
-    out 0x20,al
-
-    pop ax
-    iret
-
-
-; The timer interrupt (INT 0x1C) is normally called 18.2 times every second.
-; However, it may be adjusted by a call to SET_CLOCK_SPEED.  If so, this int
-; will be called at the new frequency.  It is used to decrement the counter
-; variable at TIMER_COUNTER to 0.  Does not decrement past 0.  The counter can
-; be set by calling INT 0x65 (AH=05) or obtained by INT 65 (AH=06).
-TIMER_INT:
-    ; do not decrement counter if it's at 0
-    cmp word [cs:TIMER_COUNTER],0x0000
-    jz TIMER_RETURN
-
-    ; decrement counter
-    dec word [cs:TIMER_COUNTER]
-
-  TIMER_RETURN:
-    ; chain with the previous interrupt
-    jmp far [cs:OLD_TIMER_INT]
-
-
 SET_VECTORS:
+    push ax
+    push dx
+
+	call SET_CUSTOM_VECTORS
+	call SET_TIMER_VECTORS
+
+    ; multiply clock speed by 16 (18.2 * 16 = 291.2 Hz)
+	mov ah,0x00
+    mov dx,0x0010
+	int 0x64
+
+    ; set I_FLAG to 01 (indicates we have set new interrupts)
+    mov byte [I_FLAG],0x01
+
+    ; return
+    pop dx
+    pop ax
+    ret
+
+
+SET_CUSTOM_VECTORS:
     pushf
     push ax
     push bx
@@ -430,22 +392,6 @@ SET_VECTORS:
     ; set es = ds
     push ds
     pop es
-
-    ; save old int 0x08 to ds:OLD_CLOCK_INT
-    ; and replace it with cs:CLOCK_INT
-    mov al,0x08
-    lea dx,[OLD_CLOCK_INT]
-    call SAVE_VECTOR
-    lea bx,[CLOCK_INT]
-    call REPLACE_VECTOR
-
-    ; save old int 0x1c to ds:OLD_TIMER_INT
-    ; and replace it with cs:TIMER_INT
-    mov al,0x1c
-    lea dx,[OLD_TIMER_INT]
-    call SAVE_VECTOR
-    lea bx,[TIMER_INT]
-    call REPLACE_VECTOR
 
     ; save old int 0x65 to ds:OLD_CONFIG_INT
     ; and replace it with cs:CONFIG_INT
@@ -462,10 +408,6 @@ SET_VECTORS:
     call SAVE_VECTOR
     lea bx,[CONFIG_INT]
     call REPLACE_VECTOR
-
-    ; quadruple clock speed
-    mov dx,0x0004
-    call SET_CLOCK_SPEED
 
     sti                     ; set interrupt flag
 
@@ -518,127 +460,6 @@ RESET_VECTORS:
     ret
 
 
-SAVE_VECTOR:
-    ; al = vector #
-    ; ds:dx = location to store old vector
-
-    push ax
-    push bx
-    push di
-    push es
-
-    ; get interrupt vector al in es:bx
-    mov ah,0x35
-    int 0x21                ; get interrupt vector
-
-    mov di,dx
-
-    ; save es:bx address at ds:di
-    mov ax,es
-    mov [di+0x00],bx
-    mov [di+0x02],ax
-
-    pop es
-    pop di
-    pop bx
-    pop ax
-    ret
-
-
-REPLACE_VECTOR:
-    ; al = vector #
-    ; es:bx = new vector
-
-    push bx
-    push ds
-
-    ; set ds:dx = new vector
-    push es
-    pop ds
-    mov dx,bx
-
-    ; set interrupt vector al with ds:dx
-    mov ah,0x25
-    int 0x21                ; set interrupt vector
-
-    pop ds
-    pop bx
-    ret
-
-
-RESTORE_VECTOR:
-    ; al = vector #
-    ; ds:dx = location of where old vector address is stored
-
-    push bx
-    push si
-    push es
-
-    mov si,dx
-
-    ; set es:bx = vector address stored in ds:si
-    push ax
-    mov bx,[si+0x00]
-    mov ax,[si+0x02]
-    mov es,ax
-    pop ax
-
-    call REPLACE_VECTOR
-
-    pop es
-    pop si
-    pop bx
-    ret
-
-
-; This function is used to change the frequency at which INT 0x08 is called.
-; It should be used in tandem with the custom CLOCK_INT function to ensure the
-; system time updates properly.
-SET_CLOCK_SPEED:
-    ; dx = clock accelleration factor (01 for normal, 02 for twice as fast, etc)
-
-    pushf
-    push ax
-    push dx
-
-    ; check bounds
-    cmp dx,0x0000
-    jz SET_CLOCK_SPEED_RETURN
-
-    ; save new speed in CLOCK_SPEED
-    mov [CLOCK_SPEED],dx
-
-    ; set channel 0 to mode 3
-    mov al,0x36			; 00,11,011,0 = counter 0, lsb->msb, mode 3, binary
-    out 0x43,al			; PIT control port
-
-    ; if dx == 1 (normal) just set output word to 0,
-    ; otherwise we need to do some division
-    cmp dx,0x0001
-    jnz SET_CLOCK_SPEED_DIVIDE
-    mov ax,0x0000
-    jmp SET_CLOCK_SPEED_OUTPUT
-
-  SET_CLOCK_SPEED_DIVIDE:
-    ; ax = 64k / dx
-    mov bx,dx
-    mov dx,0x0001
-    mov ax,0x0000
-    div bx
-
-  SET_CLOCK_SPEED_OUTPUT:
-    ; write word to counter 0
-    out 0x40,al			; lsb
-    mov al,ah
-    out 0x40,al			; msb
-
-  SET_CLOCK_SPEED_RETURN:
-    pop dx
-    pop ax
-    popf
-    ret
-
-
 MESSAGE:
     ; parameters:
     ;  dx = address of message text
@@ -664,5 +485,6 @@ ERROR:
 
 
 ; include supporting files
+include 'timer.asm'
 include '../common/strcpy.asm'
 include '../common/loadfile.asm'
