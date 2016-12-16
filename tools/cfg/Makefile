@@ -44,8 +44,16 @@ package_u2: ${U2BIN}/u2cfg
 
 package_u3: ${U3BIN}/u3cfg
 	cp -f ${U3BIN}/u3cfg ${U3PKG}/u3cfg${BINSUFFIX}
-	### generate default config file
-	cd ${U3PKG}; ${U3PKG}/u3cfg${BINSUFFIX} --gen-defaults
-	
+
 package_u5: ${U5BIN}/u5cfg
 	cp -f ${U5BIN}/u5cfg ${U5PKG}/u5cfg${BINSUFFIX}
+
+# generate config
+gen_config_u2:
+	
+gen_config_u3:
+	# generate default config file
+	cd ${U3PKG}; ${U3BIN}/u3cfg --gen-defaults
+	
+gen_config_u5:
+	

@@ -77,7 +77,8 @@ ${U3PKG}:
 		if [ -d "$$i" ]; then \
 			make -C "$$i" package_u3; \
 		fi \
-	done
+	done; \
+	make -C "${TOOLS}" gen_config_u3
 
 ${U5PKG}:
 	### packaging U5 Upgrade files
