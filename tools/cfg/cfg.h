@@ -18,7 +18,7 @@ void save_cfg_data(File *file, const unsigned char *data);
 #define OPT_GEN_DEFAULTS		"--gen-defaults"
 
 /* file size */
-#define	CFG_SZ                  6
+#define	CFG_SZ                  7
 
 /* data indexes */
 #define	MUSIC_INDEX             0
@@ -29,6 +29,7 @@ void save_cfg_data(File *file, const unsigned char *data);
 #define	U3_MOONS_INDEX          4
 #define	U5_NONE_INDEX           4
 #define	GAMEPLAY_FIXES_INDEX    5
+#define	SFX_INDEX               6
 
 /* status strings */
 #define	DISABLED_STR            "Disabled"
@@ -40,6 +41,8 @@ void save_cfg_data(File *file, const unsigned char *data);
 #define	VIDEO_CGA_COMP_STR      "CGA Composite (16-color)"
 #define	VIDEO_EGA_STR           "EGA (16-color)"
 #define	VIDEO_VGA_STR           "VGA (256-color)"
+#define	SFX_ORIG_STR            "Unmodified"
+#define	SFX_TIMED_STR           "Constant Speed (Timed)"
 
 /* music status values */
 #define MUSIC_NONE              0
@@ -50,6 +53,10 @@ void save_cfg_data(File *file, const unsigned char *data);
 #define VIDEO_CGA_COMP          1
 #define VIDEO_EGA               2
 #define VIDEO_VGA               3
+
+/* sfx status values */
+#define SFX_ORIG                0
+#define SFX_TIMED               1
 
 /* status str sizes */
 #define	STATUS_STR_SZ           8

@@ -17,6 +17,9 @@ VGA_DRV         db  "VGA.DRV",0
 MUSIC_DRV_LIST  dw  NOMIDI_DRV,MIDPAK_DRV
 NOMIDI_DRV      db  "NOMIDI.DRV",0
 MIDPAK_DRV      db  "MIDPAK.DRV",0
+SFX_DRV_LIST    dw  SFX_DRV,SFXTIMED_DRV
+SFX_DRV         db  "SFX.DRV",0
+SFXTIMED_DRV    db  "SFXTIMED.DRV",0
 U3_PARAMS       db  0x03,0x20,0xff,0xff,0x0d,0
 FILE_ERROR      db  "Error reading "
 FILE_ERROR_NAME db  "            ",0x0a,0x0d,"$"
@@ -32,6 +35,7 @@ PRM_BLOCK       db  0x16 dup 0
 FCB             db  0x20 dup 0
 VIDEO_DRV_ADDR  dd  0
 MUSIC_DRV_ADDR  dd  0
+SFX_DRV_ADDR	dd  0
 
 
 ;===========CODE===========
@@ -82,6 +86,20 @@ START:
 
     ; save offset to cfgdata in bx
     lea bx,[CFGDATA]
+
+  SFX_MODE:
+    ; get sfx driver id from config
+    mov si,[bx+0x06]
+    and si,0x00ff
+
+    ; lookup driver in table
+    shl si,1
+    mov dx,[SFX_DRV_LIST+si]
+
+    ; load music driver and store segment address in memory
+    call LOAD_DRIVER
+    lea bp,[SFX_DRV_ADDR]
+    mov [ds:bp+0x02],ax
 
   MUSIC_MODE:
     ; get music driver id from config
@@ -154,6 +172,28 @@ START:
     mov ds,ax
     mov es,ax
     mov sp,0x09fe
+
+  FREE_SFX_DRV:
+    ; check if sfx driver was loaded
+    lea bx,[SFX_DRV_ADDR]
+    mov ax,[bx+0x02]
+    and ax,ax
+    jz FREE_MUSIC_DRV
+
+    ; close sfx driver's resources
+    mov word [bx],0x0003
+    call far [bx]
+
+    ; free sfx driver (ax = segment address)
+    call FREE_MEMORY
+
+    ; check for errors
+    and ax,ax
+    jz FREE_MUSIC_DRV
+
+    ; print free error & exit
+    lea dx,[FREE_ERROR]
+    call MESSAGE
 
   FREE_MUSIC_DRV:
     ; check if music driver was loaded
@@ -306,6 +346,10 @@ CONFIG_INT:
 	cmp ah,0x07
 	jz CONFIG_INT_FIXES
 
+	; fcn 08 = sfx driver address
+	cmp ah,0x08
+	jz CONFIG_INT_SFX_DRV
+
     jmp CONFIG_INT_RETURN
 
   CONFIG_INT_AUTOSAVE:
@@ -350,6 +394,13 @@ CONFIG_INT:
   CONFIG_INT_FIXES:
     ; returns al=01 if gameplay fixes enabled
     mov al,[cs:bx+0x05]
+	jmp CONFIG_INT_RETURN
+
+  CONFIG_INT_SFX_DRV:
+    ; returns dx:ax = sfx driver address
+    mov bp,SFX_DRV_ADDR
+    mov ax,[cs:bp]
+    mov dx,[cs:bp+02]
 
   CONFIG_INT_RETURN:
     pop bp

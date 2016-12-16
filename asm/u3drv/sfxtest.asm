@@ -54,7 +54,7 @@ START:
 	; convert to driver offset
 	mov dl,0x03
 	mul dl
-	add ax,0x0003
+	add ax,0x0006
 
 	; invoke requested function
 	mov bx,0x04e0
@@ -67,6 +67,10 @@ START:
     mov ax,[bx+0x02]
     and ax,ax
     jz EXIT
+
+    ; close sfx driver's resources
+    mov word [bx],0x0003
+    call far [bx]
 
     ; free video driver (ax = segment address)
     call FREE_MEMORY

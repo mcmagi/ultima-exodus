@@ -11,12 +11,13 @@
 #define	BAD_OPT                 0
 #define	VIDEO_OPT               1
 #define	MUSIC_OPT               2
-#define	AUTOSAVE_OPT            3
-#define	FRAMELIMITER_OPT        4
-#define	MOON_PHASE_OPT          5
-#define	GAMEPLAY_FIXES_OPT      6
-#define	SAVE_QUIT_OPT           7
-#define	QUIT_OPT                8
+#define	SFX_OPT                 3
+#define	AUTOSAVE_OPT            4
+#define	FRAMELIMITER_OPT        5
+#define	MOON_PHASE_OPT          6
+#define	GAMEPLAY_FIXES_OPT      7
+#define	SAVE_QUIT_OPT           8
+#define	QUIT_OPT                9
 
 /* video menu options */
 #define VIDEO_CGA_OPT           1
@@ -35,6 +36,7 @@ struct u3cfg {
     BOOL framelimiter;
     BOOL moon_phases;
     BOOL gameplay_fixes;
+    int sfx;
 };
 
 /* function prototypes */

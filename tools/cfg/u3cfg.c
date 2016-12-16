@@ -69,6 +69,13 @@ int main(int argc, const char *argv[])
 			    cfg.moon_phases = ! cfg.moon_phases;
 			    break;
 
+		    case SFX_OPT:
+                if (cfg.sfx == SFX_ORIG)
+                    cfg.sfx = SFX_TIMED;
+                else
+                    cfg.sfx = SFX_ORIG;
+			    break;
+
 		    case SAVE_QUIT_OPT:
                 save_u3cfg(file, cfg);
 			    option = QUIT_OPT;
@@ -105,6 +112,11 @@ int menu(struct u3cfg cfg)
 	printf("%d - Music:          %s\n", MUSIC_OPT,
          cfg.music == MUSIC_NONE ? MUSIC_NONE_STR :
          cfg.music == MUSIC_MIDI ? MUSIC_MIDI_STR :
+             EMPTY_STR);
+
+	printf("%d - Sound Effects:  %s\n", SFX_OPT,
+         cfg.sfx == SFX_ORIG ? SFX_ORIG_STR :
+         cfg.sfx == SFX_TIMED ? SFX_TIMED_STR :
              EMPTY_STR);
 
 	printf("%d - Autosave:       %s\n", AUTOSAVE_OPT, cfg.autosave ? ENABLED_STR : DISABLED_STR);
@@ -157,12 +169,13 @@ int video_menu(int video)
 
 void set_defaults(unsigned char data[])
 {
-	data[MUSIC_INDEX] = ON;
+	data[MUSIC_INDEX] = MUSIC_MIDI;
 	data[AUTOSAVE_INDEX] = OFF;
 	data[FRAMELIMITER_INDEX] = ON;
 	data[VIDEO_INDEX] = VIDEO_VGA;
 	data[U3_MOONS_INDEX] = ON;
 	data[GAMEPLAY_FIXES_INDEX] = ON;
+	data[SFX_INDEX] = SFX_TIMED;
 }
 
 struct u3cfg get_u3cfg(File *file, BOOL gen_defaults)
@@ -184,6 +197,7 @@ struct u3cfg get_u3cfg(File *file, BOOL gen_defaults)
 	cfg.framelimiter = get_status_bool(data, FRAMELIMITER_INDEX);
 	cfg.moon_phases = get_status_bool(data, U3_MOONS_INDEX);
 	cfg.gameplay_fixes = get_status_bool(data, GAMEPLAY_FIXES_INDEX);
+	cfg.sfx = get_status(data, SFX_INDEX);
 
     return cfg;
 }
@@ -199,6 +213,7 @@ void save_u3cfg(File *file, struct u3cfg cfg)
 	set_status_bool(data, FRAMELIMITER_INDEX, cfg.framelimiter);
 	set_status_bool(data, U3_MOONS_INDEX, cfg.moon_phases);
 	set_status(data, GAMEPLAY_FIXES_INDEX, cfg.gameplay_fixes);
+	set_status(data, SFX_INDEX, cfg.sfx);
 
     /* overwrite file data */
     save_cfg_data(file, data);

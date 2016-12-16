@@ -17,12 +17,19 @@ SET_SEGMENT:
 
 
 ; ===== far functions here (jumped to from above) =====
-INIT_FAR:
+INIT_DRIVER_FAR:
 	push ds
 	call SET_SEGMENT
-	call INIT
+	call INIT_DRIVER
 	pop ds
 	retf
+
+CLOSE_DRIVER_FAR:
+    push ds
+    call SET_SEGMENT
+    call CLOSE_DRIVER
+    pop ds
+    retf
 
 INVALID_ACTION_FAR:
 	push ds

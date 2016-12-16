@@ -16,7 +16,7 @@ INTERRUPT_COUNT		dd	0
 
 ; ===== sound driver functions here =====
 
-INIT:
+INIT_DRIVER:
 	push cx
 	push dx
 
@@ -39,6 +39,11 @@ INIT:
 	pop dx
 	pop cx
 	ret
+
+
+CLOSE_DRIVER:
+    ; no resources to free
+    ret
 
 
 INVALID_ACTION:
