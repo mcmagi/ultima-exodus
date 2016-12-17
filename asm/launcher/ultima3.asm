@@ -96,10 +96,13 @@ START:
     shl si,1
     mov dx,[SFX_DRV_LIST+si]
 
-    ; load music driver and store segment address in memory
+    ; load sfx driver and store segment address in memory
     call LOAD_DRIVER
     lea bp,[SFX_DRV_ADDR]
     mov [ds:bp+0x02],ax
+
+    ; initialize sfx driver
+    call far [ds:bp]
 
   MUSIC_MODE:
     ; get music driver id from config

@@ -190,7 +190,7 @@ PLAY_NOTE:
     ret
 
 
-MOONGATE:
+SPELL:
     ; input: bh = duration, bl = frequency
 
     push bx
@@ -212,12 +212,12 @@ MOONGATE:
     ; loop 26 (dec) times (from 1-26, ends on 27)
     mov cl,0x01
 
-  MOONGATE_LOOP_1:
+  SPELL_LOOP_1:
     ; set dl = 1st param
     mov dl,bh
 
     ; loop # of times specified in 2nd param, turning on/off speaker
-  MOONGATE_LOOP_1_INNER_LOOP:
+  SPELL_LOOP_1_INNER_LOOP:
     ; set dh = decrementing 2nd param
     mov dh,ch
 
@@ -225,10 +225,10 @@ MOONGATE:
 
     ; loop # of times specified in 2nd param
     ; (but it gets smaller with each iteration of inner loop)
-  MOONGATE_LOOP_1_DELAY_1:
+  SPELL_LOOP_1_DELAY_1:
 	call WAIT_FOR_INTERRUPT
     dec dh
-    jnz MOONGATE_LOOP_1_DELAY_1
+    jnz SPELL_LOOP_1_DELAY_1
 
     ; SPEAKER
 
@@ -243,10 +243,10 @@ MOONGATE:
     ; loop number of times of loop number
     ; (but it gets longer with each iteration of inner loop)
     mov dh,cl
-  MOONGATE_LOOP_1_DELAY_2:
+  SPELL_LOOP_1_DELAY_2:
 	call WAIT_FOR_INTERRUPT
     dec dh
-    jnz MOONGATE_LOOP_1_DELAY_2
+    jnz SPELL_LOOP_1_DELAY_2
 
     ; TOGGLE SPEAKER QUICKLY
 
@@ -257,7 +257,7 @@ MOONGATE:
     xor al,0x02
 
     dec dl
-    jnz MOONGATE_LOOP_1_INNER_LOOP
+    jnz SPELL_LOOP_1_INNER_LOOP
 
     ; ch--, cl++ (loop number)
     dec ch
@@ -265,29 +265,29 @@ MOONGATE:
 
 	; while cl != 27
     cmp cl,0x1b
-    jnz MOONGATE_LOOP_1
+    jnz SPELL_LOOP_1
 
     ; loop 27 (dec) times (from 27-1, ends on 0)
 	; does pretty much the same as above
-  MOONGATE_LOOP_2:
+  SPELL_LOOP_2:
     mov dl,bh
-  MOONGATE_LOOP_2_INNER_LOOP:
+  SPELL_LOOP_2_INNER_LOOP:
     mov dh,ch
-  MOONGATE_LOOP_2_DELAY_1:
+  SPELL_LOOP_2_DELAY_1:
 	call WAIT_FOR_INTERRUPT
     dec dh
-    jnz MOONGATE_LOOP_2_DELAY_1
+    jnz SPELL_LOOP_2_DELAY_1
     out 0x61,al
     xor al,0x02
     mov dh,cl
-  MOONGATE_LOOP_2_DELAY_2:
+  SPELL_LOOP_2_DELAY_2:
 	call WAIT_FOR_INTERRUPT
     dec dh
-    jnz MOONGATE_LOOP_2_DELAY_2
+    jnz SPELL_LOOP_2_DELAY_2
     out 0x61,al
     xor al,0x02
     dec dl
-    jnz MOONGATE_LOOP_2_INNER_LOOP
+    jnz SPELL_LOOP_2_INNER_LOOP
 
     ; cl--, ch++ (loop number)
     dec cl
@@ -295,7 +295,7 @@ MOONGATE:
 
     ; while cl != 0
     cmp cl,0x00
-    jnz MOONGATE_LOOP_2
+    jnz SPELL_LOOP_2
 
 	call RESTORE_TIMER
 
@@ -406,6 +406,17 @@ TRAP_EVADED:
 	pop bx
     ret
 
+
+MOONGATE:
+    push bx
+
+    ; set spell duration & frequency for moongate
+    mov bl,0xe0
+    mov bh,0x04
+    call SPELL
+
+    pop bx
+    ret
 
 FIRE:
 	push bx

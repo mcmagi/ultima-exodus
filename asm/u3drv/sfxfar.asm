@@ -45,10 +45,10 @@ INVALID_COMMAND_FAR:
 	pop ds
 	retf
 
-MOONGATE_FAR:
+SPELL_FAR:
 	push ds
 	call SET_SEGMENT
-	call MOONGATE
+	call SPELL
 	pop ds
 	retf
 
@@ -70,6 +70,13 @@ TRAP_EVADED_FAR:
 	push ds
 	call SET_SEGMENT
 	call TRAP_EVADED
+	pop ds
+	retf
+
+MOONGATE_FAR:
+	push ds
+	call SET_SEGMENT
+	call MOONGATE
 	pop ds
 	retf
 
