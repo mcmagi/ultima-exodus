@@ -57,7 +57,8 @@ START:
 	add ax,0x0006
 
 	; invoke requested function
-	mov bx,0x04e0
+	;mov bx,0x04e0
+	mov bx,0x20c0
 	mov dl,0x7f
     mov [ds:bp],ax
     call far [ds:bp]

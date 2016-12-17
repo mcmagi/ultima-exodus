@@ -14,13 +14,12 @@ TIMER_COUNTER			dw  0
 CLOCK_INT:
     push ax
 
+    ; always call the custom timer int (0x1c)
+    int 0x1c                    ; custom timer
+
     ; decrement counter
     dec word [cs:CLOCK_COUNTER]
-    jz CLOCK_INT_UPDATE
-
-    ; only call the custom timer int (0x1c)
-    int 0x1c                    ; custom timer
-    jmp CLOCK_INT_RETURN
+    jnz CLOCK_INT_RETURN
 
   CLOCK_INT_UPDATE:
     ; when counter hits zero, call the old clock int (0x08),
@@ -63,7 +62,7 @@ NO_CLOCK_INT:
 ; However, it may be adjusted by a call to SET_CLOCK_SPEED.  If so, this int
 ; will be called at the new frequency.  It is used to decrement the counter
 ; variable at TIMER_COUNTER to 0.  Does not decrement past 0.  The counter can
-; be set by calling INT 0x64 (AH=02) or obtained by INT 64 (AH=03).
+; be set by calling INT 0x64 (AH=02) or obtained by INT 0x64 (AH=03).
 TIMER_INT:
     ; do not decrement counter if it's at 0
     cmp word [cs:TIMER_COUNTER],0x0000

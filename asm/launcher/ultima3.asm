@@ -337,11 +337,11 @@ CONFIG_INT:
     cmp ah,0x04
     jz CONFIG_INT_MOONPHASE
 
-    ; fcn 05 = set timer
+    ; fcn 05 = set timer [DEPRECATED: use INT 0x64 fcn 0x02]
     cmp ah,0x05
     jz CONFIG_INT_SET_TIMER
 
-    ; fcn 06 = get timer
+    ; fcn 06 = get timer [DEPRECATED: use INT 0x64 fcn 0x03]
     cmp ah,0x06
     jz CONFIG_INT_GET_TIMER
 
@@ -479,17 +479,32 @@ RESET_VECTORS:
     push ax
     push dx
 
+    ; I_FLAG will be set to 01 if interrupt vectors have been set
+    cmp byte [I_FLAG],0x01
+	jnz RESET_VECTORS_RETURN
+
+    ; restore clock speed
+	mov ah,0x00
+	mov dx,0x0000
+	int 0x64
+
+	call RESET_TIMER_VECTORS
+	call RESET_CUSTOM_VECTORS
+
+  RESET_VECTORS_RETURN:
+    ; return
+    pop dx
+    pop ax
+	popf
+    ret
+
+
+RESET_CUSTOM_VECTORS:
+    pushf
+    push ax
+    push dx
+
     cli                     ; clear interrupt flag
-
-    ; restore old int 0x1c at ds:OLD_CLOCK_INT
-    mov al,0x08
-    lea dx,[OLD_CLOCK_INT]
-    call RESTORE_VECTOR
-
-    ; restore old int 0x1c at ds:OLD_TIMER_INT
-    mov al,0x1c
-    lea dx,[OLD_TIMER_INT]
-    call RESTORE_VECTOR
 
     ; restore old int 0x65 at ds:OLD_CONFIG_INT
     mov al,0x65
@@ -500,10 +515,6 @@ RESET_VECTORS:
     mov al,0x66
     lea dx,[OLD_MIDPAK_INT]
     call RESTORE_VECTOR
-
-    ; restore clock speed
-    mov dx,0x0001
-    call SET_CLOCK_SPEED
 
     sti                     ; set interrupt flag
 
