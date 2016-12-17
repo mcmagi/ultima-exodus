@@ -54,3 +54,5 @@ package_u3:
 	cp -f ${U3BIN}/vga.drv ${U3PKG}
 	cp -f ${U3BIN}/nomidi.drv ${U3PKG}
 	cp -f ${U3BIN}/midpak.drv ${U3PKG}
+	cp -f ${U3BIN}/sfx.drv ${U3PKG}
+	cp -f ${U3BIN}/sfxtimed.drv ${U3PKG}

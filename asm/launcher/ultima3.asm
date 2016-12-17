@@ -29,8 +29,8 @@ FREE_ERROR      db  "Error releasing memory for driver",0x0a,0x0d,"$"
 OLD_CONFIG_INT  dd  0
 OLD_MIDPAK_INT  dd  0
 I_FLAG          db  0
-CFGDATA         db  0x06 dup 0        ; index: 00 = midi driver, 01 = autosave, 02 = framelimiter, 03 = video driver
-                                      ;        04 = moon phases, 05 = gameplay fixes
+CFGDATA         db  0x07 dup 0        ; index: 00 = midi driver, 01 = autosave, 02 = framelimiter, 03 = video driver
+                                      ;        04 = moon phases, 05 = gameplay fixes, 06 = sfx driver
 PRM_BLOCK       db  0x16 dup 0
 FCB             db  0x20 dup 0
 VIDEO_DRV_ADDR  dd  0
@@ -60,7 +60,7 @@ START:
     ; read u3.cfg into cfgdata location
     mov al,0x00
     lea bx,[CFGDATA]
-    mov cx,0x0006
+    mov cx,0x0007
     lea dx,[CFG_FILE]
     call LOAD_FILE
 
