@@ -197,6 +197,10 @@ SPELL:
     push cx
     push dx
 
+    ; deviation from the original:
+    ; tuning down the spell duration by a quarter b/c it plays for just too damn long
+    shr bh,2
+
     ; store speaker status
     in al,0x61
     push ax
