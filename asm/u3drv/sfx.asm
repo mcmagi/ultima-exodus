@@ -498,6 +498,9 @@ DRAGON_BREATH:
 
 
 INTRO_BEGIN:
+    ; returns:
+    ;  ax = address of INTRO_TOGGLE_SPEAKER within cs for callback
+    lea ax,[INTRO_TOGGLE_SPEAKER]
     ret
 
 

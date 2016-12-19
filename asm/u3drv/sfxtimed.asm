@@ -621,7 +621,7 @@ DRAGON_BREATH:
 
 INTRO_BEGIN:
     ; returns:
-    ;  bp = address of INTRO_TOGGLE_SPEAKER within cs for callback
+    ;  ax = address of INTRO_TOGGLE_SPEAKER within cs for callback
 
 	in al,0x61
 	mov ah,al
