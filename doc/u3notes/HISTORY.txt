@@ -8,12 +8,12 @@
 
 Project Status:
 
-    xx-xx-2016 - Release 3.2:
+    12-19-2016 - Release 3.2:
 
         This release adds perhaps the most common request I've received
         over the years: improved PC-speaker sound effects.  More
         specifically, the sound effects are now timed and should sound
-        mostly consistent depending on your Dosbox cycles speed.
+        mostly consistent with the original intent.
 
         Ultima 3's sound effects where designed to sound great on a
         4.77 MHz 8086, but do not scale well as CPU speed increases.
@@ -24,24 +24,17 @@ Project Status:
         higher pitched.
 
         In this latest patch, if the SFXTIMED driver is configured, the 
-        sound effects will now be paced against a timer interrupt.
-        Note that the system speed needs to be above a certain threshold
-        (about 1500 cycles in DosBox) in order for this driver to work
-        properly. 
+        sound effects will now be paced against a timer interrupt.  It's
+        recommended that you run DOSBOX at around 3000 cycles (or 9000 if
+        using CGA Composite mode) to get a good playable experience.
 
         Some Additional Technical Notes:
 
-        Note the game needs to be above this threshold for the timer to
-        operate properly otherwise timer interrupt will begin thrashing.
-        In other words, the interrupt routine will execute too slowly and
+        Note that DOSBOX needs to be above at least 1000 cycles for the timer to
+        operate properly otherwise the timer interrupt will begin thrashing.
+        This is because the interrupt routine will execute too slowly and
         never return before the next interrupt is fired, thus freezing
         the game.
-
-        The above caveat does have some small side effects when changing
-        DosBox speed.  If the timer is enabled when the game starts, and
-        the CPU cycles are later decreased below a this threshold, then
-        the game may freeze.  If this happens to you, simply increase
-        the cycles and the game should unfreeze.
 
     07-23-2014 - Release 3.1:
 

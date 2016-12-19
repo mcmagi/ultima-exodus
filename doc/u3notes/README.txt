@@ -21,7 +21,7 @@ Table of Contents:
 1 - Disclaimer:
 
     Please note that Ultima is a registered trademark of Electronic
-    Arts, Inc (EA).  This project is not affiliated with nor endoresed
+    Arts, Inc (EA).  This project is not affiliated with nor endorsed
     by EA.  You must own a legal copy of Ultima III: Exodus in order
     to apply this patch.
 
@@ -66,6 +66,7 @@ Table of Contents:
     though, I feel the U3 Upgrade is in a very good spot where it is,
     so don't expect these things any time soon (or perhaps ever).
 
+
 3 - Current Features:
 
     This is currently Release 3.2, which supports the following
@@ -101,42 +102,43 @@ Table of Contents:
            back up your savegame files ROSTER.ULT and PARTY.ULT if
            you do)
         b) Alternatively, if upgrading from v3.1, you may uninstall
-           it with "BINUNPAT U3UP-31.PAT".  This will reverse the
-           changes to the Ultima 3 binaries and restore it to its
-           original 1980's state.
+           it with one of the BINUNPAT commands:
+                Windows:    binunpatw U3UP-31.PAT
+                Linux:      ./binunpatl U3UP-31.PAT
+                DOSBOX:     binunpat U3UP-31.PAT
+           This will reverse the changes to the Ultima 3 binaries and
+           restore it to its original 1980's state.
     2. Unzip the U3 Upgrade zip file into your Ultima 3 directory
        on your hard drive.  This step will not affect your current
        installation or saved games.
-    3. Apply the binary patch to the game files:
-        a) If installing from Windows, open a Command Prompt and
-           navigate to the Ultima 3 directory.  Run "BINPATW
-           U3UP-32.PAT".
-        b) If installing from Linux, open a shell terminal and
-           navigate to the Ultima 3 directory.  Run "./binpatl
-           U3UP-32.PAT".
-        c) For all other systems, start your DOS emulator (e.g.
-           DOSBox) and navigate to the Ultima 3 directory.  Run
-           "BINPAT U3UP-32.PAT".
-    4. Run ULTIMA3.COM in a DOS enumalator to start the game.
+    3. Apply the binary patch to the game files.
+            Windows:    binpatw U3UP-32.PAT
+            Linux:      ./binpatl U3UP-32.PAT
+            DOSBOX:     binpat U3UP-32.PAT
+       This must be run from the command line.
+    4. Configure DOSBOX to run with at least 3000 cycles.  (10000 if
+       you intend to run using CGA Composite mode.)
+    5. Run ULTIMA3.COM in DOSBOX to start the game.
 
     Optional steps:
 
     - This version ships with default configuration.  You can change
       this configuration in one of the following ways:
-        a) If in Windows, run U3CFGW.
-        b) If in Linux, run u3cfgl.
-        c) You may start your DOS Emulator, navigate to the Ultima 3
-           directory and run "U3CFG". 
+            Windows:    u3cfgw
+            Linux:      ./u3cfgl
+            DOSBOX:     u3cfg
       Modify them as you see fit and press 7 to save the configuration
       and exit.
     - This version ships with General MIDI as the default driver.  You
       can change this by running SETM.EXE from the Ultima 3 directory
-      to configure a different sound card.  This must be done from a
-      DOS emulator.
-    - You can run U3RESET.EXE to reset the game map if you want
-      your party to enter an uncharted Sosaria.  Your party must
-      be dispersed in order to clear the map.  This program will
-      not affect the Roster.
+      to configure a different sound card (e.g. FM synth).  This must
+      be done within DOSBOX.
+    - You can run reset the game map if you want your party to enter an
+      uncharted Sosaria.  Your party must be dispersed in order to clear
+      the map.  This program will not affect characters on the Roster.
+            Windows:    u3resetw
+            Linux:      ./u3resetl
+            DOSBOX:     u3reset
 
 
 5 - More Information:
@@ -145,7 +147,7 @@ Table of Contents:
     this packge.
 
     HISTORY.TXT        - History of updates to U3 Upgrade
-    FILES.TXT        - Describes files in U3 Upgrade package
+    FILES.TXT          - Describes files in U3 Upgrade package
 
 
 6 - Credits:
@@ -158,16 +160,19 @@ Table of Contents:
     me with the Midpak drivers and b) helping me to get them working
     properly.
 
-    Thanks also to Wiltshire Dragon for his beautiful VGA tileset
-    from the Ultima IV Upgrade, without which I would have to go
-    scouring the 'net for graphic artists willing to do this.
+    Thanks also to Wiltshire Dragon (Joshua Steele) for his beautiful
+    VGA tileset from the Ultima IV Upgrade, without which I would have
+    to go scouring the 'net for graphic artists willing to do this.
 
     Thanks to NewRisingSun for posting Composite CGA screenshots to
     MobyGames, inspiring me to return to the U3 Upgrade and write a
-    Composite CGA simulator.
+    Composite CGA simulator with v3.0.
 
     Thanks to nakedbaby on GOG.com for asking about the status of
     v3.1, prompting me to focus on getting this release out finally.
+
+    Thanks to Feeding Dragon (Joe Bunt) for calling out the problem with
+    sound effects on newer systems, thus paving the way for v3.2.
 
     Thanks to the Ultima Dragons of rgcud and Facebook for, well, just
     being the outspoken group that they are.

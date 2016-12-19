@@ -34,7 +34,7 @@ File List:
     u3resetl        - Sosaria Map Reset program (Linux)
 
     ** Binary Patch:
-    U3UP-31.PAT     - U3 Binary patch file
+    U3UP-32.PAT     - U3 Binary patch file
     BINPAT.EXE      - Patcher program (DOS)
     BINPATW.EXE     - Patcher program (Windows)
     binpatl         - Patcher program (Linux)
@@ -49,6 +49,8 @@ File List:
     VGA.DRV         - VGA Video Driver
     NOMIDI.DRV      - No Music Driver
     MIDPAK.DRV      - MIDPAK MIDI Music Driver
+    SFX.DRV         - Untimed Sound Effects Driver
+    SFXTIMED.DRV    - Timed Sound Effects Driver
 
     ** U3 Graphics Files:
     MOONS.ULT       - CGA Moon Icons
