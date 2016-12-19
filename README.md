@@ -26,6 +26,7 @@ This is the source code repository associated with the [Exodus Project](http://e
     * frame limiter
     * ability to turn off autosave
     * other gameplay/balance fixes
+    * timed PC speaker sound effects
 * Ultima 5
     * enhanced musical score from the Apple II version
     * music during introduction, character creation, and endgame
