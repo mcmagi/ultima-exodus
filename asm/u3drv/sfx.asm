@@ -497,14 +497,33 @@ DRAGON_BREATH:
 	ret
 
 
-TOGGLE_SPEAKER:
-	push ax
+INTRO_BEGIN:
+    ret
+
+
+INTRO_TOGGLE_SPEAKER:
+    ; parameters:
+    ;  ax = 1 to toggle speaker; 0 to skip
+    pushf
+
+    ; if ax == 0, don't toggle speaker
+    cmp ax,0x0000
+    jz INTRO_TOGGLE_SPEAKER_RETURN
+
+    push ax
 	in al,0x61
 	xor al,0x02
 	and al,0xfe
 	out 0x61,al
 	pop ax
-	ret
+
+  INTRO_TOGGLE_SPEAKER_RETURN:
+    popf
+	retf
+
+
+INTRO_END:
+    ret
 
 
 ; This function is copied from exodus.bin:0x514b, with the random seed

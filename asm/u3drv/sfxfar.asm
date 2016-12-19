@@ -122,9 +122,16 @@ DRAGON_BREATH_FAR:
 	pop ds
 	retf
 
-TOGGLE_SPEAKER_FAR:
+INTRO_BEGIN_FAR:
 	push ds
 	call SET_SEGMENT
-	call TOGGLE_SPEAKER
+	call INTRO_BEGIN
+	pop ds
+	retf
+
+INTRO_END_FAR:
+	push ds
+	call SET_SEGMENT
+	call INTRO_END
 	pop ds
 	retf

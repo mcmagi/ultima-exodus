@@ -11,6 +11,7 @@ SYSTEM_TIME_1		dw	0,0
 SYSTEM_DATE_2		dw	0,0
 SYSTEM_TIME_2		dw	0,0
 OLD_CLOCK_SPEED		dw	0
+NEW_CLOCK_SPEED     dw  0x1600
 INTERRUPT_COUNT		dd	0
 
 
@@ -618,15 +619,59 @@ DRAGON_BREATH:
 	ret
 
 
-TOGGLE_SPEAKER:
-	push ax
-	call WAIT_FOR_INTERRUPT
+INTRO_BEGIN:
+    ; returns:
+    ;  bp = address of INTRO_TOGGLE_SPEAKER within cs for callback
+
+	in al,0x61
+	mov ah,al
+	and al,0xfc
+
+    mov [NEW_CLOCK_SPEED],0x0600
+	call CONFIGURE_SFX_TIMER
+
+    ; return address of cs:INTRO_TOGGLE_SPEAKER
+    ;   NOTE: This is to eliminate the layers of abstraction we currently go
+    ;   through to make a driver call, since it's called within a tight loop.
+    lea ax,[INTRO_TOGGLE_SPEAKER]
+
+    ret
+
+
+INTRO_TOGGLE_SPEAKER:
+    ; parameters:
+    ;  ax = 1 to toggle speaker; 0 to skip (but wait anyway)
+    pushf
+
+    ; call WAIT_FOR_INTERRUPT - inlining contents for speed optimization
+	hlt
+	inc dword [cs:INTERRUPT_COUNT]
+
+    ; if ax == 0, don't toggle speaker
+    cmp ax,0x0000
+    jz INTRO_TOGGLE_SPEAKER_RETURN
+
+    push ax
 	in al,0x61
 	xor al,0x02
 	and al,0xfe
 	out 0x61,al
-	pop ax
-	ret
+    pop ax
+
+  INTRO_TOGGLE_SPEAKER_RETURN:
+    popf
+	retf
+
+
+INTRO_END:
+    push ax
+	call RESTORE_TIMER
+    mov [NEW_CLOCK_SPEED],0x1600
+	; return pc speaker to initial state
+	mov al,ah
+	out 0x61,al
+    pop ax
+    ret
 
 
 ; This function is copied from exodus.bin:0x514b, with the random seed
@@ -740,7 +785,7 @@ CONFIGURE_SFX_TIMER:
 
 	; increase clock speed
 	mov ah,0x00
-	mov dx,0x1600
+	mov dx,[NEW_CLOCK_SPEED]
 	int 0x64					; fcn ah=0x00, set clock speed
 
 	pop es
@@ -766,7 +811,8 @@ RESTORE_TIMER:
 	;  NOTE: result in eax, but we expect it to be small enough to fit in ax
 	mov eax,[INTERRUPT_COUNT]
 	mov edx,0x00000000
-	mov ecx,0x00001600
+	mov ecx,0x00000000
+	mov cx,[NEW_CLOCK_SPEED]
 	div ecx								; no of interrupts / clock multiplier
 
 	; check if adjustment necessary

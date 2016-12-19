@@ -24,4 +24,5 @@ jmp MOVEMENT_FAR                    ; 0021
 jmp AOE_SPELL_FAR                   ; 0024
 jmp WHIRLPOOL_FAR                   ; 0027
 jmp DRAGON_BREATH_FAR               ; 002a
-jmp TOGGLE_SPEAKER_FAR              ; 002d
+jmp INTRO_BEGIN_FAR                 ; 002d
+jmp INTRO_END_FAR                   ; 0030
