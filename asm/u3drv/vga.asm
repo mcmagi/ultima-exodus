@@ -1256,7 +1256,7 @@ GET_TILE_OFFSET:
 
     ; set ax = tile offset
     xor bh,bh
-    mov ax,0x0100           ; size of EGA tile
+    mov ax,0x0100           ; size of VGA tile
     mul bx
     mov bx,ax
 
@@ -1501,7 +1501,7 @@ DISPLAY_BLANK_INTRO:
     ret
 
 
-; Copies an 8-pixel line of the EXOD.EGA file to the video buffer.  The starting
+; Copies an 8-pixel line of the EXOD.VGA file to the video buffer.  The starting
 ; column must begin at a byte offset (or it will be rounded down to one).
 DISPLAY_EXOD_LINE:
     ; parameters:
@@ -1510,22 +1510,20 @@ DISPLAY_EXOD_LINE:
     ;  dl = starting row on source
     ;  dh = starting row on destination
 
-    pushf
-    push ax
-    push bx
-    push cx
-    push dx
-    push si
-    push di
+    pusha
     push ds
     push es
+
+    ; inline SET_SEGMENT for performance
+    push cs
+    pop ds
 
     cld
 
     ; prepare to write 4 words (8 pixels)
     mov cx,0x0004
 
-    ; si = offset of pixel within EXOD.EGA
+    ; si = offset of pixel within EXOD.VGA
     call GET_VGA_OFFSET
     mov si,di
 
@@ -1552,14 +1550,8 @@ DISPLAY_EXOD_LINE:
   DISPLAY_EXOD_LINE_DONE:
     pop es
     pop ds
-    pop di
-    pop si
-    pop dx
-    pop cx
-    pop bx
-    pop ax
-    popf
-    ret
+    popa
+    retf
 
   DISPLAY_EXOD_LINE_BLANK:
     rep stosw
@@ -1907,7 +1899,7 @@ GET_VGA_OFFSET:
 
     ; calculate offset of starting row
     xor dh,dh
-    mov ax,0x0140           ; size of EGA row = 0x0140
+    mov ax,0x0140           ; size of VGA row = 0x0140
     mul dx                  ; di => row offset within video buffer
 
     ; add offset of starting column

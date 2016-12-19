@@ -191,11 +191,9 @@ DISPLAY_BLANK_INTRO_FAR:
     pop ds
     retf
 
-DISPLAY_EXOD_LINE_FAR:
-    push ds
-    call SET_SEGMENT
-    call DISPLAY_EXOD_LINE
-    pop ds
+DISPLAY_EXOD_BEGIN_FAR:
+    ; return address of cs:DISPLAY_EXOD_LINE for callback
+    lea ax,[DISPLAY_EXOD_LINE]
     retf
 
 DRAW_MENU_BORDER_FAR:

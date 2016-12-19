@@ -1378,15 +1378,13 @@ DISPLAY_EXOD_LINE:
     ;  dl = starting row on source
     ;  dh = starting row on destination
 
-    pushf
-    push ax
-    push bx
-    push cx
-    push dx
-    push si
-    push di
+    pusha
     push ds
     push es
+
+    ; inline SET_SEGMENT for performance
+    push cs
+    pop ds
 
     cld
 
@@ -1422,14 +1420,8 @@ DISPLAY_EXOD_LINE:
 
     pop es
     pop ds
-    pop di
-    pop si
-    pop dx
-    pop cx
-    pop bx
-    pop ax
-    popf
-    ret
+    popa
+    retf
 
 
 DISPLAY_LORDBRIT_PIXEL:

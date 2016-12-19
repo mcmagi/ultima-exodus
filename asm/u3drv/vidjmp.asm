@@ -41,7 +41,7 @@ jmp INVERT_ENDGAME_SCREEN_FAR       ; 0042
 
 ; introduction
 jmp DISPLAY_BLANK_INTRO_FAR         ; 0045
-jmp DISPLAY_EXOD_LINE_FAR           ; 0048
+jmp DISPLAY_EXOD_BEGIN_FAR          ; 0048
 jmp DRAW_MENU_BORDER_FAR            ; 004b
 jmp CLEAR_DEMO_WINDOW_FAR           ; 004e
 jmp DISPLAY_LORDBRIT_PIXEL_FAR      ; 0051
