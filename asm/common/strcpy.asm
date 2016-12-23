@@ -6,15 +6,15 @@
 STRCPY:
     ; parameters
     ;  ds:si = source address
-    ;  ds:di = destination address
+    ;  es:di = destination address
+    ; returns:
+    ;  cx = number of bytes copied
 
     pushf
-    push cx
 
     mov cx,0xffff
     call STRNCPY
 
-    pop cx
     popf
     ret
 
@@ -22,18 +22,19 @@ STRCPY:
 STRNCPY:
     ; parameters
     ;  ds:si = source address
-    ;  ds:di = destination address
+    ;  es:di = destination address
     ;  cx = max length to copy
+    ; returns:
+    ;  cx = number of byes copied
 
     pushf
-    push cx
+    push dx
     push si
     push di
     push es
 
-    ; set es = ds
-    push ds
-    pop es
+    ; set dx = max number of bytes to copy
+    mov dx,cx
 
     ; clear direction flag
     cld
@@ -44,9 +45,13 @@ STRNCPY:
     stosb
     loopnz STRNCPY_LOOP
 
+    ; set cx = max counter - counter = number of bytes copied
+    xchg cx,dx
+    sub cx,dx
+
     pop es
     pop di
     pop si
-    pop cx
+    pop dx
     popf
     ret
