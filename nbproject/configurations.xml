@@ -11,6 +11,12 @@
         <in>sfxtest.asm</in>
         <in>sfxtimed.asm</in>
       </df>
+      <df name="u3mod">
+        <in>modcore.asm</in>
+        <in>modfar.asm</in>
+        <in>modjmp.asm</in>
+        <in>sosaria.asm</in>
+      </df>
     </df>
     <df root="data" name="1">
     </df>
@@ -71,6 +77,14 @@
       <item path="asm/u3drv/sfxtest.asm" ex="false" tool="4" flavor2="0">
       </item>
       <item path="asm/u3drv/sfxtimed.asm" ex="false" tool="4" flavor2="0">
+      </item>
+      <item path="asm/u3mod/modcore.asm" ex="false" tool="4" flavor2="0">
+      </item>
+      <item path="asm/u3mod/modfar.asm" ex="false" tool="4" flavor2="0">
+      </item>
+      <item path="asm/u3mod/modjmp.asm" ex="false" tool="4" flavor2="0">
+      </item>
+      <item path="asm/u3mod/sosaria.asm" ex="false" tool="4" flavor2="0">
       </item>
     </conf>
   </confs>
