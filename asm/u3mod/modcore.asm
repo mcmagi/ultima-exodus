@@ -317,21 +317,4 @@ IS_EXOTIC_ARMOR:
     ret
 
 
-STRCPY:
-    ; parameters:
-    ;  ds:si = source addr of string
-    ;  es:di = destination addr of string
-    ; returns:
-    ;  es:di -> string
-    pushf
-    push cx
-
-    ; copy string from ds:si -> es:di
-    mov cx,0x0100
-    cld
-    repnz
-    movsb
-
-    pop cx
-    popf
-    ret
+include "../common/strcpy.asm"

@@ -7,14 +7,29 @@ STRCPY:
     ; parameters
     ;  ds:si = source address
     ;  es:di = destination address
-    ; returns:
-    ;  cx = number of bytes copied
 
     pushf
+    push ax
+    push cx
+    push si
+    push di
+    push es
+
+    ; clear direction flag
+    cld
 
     mov cx,0xffff
-    call STRNCPY
+  STRCPY_LOOP:
+    lodsb
+    and al,al
+    stosb
+    loopnz STRCPY_LOOP
 
+    pop es
+    pop di
+    pop si
+    pop cx
+    pop ax
     popf
     ret
 
@@ -23,18 +38,14 @@ STRNCPY:
     ; parameters
     ;  ds:si = source address
     ;  es:di = destination address
-    ;  cx = max length to copy
-    ; returns:
-    ;  cx = number of byes copied
+    ;  cx = length to copy
 
     pushf
-    push dx
+    push ax
+    push cx
     push si
     push di
     push es
-
-    ; set dx = max number of bytes to copy
-    mov dx,cx
 
     ; clear direction flag
     cld
@@ -45,13 +56,88 @@ STRNCPY:
     stosb
     loopnz STRNCPY_LOOP
 
-    ; set cx = max counter - counter = number of bytes copied
-    xchg cx,dx
-    sub cx,dx
+    and cx,cx
+    jz STRNCPY_END
 
+    ; initialize any remainder to 0
+    mov al,0x00
+    rep stosb
+
+  STRNCPY_END:
     pop es
     pop di
     pop si
-    pop dx
+    pop cx
+    pop ax
+    popf
+    ret
+
+STRLEN:
+    ; parameters
+    ;  ds:si = source address
+    ; returns:
+    ;  cx = length of string
+
+    pushf
+    push ax
+    push si
+
+    cld
+
+    mov al,0x00
+    mov cx,0xffff
+    repnz scasb
+
+    neg cx
+
+    pop si
+    pop ax
+    popf
+    ret
+
+
+INT2HEX:
+    ; input:
+    ;  ax = int
+    ;  es:di = dest address
+    ; output:
+    ;  es:di -> str
+
+    pushf
+    push ax
+    push bx
+    push cx
+    push di
+
+    mov bx,ax
+
+    cld
+
+    ; loop through 4 nybbles
+    mov cx,0x0004
+  INT2HEX_LOOP:
+    mov al,bl
+    and al,0x0f
+    cmp al,0x09
+    ja INT2HEX_ALPHA
+
+  INT2HEX_NUMERIC:
+    ; values b/w 0 and 9 add +30 to get ascii number
+    add al,0x30
+    jmp INT2HEX_WRITE
+
+  INT2HEX_ALPHA:
+    ; values b/w 0xa (10) and 0xf (15) add +61 to get hex letter
+    add al,0x61
+
+  INT2HEX_WRITE:
+    stosb
+    shr bx,4
+    loopnz INT2HEX_LOOP
+
+    pop di
+    pop cx
+    pop bx
+    pop ax
     popf
     ret
