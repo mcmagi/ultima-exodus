@@ -28,10 +28,14 @@ GET_POI_INDEX:
     pushf
     push cx
     push di
+    push es
+
+    push ds
+    pop es
 
     ; scan coordinate table until we find a match
     cld
-    mov cx,NUM_POI
+    mov cx,[NUM_POI]
     mov bx,cx
     lea di,[XY_POI_TABLE]
     repnz
@@ -44,6 +48,7 @@ GET_POI_INDEX:
     dec bx
 
   GET_POI_INDEX_RETURN:
+    pop es
     pop di
     pop cx
     popf
