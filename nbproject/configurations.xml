@@ -7,7 +7,7 @@
         <in>vector.asm</in>
       </df>
       <df name="test">
-        <in>strcpytest.asm</in>
+        <in>strtest.asm</in>
       </df>
       <df name="u3drv">
         <in>sfx.asm</in>
@@ -76,7 +76,7 @@
       </item>
       <item path="asm/launcher/vector.asm" ex="false" tool="4" flavor2="0">
       </item>
-      <item path="asm/test/strcpytest.asm" ex="false" tool="4" flavor2="0">
+      <item path="asm/test/strtest.asm" ex="false" tool="4" flavor2="0">
       </item>
       <item path="asm/u3drv/sfx.asm" ex="false" tool="4" flavor2="0">
       </item>
