@@ -275,7 +275,7 @@ GET_SNAKE_TELEPORT:
     xchg bx,dx
 
     ; if matches, return dx (destination)
-    cmp ax,dx
+    cmp ax,bx
     jz GET_SNAKE_TELEPORT_RETURN
 
     ; otherwise, no teleport for you!
