@@ -92,14 +92,44 @@ START:
     lea bx,[CFGDATA]
 
   MOD_MODE:
-    ; TODO: get mod name from command line
+    push ds
 
-    ; use get default mod name
+    ; read cmd line param length at cs-0010:0080
+    mov ax,cs
+    mov ds,ax
+    lea si,[0x0080]
+    lodsb
+
+    ; if none provided, use default mod name
+    and al,al
+    jz MOD_COPY_DEFAULT
+
+    ; otherwise, skip first space
+    cbw
+    mov cx,ax
+    inc si
+    dec cx
+
+    ; ensure cx is capped at 8 characters
+    cmp cx,0x08
+    jbe MOD_COPY_CMDLINE
+    mov cx,0x08
+
+  MOD_COPY_CMDLINE:
+    ; get mod name from command line
+    lea di,[MOD_FILENAME]
+    call STRNCPY
+    pop ds
+    jmp MOD_COPY_SUFFIX
+
+  MOD_COPY_DEFAULT:
+    ; use default mod name
+    pop ds
     lea si,[MOD_DEFAULT]
     lea di,[MOD_FILENAME]
-    mov cx,0x0008
-    call STRNCPY
+    call STRCPY
 
+  MOD_COPY_SUFFIX:
     ; append .mod suffix
     lea si,[MOD_SUFFIX]
     add di,cx
