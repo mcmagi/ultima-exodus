@@ -82,8 +82,11 @@ XY_MOONGATE_TABLE       db  0x3b,0x2b
                         db  0x07,0x35
                         db  0x13,0x1f
 
-; x/y coordinates of town appearing on twin new moons
-XY_NEW_MOONS_TOWN       db  0x0a,0x26
+; index into table of town appearing on twin new moons
+IDX_NEW_MOONS_TOWN      db  0x08
+
+; index into table of Castle Death (plays Exodus music)
+IDX_CASTLE_DEATH        db  0x02
 
 ; x/y coordinates of starting position
 XY_START                db  0x1f,0x1c

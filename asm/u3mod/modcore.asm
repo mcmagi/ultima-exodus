@@ -227,8 +227,9 @@ GET_NEW_MOON_TOWN_OFFSET:
     push ax
     push cx
 
-    mov al,[XY_NEW_MOONS_TOWN+0x00]
-    mov ah,[XY_NEW_MOONS_TOWN+0x01]
+    ; set bx = index of new moons town
+    mov bl,[IDX_NEW_MOONS_TOWN]
+    call GET_POI_BY_OFFSET
 
     ; set bx = x coordinate
     mov bh,0x00
@@ -246,6 +247,28 @@ GET_NEW_MOON_TOWN_OFFSET:
 
     pop cx
     pop ax
+    popf
+    ret
+
+
+GET_POI_BY_OFFSET:
+    ; parameters:
+    ;  bl = poi number
+    ; returns:
+    ;  al = poi x coordinate, ah = poi y coordinate
+
+    pushf
+    push bx
+
+    ; bx = offset into poi table
+    mov bh,00
+    shl bx,1
+
+    ; set ax = x/y coordinates
+    mov al,[bx+XY_POI_TABLE+0x00]
+    mov ah,[bx+XY_POI_TABLE+0x01]
+
+    pop bx
     popf
     ret
 
@@ -319,6 +342,19 @@ IS_EXOTIC_ARMOR:
     cmp ax,dx
     ; return with flags
     pop dx
+    ret
+
+
+GET_CASTLE_DEATH:
+    ; returns:
+    ;  ah = x coordinate, al = y coordinate
+    push bx
+
+    ; set bx = index of new moons town
+    mov bl,[IDX_CASTLE_DEATH]
+    call GET_POI_BY_OFFSET
+
+    pop bx
     ret
 
 

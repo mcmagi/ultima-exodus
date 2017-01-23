@@ -96,3 +96,10 @@ IS_EXOTIC_ARMOR_FAR:
     call IS_EXOTIC_ARMOR
     pop ds
     retf
+
+GET_CASTLE_DEATH_FAR:
+    push ds
+    call SET_SEGMENT
+    call GET_CASTLE_DEATH
+    pop ds
+    retf

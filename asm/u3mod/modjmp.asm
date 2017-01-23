@@ -16,3 +16,4 @@ jmp GET_NEW_MOON_TOWN_OFFSET_FAR        ; 0018
 jmp GET_SNAKE_TELEPORT_FAR              ; 001b
 jmp IS_EXOTIC_WEAPON_FAR                ; 001e
 jmp IS_EXOTIC_ARMOR_FAR                 ; 0021
+jmp GET_CASTLE_DEATH_FAR                ; 0024
