@@ -347,7 +347,7 @@ IS_EXOTIC_ARMOR:
 
 GET_CASTLE_DEATH:
     ; returns:
-    ;  ah = x coordinate, al = y coordinate
+    ;  al = x coordinate, ah = y coordinate
     push bx
 
     ; set bx = index of new moons town

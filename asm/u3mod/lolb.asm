@@ -86,7 +86,7 @@ XY_MOONGATE_TABLE       db  0x3b,0x2b
 IDX_NEW_MOONS_TOWN      db  0x08
 
 ; index into table of Castle Death (plays Exodus music)
-IDX_CASTLE_DEATH        db  0x02
+IDX_CASTLE_DEATH        db  0x01
 
 ; x/y coordinates of starting position
 XY_START                db  0x1f,0x1c

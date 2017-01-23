@@ -303,8 +303,8 @@ DETECT_SONG_FROM_MAP:
     ; there are two castles:
 
   DETECT_SONG_CHECK_CASTLE_DEATH:
-    ; if row/col != 35,0a (Castle of Death), assume Castle of LB
-    cmp dx,0x350a
+    ; if dx != 1 (Castle of Death), assume Castle of LB
+    cmp dx,0001
     jnz DETECT_SONG_CHECK_CASTLE_LB
 
     ; set song = Exodus
