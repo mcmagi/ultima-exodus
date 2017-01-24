@@ -103,3 +103,10 @@ GET_CASTLE_DEATH_FAR:
     call GET_CASTLE_DEATH
     pop ds
     retf
+
+GET_PRAY_LOCATION_FAR:
+    push ds
+    call SET_SEGMENT
+    call GET_PRAY_LOCATION
+    pop ds
+    retf

@@ -227,7 +227,7 @@ GET_NEW_MOON_TOWN_OFFSET:
     push ax
     push cx
 
-    ; set bx = index of new moons town
+    ; set bl = index of new moons town
     mov bl,[IDX_NEW_MOONS_TOWN]
     call GET_POI_BY_OFFSET
 
@@ -350,11 +350,26 @@ GET_CASTLE_DEATH:
     ;  al = x coordinate, ah = y coordinate
     push bx
 
-    ; set bx = index of new moons town
+    ; set bl = index of castle death
     mov bl,[IDX_CASTLE_DEATH]
     call GET_POI_BY_OFFSET
 
     pop bx
+    ret
+
+
+GET_PRAY_LOCATION:
+    ; returns:
+    ;  al = x coordinate of town, ah = y coordinate of town
+    ;  bl = x coordinate w/i town, bh = y coordinate w/i town
+
+    ; set bl = index of pray town
+    mov bl,[IDX_TOWN_PRAY]
+    call GET_POI_BY_OFFSET
+
+    ; set bx = coordinates of pray location
+    mov bx,[XY_PRAY]
+
     ret
 
 

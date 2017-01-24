@@ -88,6 +88,12 @@ IDX_NEW_MOONS_TOWN      db  0x08
 ; index into table of Castle Death (plays Exodus music)
 IDX_CASTLE_DEATH        db  0x01
 
+; index into table of Town where <Pray> is to be used (Circle of Light)
+IDX_TOWN_PRAY           db  0x04
+
+; x/y coordinates of location to <Pray> within said town
+XY_PRAY                 db  0x30,0x30
+
 ; x/y coordinates of starting position
 XY_START                db  0x1f,0x1c
 

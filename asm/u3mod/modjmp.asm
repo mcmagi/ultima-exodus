@@ -17,3 +17,4 @@ jmp GET_SNAKE_TELEPORT_FAR              ; 001b
 jmp IS_EXOTIC_WEAPON_FAR                ; 001e
 jmp IS_EXOTIC_ARMOR_FAR                 ; 0021
 jmp GET_CASTLE_DEATH_FAR                ; 0024
+jmp GET_PRAY_LOCATION_FAR               ; 0027
