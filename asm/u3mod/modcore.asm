@@ -368,7 +368,8 @@ GET_PRAY_LOCATION:
     call GET_POI_BY_OFFSET
 
     ; set bx = coordinates of pray location
-    mov bx,[XY_PRAY]
+    mov bl,[XY_PRAY+0x00]
+    mov bh,[XY_PRAY+0x01]
 
     ret
 
