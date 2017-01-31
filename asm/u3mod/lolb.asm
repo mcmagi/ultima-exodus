@@ -1,4 +1,4 @@
-; LOLB.ASM
+; LOLB3.ASM
 ; Author: Michael C. Maggio
 ;
 ; A data 'module' that describes the map files, save files, and locations of
@@ -16,7 +16,7 @@ SAVE_PARTY              db  "PARTY.ULT",0
 SAVE_ROSTER             db  "ROSTER.ULT",0
 
 ; world map
-MAP_WORLD               db  "LOLB.ULT",0
+MAP_WORLD               db  "LOLB3.ULT",0
 MAP_WHIRLPOOL           db  "AMBROSIA.ULT",0
 
 ; poi files
@@ -60,26 +60,26 @@ XY_POI_TABLE            db  0x1e,0x1f   ; Castle of Lord British
                         db  0x2f,0x3b   ; Montor East
                         db  0x2d,0x3b   ; Montor West
                         db  0x35,0x0f   ; Grey
-                        db  0x0a,0x26   ; Dawn
-                        db  0x16,0x14   ; Devil Guard
-                        db  0x0e,0x34   ; Fawn
+                        db  0x08,0x25   ; Dawn
+                        db  0x18,0x15   ; Devil Guard
+                        db  0x0f,0x35   ; Fawn
                         db  0x30,0x16   ; Death Gulch
-                        db  0x1e,0x33   ; Dungeon of Doom
+                        db  0x04,0x2b   ; Dungeon of Doom
                         db  0x32,0x2c   ; Dungeon of Fire
                         db  0x13,0x1e   ; Dungeon of Time
                         db  0x3b,0x05   ; Dungeon of the Snake
-                        db  0x08,0x03   ; Perinian Depths
-                        db  0x05,0x26   ; Mines of Morinia
+                        db  0x08,0x04   ; Perinian Depths
+                        db  0x3c,0x38   ; Mines of Morinia
                         db  0x2d,0x07   ; Dardin's Pit
 
 ; moongate x/y coordinate table
 XY_MOONGATE_TABLE       db  0x3b,0x2b
                         db  0x3a,0x08
+                        db  0x04,0x3b
                         db  0x22,0x3b
-                        db  0x13,0x16
-                        db  0x30,0x0a
+                        db  0x30,0x08
                         db  0x1a,0x3a
-                        db  0x07,0x35
+                        db  0x20,0x14
                         db  0x13,0x1f
 
 ; index into table of town appearing on twin new moons
@@ -95,7 +95,7 @@ IDX_TOWN_PRAY           db  0x04
 XY_PRAY                 db  0x30,0x30
 
 ; x/y coordinates of starting position
-XY_START                db  0x1f,0x1c
+XY_START                db  0x21,0x1e
 
 ; x/y coordinates for evocare teleport
 XY_TELEPORT             db  0x18,0x3b
@@ -103,7 +103,7 @@ XY_TELEPORT             db  0x18,0x3b
 
 ; x/y coordinates for exotics
 XY_EXOTIC_WEAPON        db  0x1c,0x03
-XY_EXOTIC_ARMOR         db  0x24,0x36
+XY_EXOTIC_ARMOR         db  0x22,0x35
 
 
 ; core functions
