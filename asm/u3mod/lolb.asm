@@ -1,4 +1,4 @@
-; SOSARIA.ASM
+; LOLB.ASM
 ; Author: Michael C. Maggio
 ;
 ; A data 'module' that describes the map files, save files, and locations of

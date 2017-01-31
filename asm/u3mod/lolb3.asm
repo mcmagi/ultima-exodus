@@ -1,4 +1,4 @@
-; LOLB2.ASM
+; LOLB3.ASM
 ; Author: Michael C. Maggio
 ;
 ; A data 'module' that describes the map files, save files, and locations of
@@ -16,7 +16,7 @@ SAVE_PARTY              db  "PARTY.ULT",0
 SAVE_ROSTER             db  "ROSTER.ULT",0
 
 ; world map
-MAP_WORLD               db  "LOLB2.ULT",0
+MAP_WORLD               db  "LOLB3.ULT",0
 MAP_WHIRLPOOL           db  "AMBROSIA.ULT",0
 
 ; poi files
@@ -62,7 +62,7 @@ XY_POI_TABLE            db  0x1e,0x1f   ; Castle of Lord British
                         db  0x35,0x0f   ; Grey
                         db  0x08,0x25   ; Dawn
                         db  0x18,0x15   ; Devil Guard
-                        db  0x0f,0x34   ; Fawn
+                        db  0x0f,0x35   ; Fawn
                         db  0x30,0x16   ; Death Gulch
                         db  0x04,0x2b   ; Dungeon of Doom
                         db  0x32,0x2c   ; Dungeon of Fire
@@ -75,7 +75,7 @@ XY_POI_TABLE            db  0x1e,0x1f   ; Castle of Lord British
 ; moongate x/y coordinate table
 XY_MOONGATE_TABLE       db  0x3b,0x2b
                         db  0x3a,0x08
-                        db  0x07,0x35
+                        db  0x04,0x3b
                         db  0x22,0x3b
                         db  0x30,0x08
                         db  0x1a,0x3a
