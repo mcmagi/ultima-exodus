@@ -1,4 +1,4 @@
-; LOLB3.ASM
+; LOLB.ASM
 ; Author: Michael C. Maggio
 ;
 ; A data 'module' that describes the map files, save files, and locations of
@@ -16,11 +16,11 @@ SAVE_PARTY              db  "PARTY.ULT",0
 SAVE_ROSTER             db  "ROSTER.ULT",0
 
 ; world map
-MAP_WORLD               db  "LOLB3.ULT",0
+MAP_WORLD               db  "LOLB.ULT",0
 MAP_WHIRLPOOL           db  "AMBROSIA.ULT",0
 
 ; poi files
-MAP_CASTLE_BRITISH      db  "BRITISH.ULT",0
+MAP_CASTLE_BRITISH      db  "BRITISHL.ULT",0
 MAP_CASTLE_DEATH        db  "EXODUS.ULT",0
 MAP_TOWN_BRITAIN        db  "LCB.ULT",0
 MAP_TOWN_MOON           db  "MOON.ULT",0
