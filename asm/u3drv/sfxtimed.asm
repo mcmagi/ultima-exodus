@@ -48,109 +48,28 @@ CLOSE_DRIVER:
 
 
 INVALID_ACTION:
+	push ax
+	push cx
+
 	mov ax,0x3e80		; counter = 16000 (dec) -> 74 Hz (D2)
-	;mov cx,0x7d70		; loop for 32112 (dec) instructions
-	mov cx,0x0020
-	jmp PLAY_NOTE
-    push bx
-    push cx
+	mov cx,0x0020		; duration
+	call PLAY_NOTE
 
-    ; store speaker status
-    in al,0x61
-    push ax
-
-	mov al,0xb6			; 10,11,011,0 = counter 2, lsb->msb, mode 3, binary
-	out 0x43,al
-	mov ax,0x3d33
-	out 0x42,al			; lsb
-	mov al,ah
-	out 0x42,al			; msb
-
-	; clear bits 0-1 of al (to turn speaker off)
-    and al,0xfc			; xxxxxx,0,0 = unchanged, disable speaker, disable timer 2
-
-    ; loop 16 (dec) times (duration)
-    mov cx,0x0010
-  INVALID_ACTION_OUTER_LOOP:
-    ; change status of speaker
-    out 0x61,al
-
-    ; invert bit 1 of al for next loop
-    xor al,0x02			; xxxxxx,0/1,x = unchanged, toggle speaker, unchanged
-
-    ; the next two loops do nothing but waste time
-
-    ; loop once (um, why???)
-    mov di,0x0001
-  INVALID_ACTION_DELAY_LOOP:
-    ; loop 1000 (dec) times (period b/w speaker toggle)
-    mov bx,0x03e8
-  INVALID_ACTION_INNER_DELAY_LOOP:
-    dec bx
-    jnz INVALID_ACTION_INNER_DELAY_LOOP
-
-    dec di
-    jnz INVALID_ACTION_DELAY_LOOP
-
-    loop INVALID_ACTION_OUTER_LOOP
-
-    ; restore original speaker status
-    pop ax
-    out 0x61,al
-
-    pop cx
-    pop bx
+	pop cx
+	pop ax
     ret
 
 
 INVALID_COMMAND:
+	push ax
+	push cx
+
 	mov ax,0x1630		; counter = 5680 (dec) -> 210 Hz (Ab3)
-	;mov cx,0x8670		; loop for 34416 (dec) instructions
-	mov cx,0x0023
-	jmp PLAY_NOTE
-    push bx
-    push cx
+	mov cx,0x0023		; duration
+	call PLAY_NOTE
 
-    ; store speaker status
-    in al,0x61
-    push ax
-
-    ; clear bits 0-1 of al (to turn speaker off)
-    and al,0xfc
-
-    ; loop 48 (dec) times
-    mov cx,0x0030
-
-  INVALID_COMMAND_OUTER_LOOP:
-    ; change status of speaker
-    out 0x61,al
-
-    ; invert bit 1 of al for next loop
-    xor al,0x02
-
-    ; the next two loops do nothing but waste time
-
-    ; loop once
-    mov di,0x0001
-  INVALID_COMMAND_DELAY_LOOP:
-    ; loop 355 (dec) times
-    mov bx,0x0163
-  INVALID_COMMAND_INNER_DELAY_LOOP:
-    dec bx
-    jnz INVALID_COMMAND_INNER_DELAY_LOOP
-
-    dec di
-    jnz INVALID_COMMAND_DELAY_LOOP
-
-    loop INVALID_COMMAND_OUTER_LOOP
-
-    ; restore original speaker status
-    pop ax
-    out 0x61,al
-
-    ; restore and return
-    pop cx
-    pop bx
+	pop cx
+	pop ax
     ret
 
 
