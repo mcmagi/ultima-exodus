@@ -20,6 +20,51 @@
 ;  * yell: "evocare" locations
 ;  * search: exotics locations
 
+INIT_MOD:
+    ; returns:
+    ;  signed flag = set if error, unset if successful
+    push ax
+    push bx
+    push dx
+
+    ; try to open map file
+    lea dx,[MAP_WORLD]
+    mov al,0x00     ; read
+    mov ah,0x3d     ; fcn 0x3d = open file
+    int 0x21
+
+    ; if cannot open file, create the map
+    jc INIT_MOD_OPEN_ERROR
+
+    ; file exists, now close it and resume
+    mov bx,ax
+    mov ah,0x3e     ; fcn 0x3e = close file
+    int 0x21
+    jmp INIT_MOD_DONE
+
+  INIT_MOD_OPEN_ERROR:
+    ; if map file not found, create the map file
+    cmp ax,0x0002   ; error code = file not found
+    jz INIT_MOD_CREATE_MAP
+
+    ; otherwise, truly an error
+    or al,0xff      ; set signed flag
+    jmp INIT_MOD_DONE
+
+  INIT_MOD_CREATE_MAP:
+    call RESET_WORLD_MAP
+
+  INIT_MOD_DONE:
+    pop dx
+    pop bx
+    pop ax
+    ret
+
+
+CLOSE_MOD:
+    ret
+
+
 GET_POI_INDEX:
     ; parameters:
     ;  al,ah = x,y coordinates
@@ -374,4 +419,50 @@ GET_PRAY_LOCATION:
     ret
 
 
+RESET_WORLD_MAP:
+    ; returns:
+    ;  signed flag = set if error, unset if successful
+
+    push ax
+    push cx
+    push dx
+    push di
+    push es
+
+    ; load backup map file
+    mov al,0x01
+    mov cx,0x0000
+    lea dx,[MAP_WORLD_BAK]
+    call LOAD_FILE
+
+    cmp ax,ax
+    js RESET_WORLD_MAP_DONE
+
+    ; save backup map file at ax:0000 to map file
+    mov es,ax
+    mov di,0x0000
+    lea dx,[MAP_WORLD]
+    call SAVE_FILE
+
+    cmp ax,ax
+    js RESET_WORLD_MAP_DONE
+
+    ; free it
+    mov ax,es
+    call FREE_MEMORY
+
+    ; ensure signed flag is unset = successful result
+    test al,0x00
+
+  RESET_WORLD_MAP_DONE:
+    pop es
+    pop di
+    pop dx
+    pop cx
+    pop ax
+    ret
+
+
 include "../common/strcpy.asm"
+include "../common/loadfile.asm"
+include "../common/savefile.asm"

@@ -141,6 +141,9 @@ START:
     lea bp,[MOD_ADDR]
     mov [ds:bp+0x02],ax
 
+    ; initialize mod
+    call far [ds:bp]
+
   SFX_MODE:
     ; get sfx driver id from config
     mov si,[bx+0x06]
@@ -302,6 +305,10 @@ START:
     mov ax,[bx+0x02]
     and ax,ax
     jz EXIT
+
+    ; close mod's resources
+    mov word [bx],0x0003
+    call far [bx]
 
     ; free mod (ax = segment address)
     call FREE_MEMORY

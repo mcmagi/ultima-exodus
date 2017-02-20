@@ -13,17 +13,17 @@ SET_SEGMENT:
     ret
 
 ; far calls to mod functions
-GET_POI_INDEX_FAR:
+INIT_MOD_FAR:
     push ds
     call SET_SEGMENT
-    call GET_POI_INDEX
+    call INIT_MOD
     pop ds
     retf
 
-GET_POI_STR_FAR:
+CLOSE_MOD_FAR:
     push ds
     call SET_SEGMENT
-    call GET_POI_STR
+    call CLOSE_MOD
     pop ds
     retf
 
@@ -108,5 +108,26 @@ GET_PRAY_LOCATION_FAR:
     push ds
     call SET_SEGMENT
     call GET_PRAY_LOCATION
+    pop ds
+    retf
+
+GET_POI_INDEX_FAR:
+    push ds
+    call SET_SEGMENT
+    call GET_POI_INDEX
+    pop ds
+    retf
+
+GET_POI_STR_FAR:
+    push ds
+    call SET_SEGMENT
+    call GET_POI_STR
+    pop ds
+    retf
+
+RESET_WORLD_MAP_FAR:
+    push ds
+    call SET_SEGMENT
+    call RESET_WORLD_MAP
     pop ds
     retf

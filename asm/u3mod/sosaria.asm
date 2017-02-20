@@ -18,6 +18,7 @@ SAVE_ROSTER             db  "ROSTER.ULT",0
 
 ; world map
 MAP_WORLD               db  "SOSARIA.ULT",0
+MAP_WORLD_BAK           db  "SOSARIA.RST",0
 MAP_WHIRLPOOL           db  "AMBROSIA.ULT",0
 
 ; poi files
