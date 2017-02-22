@@ -97,7 +97,7 @@ IDX_TOWN_PRAY           db  0x04
 XY_PRAY                 db  0x30,0x30
 
 ; x/y coordinates of starting position
-XY_START                db  0x2b,0x14
+XY_START                db  0x2c,0x14
 
 ; x/y coordinates for evocare teleport
 XY_TELEPORT             db  0x0a,0x38
