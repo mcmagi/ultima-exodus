@@ -435,6 +435,7 @@ RESET_WORLD_MAP:
     lea dx,[MAP_WORLD_BAK]
     call LOAD_FILE
 
+    ; check for error
     cmp ax,ax
     js RESET_WORLD_MAP_DONE
 
@@ -444,6 +445,7 @@ RESET_WORLD_MAP:
     lea dx,[MAP_WORLD]
     call SAVE_FILE
 
+    ; check for error
     cmp ax,ax
     js RESET_WORLD_MAP_DONE
 
@@ -461,6 +463,87 @@ RESET_WORLD_MAP:
     pop cx
     pop ax
     ret
+
+
+IS_WORLD_MODIFIED:
+    ; returns:
+    ;  carry flag = set if modified, unset if unmodified
+    ;  signed flag = set if error, unset if successful
+
+    push ax
+    push cx
+    push dx
+    push si
+    push di
+    push ds
+    push es
+
+    ; load map file
+    mov al,0x01
+    mov cx,0x0000
+    lea dx,[MAP_WORLD]
+    call LOAD_FILE
+
+    ; check for error
+    cmp ax,ax
+    js IS_WORLD_MODIFIED_ERROR
+
+    ; set es:di = map file
+    mov es,ax
+    mov di,0x0000
+
+    ; load backup map file
+    mov al,0x01
+    mov cx,0x0000
+    lea dx,[MAP_WORLD_BAK]
+    call LOAD_FILE
+
+    ; check for error
+    cmp ax,ax
+    js IS_WORLD_MODIFIED_ERROR2
+
+    ; set ds:si = backup map file
+    mov ds,ax
+    mov si,0x0000
+
+    cld
+    repz cmpsb
+
+    ; if we stop comparing b/c not equal, set carry and return
+    jnz IS_WORLD_MODIFIED_TRUE
+
+    ; ensure signed flag is unset = successful result
+    test al,0x00
+
+    ; clear carry flag = unmodified
+    clc
+
+  IS_WORLD_MODIFIED_DONE:
+    ; free backup map file
+    mov ax,es
+    call FREE_MEMORY
+
+  IS_WORLD_MODIFIED_ERROR2:
+    ; free map file
+    mov ax,ds
+    call FREE_MEMORY
+
+  IS_WORLD_MODIFIED_ERROR:
+    pop es
+    pop ds
+    pop di
+    pop si
+    pop dx
+    pop cx
+    pop ax
+    ret
+
+  IS_WORLD_MODIFIED_TRUE:
+    ; ensure signed flag is unset = successful result
+    test al,0x00
+    ; set carry flag = modified
+    stc
+    jmp IS_WORLD_MODIFIED_DONE
 
 
 include "../common/strcpy.asm"

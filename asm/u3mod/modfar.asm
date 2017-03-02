@@ -131,3 +131,10 @@ RESET_WORLD_MAP_FAR:
     call RESET_WORLD_MAP
     pop ds
     retf
+
+IS_WORLD_MODIFIED_FAR:
+    push ds
+    call SET_SEGMENT
+    call IS_WORLD_MODIFIED
+    pop ds
+    retf

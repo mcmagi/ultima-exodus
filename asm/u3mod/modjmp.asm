@@ -21,3 +21,4 @@ jmp GET_PRAY_LOCATION_FAR               ; 0027
 jmp GET_POI_INDEX_FAR                   ; 002a
 jmp GET_POI_STR_FAR                     ; 002d
 jmp RESET_WORLD_MAP_FAR                 ; 0030
+jmp IS_WORLD_MODIFIED_FAR               ; 0033
