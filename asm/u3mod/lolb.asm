@@ -12,16 +12,16 @@ include 'modjmp.asm'
 ;
 
 ; save files
-SAVE_PARTY              db  "PARTY.ULT",0
-SAVE_ROSTER             db  "ROSTER.ULT",0
+SAVE_PARTY              db  "LOLB\PARTY.ULT",0
+SAVE_ROSTER             db  "LOLB\ROSTER.ULT",0
 
 ; world map
-MAP_WORLD               db  "LOLB.ULT",0
-MAP_WORLD_BAK           db  "LOLB0.ULT",0
+MAP_WORLD               db  "LOLB\LOLB.ULT",0
+MAP_WORLD_BAK           db  "LOLB\LOLB0.ULT",0
 MAP_WHIRLPOOL           db  "AMBROSIA.ULT",0
 
 ; poi files
-MAP_CASTLE_BRITISH      db  "BRITISHL.ULT",0
+MAP_CASTLE_BRITISH      db  "LOLB\BRITISH.ULT",0
 MAP_CASTLE_DEATH        db  "EXODUS.ULT",0
 MAP_TOWN_BRITAIN        db  "LCB.ULT",0
 MAP_TOWN_MOON           db  "MOON.ULT",0
