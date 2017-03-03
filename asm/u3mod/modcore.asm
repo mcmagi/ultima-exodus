@@ -27,38 +27,91 @@ INIT_MOD:
     push bx
     push dx
 
-    ; try to open map file
     lea dx,[MAP_WORLD]
-    mov al,0x00     ; read
-    mov ah,0x3d     ; fcn 0x3d = open file
-    int 0x21
+    call TEST_FILE_EXISTS
+    js INIT_MOD_DONE        ; return on error
 
-    ; if cannot open file, create the map
-    jc INIT_MOD_OPEN_ERROR
+    ; if file exists, proceed to party
+    jnc INIT_MOD_PARTY
 
-    ; file exists, now close it and resume
-    mov bx,ax
-    mov ah,0x3e     ; fcn 0x3e = close file
-    int 0x21
-    jmp INIT_MOD_DONE
-
-  INIT_MOD_OPEN_ERROR:
-    ; if map file not found, create the map file
-    cmp ax,0x0002   ; error code = file not found
-    jz INIT_MOD_CREATE_MAP
-
-    ; otherwise, truly an error
-    or al,0xff      ; set signed flag
-    jmp INIT_MOD_DONE
-
-  INIT_MOD_CREATE_MAP:
+    ; otherwise, create the world map
     call RESET_WORLD_MAP
+
+  INIT_MOD_PARTY:
+    lea dx,[SAVE_PARTY]
+    call TEST_FILE_EXISTS
+    js INIT_MOD_DONE        ; return on error
+
+    ; if file exists, proceed to roster
+    jnc INIT_MOD_ROSTER
+
+    ; otherwise, create the world map
+    call RESET_PARTY
+
+  INIT_MOD_ROSTER:
+    lea dx,[SAVE_ROSTER]
+    call TEST_FILE_EXISTS
+    js INIT_MOD_DONE        ; return on error
+
+    ; if file exists, proceed to done
+    jnc INIT_MOD_DONE
+
+    ; otherwise, create the world map
+    call RESET_ROSTER
 
   INIT_MOD_DONE:
     pop dx
     pop bx
     pop ax
     ret
+
+
+TEST_FILE_EXISTS:
+    ; param:
+    ;  ds:dx -> filename
+    ; returns:
+    ;  carry = set if file does not exist, clear if exists
+
+    push ax
+    push bx
+
+    ; try to open map file
+    mov al,0x00     ; read
+    mov ah,0x3d     ; fcn 0x3d = open file
+    int 0x21
+
+    ; if cannot open file, confirm why
+    jc TEST_FILE_EXISTS_CHECK_CODE
+
+    ; file exists, now close it and resume
+    mov bx,ax
+    mov ah,0x3e     ; fcn 0x3e = close file
+    int 0x21
+    jmp TEST_FILE_EXISTS_DONE
+
+    ; set return flags
+    test al,0x00    ; sf = false (success)
+    clc             ; cf = false (exists)
+    jmp TEST_FILE_EXISTS_DONE
+
+  TEST_FILE_EXISTS_CHECK_CODE:
+    ; if cannot open file
+    cmp ax,0x0002   ; error code = file not found
+    jnz TEST_FILE_EXISTS_ERROR
+
+    ; set return flags
+    test al,0x00    ; sf = false (success)
+    stc             ; cf = true (does not exist)
+
+  TEST_FILE_EXISTS_DONE:
+    pop bx
+    pop ax
+    ret
+
+  TEST_FILE_EXISTS_ERROR:
+    or al,0xff      ; sf = true (error)
+    jmp TEST_FILE_EXISTS_DONE
+
 
 
 CLOSE_MOD:
@@ -436,8 +489,8 @@ RESET_WORLD_MAP:
     call LOAD_FILE
 
     ; check for error
-    cmp ax,ax
-    js RESET_WORLD_MAP_DONE
+    cmp ax,0xffff
+    jz RESET_WORLD_MAP_ERROR
 
     ; save backup map file at ax:0000 to map file
     mov es,ax
@@ -446,15 +499,15 @@ RESET_WORLD_MAP:
     call SAVE_FILE
 
     ; check for error
-    cmp ax,ax
-    js RESET_WORLD_MAP_DONE
+    cmp ax,0xffff
+    jz RESET_WORLD_MAP_ERROR2
 
+    test al,0x00    ; sf = false (success)
+
+  RESET_WORLD_MAP_FREE:
     ; free it
     mov ax,es
     call FREE_MEMORY
-
-    ; ensure signed flag is unset = successful result
-    test al,0x00
 
   RESET_WORLD_MAP_DONE:
     pop es
@@ -463,6 +516,14 @@ RESET_WORLD_MAP:
     pop cx
     pop ax
     ret
+
+  RESET_WORLD_MAP_ERROR:
+    or al,0x00    ; sf = true (error)
+    jmp RESET_WORLD_MAP_DONE
+
+  RESET_WORLD_MAP_ERROR2:
+    or al,0x00    ; sf = true (error)
+    jmp RESET_WORLD_MAP_FREE
 
 
 IS_WORLD_MODIFIED:
@@ -485,8 +546,8 @@ IS_WORLD_MODIFIED:
     call LOAD_FILE
 
     ; check for error
-    cmp ax,ax
-    js IS_WORLD_MODIFIED_ERROR
+    cmp ax,0xffff
+    jz IS_WORLD_MODIFIED_ERROR
 
     ; set es:di = map file
     mov es,ax
@@ -499,8 +560,8 @@ IS_WORLD_MODIFIED:
     call LOAD_FILE
 
     ; check for error
-    cmp ax,ax
-    js IS_WORLD_MODIFIED_ERROR2
+    cmp ax,0xffff
+    jz IS_WORLD_MODIFIED_ERROR
 
     ; set ds:si = backup map file
     mov ds,ax
@@ -512,23 +573,25 @@ IS_WORLD_MODIFIED:
     ; if we stop comparing b/c not equal, set carry and return
     jnz IS_WORLD_MODIFIED_TRUE
 
-    ; ensure signed flag is unset = successful result
-    test al,0x00
+    test al,0x00    ; sf = false (success)
+    clc             ; cf = false (unmodified)
+    jmp IS_WORLD_MODIFIED_FREE_MAPS
 
-    ; clear carry flag = unmodified
-    clc
+  IS_WORLD_MODIFIED_TRUE:
+    test al,0x00    ; sf = false (success)
+    stc             ; cf = true (modified)
 
-  IS_WORLD_MODIFIED_DONE:
+  IS_WORLD_MODIFIED_FREE_MAPS:
     ; free backup map file
     mov ax,es
     call FREE_MEMORY
 
-  IS_WORLD_MODIFIED_ERROR2:
+  IS_WORLD_MODIFIED_FREE_MAP:
     ; free map file
     mov ax,ds
     call FREE_MEMORY
 
-  IS_WORLD_MODIFIED_ERROR:
+  IS_WORLD_MODIFIED_DONE:
     pop es
     pop ds
     pop di
@@ -538,12 +601,109 @@ IS_WORLD_MODIFIED:
     pop ax
     ret
 
-  IS_WORLD_MODIFIED_TRUE:
-    ; ensure signed flag is unset = successful result
-    test al,0x00
-    ; set carry flag = modified
-    stc
+  IS_WORLD_MODIFIED_ERROR2:
+    or al,0xff      ; sf = true (error)
+    jmp IS_WORLD_MODIFIED_FREE_MAP
+
+  IS_WORLD_MODIFIED_ERROR:
+    or al,0xff      ; sf = true (error)
     jmp IS_WORLD_MODIFIED_DONE
+
+
+RESET_PARTY:
+    ; returns:
+    ;  sf = true on error, false on success
+
+    push cx
+    push dx
+
+    mov cx,0x0112
+    lea dx,[SAVE_PARTY]
+    call CREATE_EMPTY_FILE
+
+    pop dx
+    pop cx
+    ret
+
+
+RESET_ROSTER:
+    ; returns:
+    ;  sf = true on error, false on success
+
+    push cx
+    push dx
+
+    mov cx,0x0500
+    lea dx,[SAVE_ROSTER]
+    call CREATE_EMPTY_FILE
+
+    pop dx
+    pop cx
+    ret
+
+
+CREATE_EMPTY_FILE:
+    ; params:
+    ;  cx = file size
+    ;  dx = file name
+    ; returns:
+    ;  sf = true on error, false on success
+
+    push ax
+    push bx
+    push cx
+    push di
+    push es
+
+    ; set bx = file size
+    mov bx,cx
+
+    ; allocate memory segment
+    mov ax,cx
+    call ALLOCATE_MEMORY
+
+    ; check for error
+    cmp ax,0xffff
+    jz CREATE_EMPTY_FILE_ALLOC_ERROR
+
+    ; initialize space to 0x00
+    cld
+    mov es,ax
+    mov di,0x0000
+    mov al,0x00
+    rep stosb
+
+    ; save file to disk
+    mov cx,bx
+    mov di,0x0000
+    call SAVE_FILE
+
+    ; check for error
+    cmp ax,0xffff
+    jz CREATE_EMPTY_FILE_SAVE_ERROR
+
+    test al,0x00    ; sf = false (success)
+
+  CREATE_EMPTY_FILE_FREE:
+    ; free memory segment
+    mov ax,es
+    call FREE_MEMORY
+
+  CREATE_EMPTY_FILE_DONE:
+    pop es
+    pop di
+    pop cx
+    pop bx
+    pop ax
+    ret
+
+  CREATE_EMPTY_FILE_ALLOC_ERROR:
+    or al,0xff      ; sf = true (error)
+    jmp CREATE_EMPTY_FILE_DONE
+
+  CREATE_EMPTY_FILE_SAVE_ERROR:
+    or al,0xff      ; sf = true (error)
+    jmp CREATE_EMPTY_FILE_FREE
 
 
 include "../common/strcpy.asm"

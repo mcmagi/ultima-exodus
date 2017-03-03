@@ -26,6 +26,7 @@ MOD_FILENAME    db  0x0d dup 0
 U3_PARAMS       db  0x03,0x20,0xff,0xff,0x0d,0
 FILE_ERROR      db  "Error reading "
 FILE_ERROR_NAME db  "            ",0x0a,0x0d,"$"
+MOD_ERROR       db  "Error initializing mod",0x0a,0x0d,"$"
 MUSIC_ERROR     db  "Error initializing Music Driver",0x0a,0x0d,"$"
 LAUNCH_ERROR    db  "Error launching Ultima III",0x0a,0x0d,"$"
 FREE_ERROR      db  "Error releasing memory for driver",0x0a,0x0d,"$"
@@ -143,6 +144,11 @@ START:
 
     ; initialize mod
     call far [ds:bp]
+    jns SFX_MODE
+
+    ; print error & exit
+    lea dx,[MOD_ERROR]
+    call ERROR
 
   SFX_MODE:
     ; get sfx driver id from config
