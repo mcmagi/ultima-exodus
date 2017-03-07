@@ -1,0 +1,52 @@
+Ultima III: Exodus, version for IBM PC --- changelog
+====================================================
+
+Version dated May 22nd, 1984
+----------------------------
+- First known version.
+- Both COMMAND.COM and BOOTUP.COM are protected with Formaster Advanced Copylock key disk copy protection.
+- Comes on a double-sided 5.25 inch diskette with each side holding a separate (160K) file system (for compatibility with the single-side diskette drives of early PCs). The "label up" side is the
+  copy-protected "Program" side; the flip side is the Player Master. A scenario disk is created by DISKCOPYing the Player Master side.
+- Contains IBMBIO.COM and IBMDOS.COM both with filler (0xC3) bytes. Reference card recommends using the SYS command to transfer the DOS system files to the original disk to make it bootable.
+- Title screen loader is called COMMAND.COM. This is presumably for users who make their disk bootable with DOS 1.1 (which knows no CONFIG.SYS with its SHELL command) to save memory by not loading
+  DOS' original COMMAND.COM. Includes a CONFIG.SYS file for DOS 2.0+ specifying "Buffers=1" and "Files=1", presumably to reduce memory requirements.
+- Other executables are named BOOTUP.COM and EXODUS.COM, but cannot be called from the command line (BOOTUP runs but does not switch itself to graphics mode, EXODUS.COM will freeze).
+- *.ULT data files have dashes in them, i.e. MONTOR-E.ULT.
+
+Version dated January 22nd, 1985
+--------------------------------
+- On Sosaria map, monster generation probability changed from 17/128 to 7/128 per step.
+- Yelling "EVOCARE" now tests whether player has the Mark of the Snake. Previously it mistakenly tested for Sol and Moon cards (wrong code: "AND AL, 06", correct code: "AND AL, 1 SHL 6").
+- Flipped the condition leading to Gas Trap versus Bomb Trap when opening a trapped chest. Since the trap type is randomly determined and both have equal (1/4) probability, this makes no difference.
+
+Version dated March 8th, 1985
+-----------------------------
+- COMMAND.COM: sequence clearing high byte of word variable, then clearing both bytes of the word variable changed to clearing both bytes of the variable only (in other words, makes no difference.)
+- Different initialization in the buffers for PARTY.ULT (in EXODUS.COM) and PARTY.ULT/ROSTER.ULT (in BOOTUP.COM).
+  Since they are immediately overwritten with the actual files' contents, this makes no difference.
+- When decreasing Health Points, update the character panel immediately.
+- After poisoning player, update the character panel immediately.
+- Fixes a bug where Handing Equipment (gems/keys/powders/torches) fails to increase the receiving character's inventory even as the items are removed from the giving character's inventory.
+- Added a line feed to the beginning of the "Leave my shop!" line and a corresponding Scroll Window call.
+- Added a line feed to the beginning of the "What? Can't pay!" line and a corresponding Scroll Window call.
+- Added a line feed to the beginning of the "I'm sorry, but you don't have the funds" line and a corresponding Scroll Window call.
+- Removed doubled Scroll Window call before paying bartender.
+- Removed one (unused?) box drawing definition from DUNGEON.DAT.
+- ANIMATE.DAT has a new date stamp, but its content is unchanged.
+
+Version dated March 3rd, 1987 (also included in Ultima I-III trilogy)
+---------------------------------------------------------------------
+- COMMAND.COM renamed to ULTIMA.COM.
+- Replaced the Formaster Advanced Copylock protection with Xidex Magnetics (XEMAG)' XELOK
+  (as Formaster Advanced Copylock fails to work on anything faster than an XT, with apparently no updates having been available).
+- Added two additional NOPs to the Clear Keyboard Buffer routine, leaving more time for Keyboard Interrupts (IRQ1) to occur on ATs.
+- NAME.DAT is padded with zero bytes from 533 to 640 bytes size.
+- Now comes on a double-sided 360K diskette, dropping compatibility with single-sided diskette drives of early PCs.
+- Since this means a scenario diskette can no longer be created simply by using DISKCOPY with the "Player Master" side, MKPLAY.EXE utility for creating a play disk has been added.
+
+Version dated September 30th, 1991 (Ultima I-VI and Ultima Collection CD-ROMs)
+------------------------------------------------------------------------------
+- BOOTUP.COM and EXODUS.COM renamed to BOOTUP.BIN and EXODUS.BIN (since they cannot be run from the command line anyway).
+- All dashes in file names changed to underscores (because ISO 9660 does not allow dashes in file names), i.e. MONTOR-E.ULT becomes MONTOR_E.ULT.
+- XELOK key disk checking routine "patched" out (apparently source code for proper reassembling and linking was not available).
+- "Insert scenario disk" prompt patched out.
