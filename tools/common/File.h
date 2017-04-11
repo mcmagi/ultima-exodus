@@ -45,5 +45,15 @@ const char * concat_path(const char *path1, const char *path2);
 #define APPEND_MODE			"a+b"
 
 
+/* dirlist data structure */
+typedef struct {
+	int size;
+	char **entries;
+} DirList;
+
+DirList *list_dir(const File *file, const char *suffix);
+BOOL has_suffix(const char *filename, const char *suffix);
+void str_to_upper(char *dest, const char *src);
+void free_dirlist(DirList *list);
 
 #endif
