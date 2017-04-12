@@ -31,6 +31,10 @@
     <df root="patches" name="4">
     </df>
     <df root="tools" name="5">
+      <df name="common">
+        <in>DirList.c</in>
+        <in>DirList.h</in>
+      </df>
     </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -97,6 +101,10 @@
       <item path="asm/u3mod/modjmp.asm" ex="false" tool="4" flavor2="0">
       </item>
       <item path="asm/u3mod/sosaria.asm" ex="false" tool="4" flavor2="0">
+      </item>
+      <item path="tools/common/DirList.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="tools/common/DirList.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>
