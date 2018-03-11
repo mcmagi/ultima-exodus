@@ -13,14 +13,14 @@
 
 void apply_patch(File *patch, const char *dir)
 {
-	char hdrtype[HDR_SZ];			    /* holds header type */
+	char hdrtype[HDR_SZ];				/* holds header type */
 	struct file_header fz;				/* header for patched file */
 	struct data_header dz;				/* header for patch data */
 	File *old = NULL, *new = NULL;		/* input/output file handles */
 	BOOL file_error;					/* indicates error during patching */
 	BOOL data_error;					/* indicates error during patching */
-    int datasize;                       /* size of data to skip if error */
-    const char *filename;               /* filename */
+	int datasize;					   /* size of data to skip if error */
+	const char *filename;			   /* filename */
 
 
 	/* read first header */
@@ -46,8 +46,8 @@ void apply_patch(File *patch, const char *dir)
 			printf("patching file %s%s%s\n", fz.name,
 					fz.newname_flag ? " -> " : "", fz.newname);
 
-            /* prepend directory if specified */
-            filename = concat_path(dir, fz.name);
+			/* prepend directory if specified */
+			filename = concat_path(dir, fz.name);
 
 			old = stat_file(filename);
 
@@ -58,13 +58,13 @@ void apply_patch(File *patch, const char *dir)
 						old->buf.st_size, fz.size);
 				file_error = TRUE;
 			}
-            else if (fz.newname_flag)
+			else if (fz.newname_flag)
 			{
 				/* open old file */
 				open_file(old, READONLY_MODE);
 
-                /* prepend directory if specified */
-                filename = concat_path(dir, fz.newname);
+				/* prepend directory if specified */
+				filename = concat_path(dir, fz.newname);
 
 				/* open new file */
 				new = stat_file(filename);
@@ -88,41 +88,41 @@ void apply_patch(File *patch, const char *dir)
 			//printf("read data header\n");
 			read_from_file(patch, &dz, sizeof(struct data_header));
 
-            if (! file_error)
-            {
-                patch_message(dz);
+			if (! file_error)
+			{
+				patch_message(dz);
 
-			    /* perform operation based on patch type */
-			    switch (dz.type)
-			    {
-				    case DT_APPEND:
-					    data_error = patch_append(patch, new, dz);
-					    break;
-				    case DT_TRUNCATE:
-					    data_error = patch_truncate(patch, old, dz);
-					    break;
-				    case DT_REPLACE:
-					    data_error = patch_replace(patch, old, new, dz);
-					    break;
-			    }
+				/* perform operation based on patch type */
+				switch (dz.type)
+				{
+					case DT_APPEND:
+						data_error = patch_append(patch, new, dz);
+						break;
+					case DT_TRUNCATE:
+						data_error = patch_truncate(patch, old, dz);
+						break;
+					case DT_REPLACE:
+						data_error = patch_replace(patch, old, new, dz);
+						break;
+				}
 
-			    if (data_error)
-			    {
-				    printf("original data did not match in file %s at offset %d\n",
-						    old->filename, dz.offset);
-			    }
-            }
-            else
-            {
-			    //printf("file_error; skipping data\n");
+				if (data_error)
+				{
+					printf("original data did not match in file %s at offset %d\n",
+							old->filename, dz.offset);
+				}
+			}
+			else
+			{
+				//printf("file_error; skipping data\n");
 
-                /* skip over data */
-                datasize = dz.size;
-                if (dz.type == DT_REPLACE)
-                    datasize *= 2;
+				/* skip over data */
+				datasize = dz.size;
+				if (dz.type == DT_REPLACE)
+					datasize *= 2;
 
-                seek_through_file(patch, datasize, SEEK_CUR);
-            }
+				seek_through_file(patch, datasize, SEEK_CUR);
+			}
 		}
 		else
 		{
@@ -216,20 +216,20 @@ void add_new_data(File *patch, File *new, struct data_header dz)
 
 void patch_message(struct data_header dz)
 {
-    const char *typetext = NULL;
+	const char *typetext = NULL;
 
-    if (dz.type == DT_REPLACE)
-        typetext = REPLACE_TEXT;
-    else if (dz.type == DT_TRUNCATE)
-        typetext = TRUNCATE_TEXT;
-    else if (dz.type == DT_APPEND)
-        typetext = APPEND_TEXT;
+	if (dz.type == DT_REPLACE)
+		typetext = REPLACE_TEXT;
+	else if (dz.type == DT_TRUNCATE)
+		typetext = TRUNCATE_TEXT;
+	else if (dz.type == DT_APPEND)
+		typetext = APPEND_TEXT;
 
-    if (typetext != NULL)
-    {
-	    printf(" -> %s %d bytes", typetext, dz.size);
-	    printf(" at offset %d\n", dz.offset); /* bug in openwatcom? second long param shows as 0; need second printf */
-    }
+	if (typetext != NULL)
+	{
+		printf(" -> %s %d bytes", typetext, dz.size);
+		printf(" at offset %d\n", dz.offset); /* bug in openwatcom? second long param shows as 0; need second printf */
+	}
 
-    return;
+	return;
 }
