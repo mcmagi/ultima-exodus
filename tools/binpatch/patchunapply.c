@@ -67,7 +67,7 @@ BOOL is_patch_applied(File *patch, const char *dir)
 					mismatch = ! compare_new_data(patch, file, dz);
 					break;
 				case DT_TRUNCATE:
-					seek_through_file(patch, dz.size, SEEK_CUR);
+					seek_through_file(patch, dz.size, SEEK_CUR); /* skip */
 					break;
 			}
 
