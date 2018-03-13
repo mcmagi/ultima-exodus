@@ -1,9 +1,9 @@
 ROOT=../..
 include ${ROOT}/Makefile.include
 
-HEADERS=${COMMON}/File.h ${COMMON}/gendefs.h patch.h
+HEADERS=${COMMON}/File.h ${COMMON}/DirList.h ${COMMON}/gendefs.h patch.h
 
-compile: ${UTILBIN}/bindiff ${UTILBIN}/binpat ${UTILBIN}/binunpat
+compile: ${UTILBIN}/bindiff ${UTILBIN}/binpat ${UTILBIN}/binunpat ${UTILBIN}/upgrade
 
 ${BINPATCH_LIB}:
 	mkdir -p ${BINPATCH_LIB}
@@ -30,6 +30,9 @@ ${BINPATCH_LIB}/patchapply.o: patchapply.c patchapply.h ${HEADERS} | ${BINPATCH_
 ${BINPATCH_LIB}/patchunapply.o: patchunapply.c patchunapply.h ${HEADERS} | ${BINPATCH_LIB}
 	$(call compile, ${BINPATCH_LIB}/patchunapply.o, patchunapply.c)
 
+${BINPATCH_LIB}/upgrade.o: upgrade.c upgrade.h patch.h patchapply.h patchunapply.h ${HEADERS} | ${BINPATCH_LIB}
+	$(call compile, ${BINPATCH_LIB}/upgrade.o, upgrade.c)
+
 # binary files
 # NOTE: Windows 7 requires Admin rights to 'binpatch.exe'. But 'binpat.exe' is okay.  (WTF?!)
 ${UTILBIN}/binpat: ${COMMON_LIB}/File.o ${BINPATCH_LIB}/binpatch.o ${BINPATCH_LIB}/patch.o \
@@ -47,12 +50,19 @@ ${UTILBIN}/bindiff: ${COMMON_LIB}/File.o ${BINPATCH_LIB}/bindiff.o ${BINPATCH_LI
 	$(call link, ${UTILBIN}/bindiff, ${COMMON_LIB}/File.o ${BINPATCH_LIB}/bindiff.o \
 		${BINPATCH_LIB}/patch.o ${BINPATCH_LIB}/patchadd.o)
 
+${UTILBIN}/upgrade: ${COMMON_LIB}/File.o ${COMMON_LIB}/DirList.o ${BINPATCH_LIB}/upgrade.o \
+		${BINPATCH_LIB}/patch.o ${BINPATCH_LIB}/patchapply.o ${BINPATCH_LIB}/patchunapply.o | ${UTILBIN}
+	$(call link, ${UTILBIN}/upgrade, ${COMMON_LIB}/File.o ${COMMON_LIB}/DirList.o \
+		${BINPATCH_LIB}/upgrade.o ${BINPATCH_LIB}/patch.o ${BINPATCH_LIB}/patchapply.o \
+		${BINPATCH_LIB}/patchunapply.o)
+
 # clean
 clean:
 	rm ${BINPATCH_LIB}/*.o
 	rm ${UTILBIN}/bindiff
 	rm ${UTILBIN}/binpat
 	rm ${UTILBIN}/binunpat
+	rm ${UTILBIN}/upgrade
 
 # package
 package: package_u2 package_u3 package_u5
@@ -64,6 +74,7 @@ package_u2: ${UTILBIN}/binpat ${UTILBIN}/binunpat
 package_u3: ${UTILBIN}/binpat ${UTILBIN}/binunpat
 	cp -f ${UTILBIN}/binpat ${U3PKG}/binpat${BINSUFFIX}
 	cp -f ${UTILBIN}/binunpat ${U3PKG}/binunpat${BINSUFFIX}
+	cp -f ${UTILBIN}/upgrade ${U3PKG}/u3up${BINSUFFIX}
 
 package_u5: ${UTILBIN}/binpat ${UTILBIN}/binunpat
 	cp -f ${UTILBIN}/binpat ${U5PKG}/binpat${BINSUFFIX}

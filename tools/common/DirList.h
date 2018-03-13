@@ -9,7 +9,7 @@
 /* dirlist data structure */
 typedef struct {
 	int size;
-	char **entries;
+	File **entries;
 } DirList;
 
 DirList *list_dir(const File *file, const char *suffix);

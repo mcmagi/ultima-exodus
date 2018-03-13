@@ -11,16 +11,96 @@
 #include	"patchunapply.h"
 
 
+BOOL is_patch_applied(File *patch, const char *dir)
+{
+	char hdrtype[HDR_SZ];				/* holds header type */
+	struct file_header fz;				/* header for patched file */
+	struct data_header dz;				/* header for patch data */
+	File *file = NULL;					/* file handle */
+	BOOL mismatch = FALSE;				/* indicates new data mismatch */
+	const char *filename;				/* filename */
+
+
+	/* read first header */
+	read_from_file(patch, &hdrtype, HDR_SZ);
+
+	while (! end_of_file(patch))
+	{
+		/* reset position */
+		seek_through_file(patch, -HDR_SZ, SEEK_CUR);
+
+		if (strncmp(hdrtype, FILE_HEADER_ID, HDR_SZ) == MATCH)
+		{
+			/* close last file's file references (if any) */
+			if (file != NULL)
+				close_file(file);
+
+			/* read next file header */
+			read_from_file(patch, &fz, sizeof(struct file_header));
+
+			/* prepend directory if specified */
+			filename = concat_path(dir, fz.newname_flag ? fz.newname : fz.name);
+
+			file = stat_file(filename);
+
+			if (file->newfile)
+			{
+				mismatch = TRUE;
+				break;
+			}
+			else
+			{
+				/* open file */
+				open_file(file, READONLY_MODE);
+			}
+		}
+		else if (strncmp(hdrtype, DATA_HEADER_ID, HDR_SZ) == MATCH)
+		{
+			/* read next data header */
+			read_from_file(patch, &dz, sizeof(struct data_header));
+
+			/* perform operation based on patch type */
+			switch (dz.type)
+			{
+				case DT_APPEND:
+				case DT_REPLACE:
+					mismatch = ! compare_new_data(patch, file, dz);
+					break;
+				case DT_TRUNCATE:
+					seek_through_file(patch, dz.size, SEEK_CUR);
+					break;
+			}
+
+			if (mismatch)
+				break;
+		}
+		else
+		{
+			printf("Unrecognized header information reading patchfile %s\n", patch->filename);
+			exit(FATAL_ERROR);
+		}
+
+		/* read next header */
+		read_from_file(patch, &hdrtype, HDR_SZ);
+	}
+
+	/* close file references (if any) */
+	if (file != NULL)
+		close_file(file);
+
+	return ! mismatch;
+}
+
 void unapply_patch(File *patch, const char *dir)
 {
 	char hdrtype[HDR_SZ];				/* holds header type */
 	struct file_header fz;				/* header for patched file */
 	struct data_header dz;				/* header for patch data */
-	File *file = NULL;				  /* file handle */
+	File *file = NULL;					/* file handle */
 	BOOL file_error;					/* indicates error during patching */
 	BOOL data_error;					/* indicates error during patching */
-	int datasize;					   /* size of data to skip if error */
-	const char *filename;			   /* filename */
+	int datasize;						/* size of data to skip if error */
+	const char *filename;				/* filename */
 
 
 	/* read first header */
@@ -104,7 +184,7 @@ void unapply_patch(File *patch, const char *dir)
 		}
 		else
 		{
-			printf("Unrecognized header information reading patchfile\n");
+			printf("Unrecognized header information reading patchfile %s\n", patch->filename);
 			exit(FATAL_ERROR);
 		}
 

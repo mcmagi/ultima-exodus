@@ -15,6 +15,7 @@
 
 
 /* Function Prototypes */
+BOOL is_patch_applied(File *patch, const char *dir);
 void unapply_patch(File *patch, const char *dir);
 BOOL patch_unreplace(File *patch, File *file, struct data_header dz);
 BOOL patch_untruncate(File *patch, File *file, struct data_header dz);

@@ -41,17 +41,19 @@ DirList *list_dir(const File *file, const char *suffix)
 	}
 	rewinddir(dp);
 
-	list->entries = malloc(sizeof(char *) * list->size);
+	list->entries = malloc(sizeof(File *) * list->size);
 
 	/* now get all filenames */
 	while ((dir = readdir(dp)) != NULL)
 	{
 		if (suffix == NULL || has_suffix(dir->d_name, suffix))
 		{
-			list->entries[i] = malloc(sizeof(char) * strlen(dir->d_name) + 1);
-			strcpy(list->entries[i++], dir->d_name);
+			list->entries[i++] = stat_file(dir->d_name);
 		}
 	}
+
+	/* update filtered dir list size (worth noting we malloc'd more than this) */
+	list->size = i;
 
 	closedir(dp);
 
@@ -79,6 +81,7 @@ void str_to_upper(char *dest, const char *src)
 	int i = 0;
 	for (i = 0; src[i] != '\0'; i++)
 		dest[i] = toupper(src[i]);
+	dest[i] = '\0';
 }
 
 /* frees all memory associated with a DirList */
@@ -86,9 +89,9 @@ void free_dirlist(DirList *list)
 {
 	int i = 0;
 
-	/* free all filename entries */
+	/* close all file entries */
 	for (i = 0; i < list->size; i++)
-		free(list->entries[i]);
+		close_file(list->entries[i]);
 
 	/* free array */
 	free(list->entries);

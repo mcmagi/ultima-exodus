@@ -104,7 +104,4 @@ void verify_patch_header(File *patch)
 		fprintf(stderr, "File size does not match size in header! (expected=%d, actual=%d) Verify failed!\n", pz.size, patch->buf.st_size);
 		exit(FAILURE);
 	}
-	else
-		/* nothing wrong */
-		printf("Patch verified!\n");
 }
