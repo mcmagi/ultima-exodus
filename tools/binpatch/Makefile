@@ -71,9 +71,7 @@ package_u2: ${UTILBIN}/binpat ${UTILBIN}/binunpat
 	cp -f ${UTILBIN}/binpat ${U2PKG}/binpat${BINSUFFIX}
 	cp -f ${UTILBIN}/binunpat ${U2PKG}/binunpat${BINSUFFIX}
 
-package_u3: ${UTILBIN}/binpat ${UTILBIN}/binunpat
-	cp -f ${UTILBIN}/binpat ${U3PKG}/binpat${BINSUFFIX}
-	cp -f ${UTILBIN}/binunpat ${U3PKG}/binunpat${BINSUFFIX}
+package_u3: ${UTILBIN}/upgrade
 	cp -f ${UTILBIN}/upgrade ${U3PKG}/u3up${BINSUFFIX}
 
 package_u5: ${UTILBIN}/binpat ${UTILBIN}/binunpat
