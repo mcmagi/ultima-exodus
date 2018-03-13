@@ -39,7 +39,15 @@ DirList *list_dir(const File *file, const char *suffix)
 		if (suffix == NULL || has_suffix(dir->d_name, suffix))
 			list->size++;
 	}
+
+#ifdef __GNUC__
 	rewinddir(dp);
+#else
+	/* watcom supports rewinddir in dos, winnt, but it won't link in linux */
+	closedir(dp);
+	if ((dp = opendir(file->filename)) == NULL)
+		file_error(file, "Could not open directory");
+#endif
 
 	list->entries = malloc(sizeof(File *) * list->size);
 
@@ -52,7 +60,7 @@ DirList *list_dir(const File *file, const char *suffix)
 		}
 	}
 
-	/* update filtered dir list size (worth noting we malloc'd more than this) */
+	/* update filtered dir list size */
 	list->size = i;
 
 	closedir(dp);
