@@ -1,9 +1,10 @@
 /* u3cfg.c */
 
 
-#include	<stdio.h>
-#include	<stdlib.h>
-#include	<string.h>			/* strcpy */
+#include	<stdio.h>				/* printf */
+#include	<stdlib.h>				/* atoi */
+#include	<ctype.h>				/* toupper */
+#include	<string.h>				/* strcpy */
 
 #include	"u3cfg.h"				/* defs for u3cfg program */
 #include	"gendefs.h"			    /* general use defs */
@@ -14,8 +15,8 @@ int main(int argc, const char *argv[])
 {
     struct u3cfg cfg;
 	BOOL gen_defaults = FALSE;		/* flag to generate defaults only */
-	int option;                     /* option */
-	int video_option;               /* option */
+	int option;						/* option */
+	int sub_option;					/* sub menu option */
 	File *file;						/* File pointer */
 
 	if (argc >= 2 && strcmp(argv[1], OPT_GEN_DEFAULTS) == MATCH)
@@ -38,12 +39,12 @@ int main(int argc, const char *argv[])
 		    case VIDEO_OPT:
                 do
                 {
-                    video_option = video_menu(cfg.video);
+                    sub_option = video_menu(cfg.video);
                 }
-                while (video_option < VIDEO_CGA_OPT || video_option > VIDEO_BACK_OPT);
+                while ((sub_option < VIDEO_CGA_OPT || sub_option > VIDEO_VGA_OPT) && sub_option != MAIN_MENU_OPT);
 
-                if (video_option != VIDEO_BACK_OPT)
-                    cfg.video = video_option - 1;
+                if (sub_option != MAIN_MENU_OPT)
+                    cfg.video = sub_option - 1;
 			    break;
 
 		    case MUSIC_OPT:
@@ -67,6 +68,13 @@ int main(int argc, const char *argv[])
 
 		    case MOON_PHASE_OPT:
 			    cfg.moon_phases = ! cfg.moon_phases;
+			    break;
+
+		    case MOD_OPT:
+				if (cfg.mod == MOD_ULTIMA3)
+					cfg.mod = MOD_SOSARIA;
+				else
+					cfg.mod = MOD_ULTIMA3;
 			    break;
 
 		    case SFX_OPT:
@@ -93,12 +101,6 @@ int main(int argc, const char *argv[])
 
 int menu(struct u3cfg cfg)
 {
-	char input[BUFSIZ];						/* unedited input */
-
-	int option = 0;						/* edited option */
-	int i;								/* loop counter */
-
-
 	/* print the menu */
 	printf("\nU3 Upgrade Configuration\n\n");
 
@@ -123,19 +125,47 @@ int menu(struct u3cfg cfg)
 	printf("%d - Frame Limiter:  %s\n", FRAMELIMITER_OPT, cfg.framelimiter ? ENABLED_STR : DISABLED_STR);
 	printf("%d - Moon Phases:    %s\n", MOON_PHASE_OPT, cfg.moon_phases ? ENABLED_STR : DISABLED_STR);
 	printf("%d - Gameplay Fixes: %s\n", GAMEPLAY_FIXES_OPT, cfg.gameplay_fixes ? ENABLED_STR : DISABLED_STR);
-	printf("%d - Save & Quit\n", SAVE_QUIT_OPT);
-	printf("%d - Quit without Saving\n", QUIT_OPT);
+
+	printf("%d - Game Mod:       %s\n", MOD_OPT,
+			cfg.mod == MOD_ULTIMA3 ? MOD_ULTIMA3_STR :
+			cfg.mod == MOD_SOSARIA ? MOD_SOSARIA_STR :
+			EMPTY_STR);
+
+	printf("%c - Save & Quit\n", SAVE_QUIT_OPT);
+	printf("%c - Quit without Saving\n", QUIT_OPT);
 	printf("\noption: ");
+
+	return get_option();
+}
+
+int get_option()
+{
+	char input[BUFSIZ];					/* unedited input */
+	int i;								/* loop counter */
+	int option;							/* selected option */
 
 	/* get input */
 	for (i = 0; (input[i] = getchar()) != '\n'; i++);
 
-
-	/* option is only returned if there is one character and it is an integer */
-	if (i = 1 && input[0] >= 0x30 && input[0] <= 0x39)
+	/* convert option to integer if numeric, otherwise grab first character */
+	if (is_numeric(input, i))
 		option = atoi(input);
+	else
+		option = toupper(input[0]);
 
 	return option;
+}
+
+BOOL is_numeric(const char *input, int size)
+{
+	int i;								/* loop counter */
+
+	for (i = 0; i < size; i++)
+	{
+		if (input[i] < 0x30 || input[i] > 0x39)
+			return FALSE;
+	}
+	return TRUE;
 }
 
 int video_menu(int video)
@@ -154,17 +184,10 @@ int video_menu(int video)
          video == VIDEO_EGA ? SELECTED_STR : EMPTY_STR);
 	printf("%d - VGA (256-color) %s\n", VIDEO_VGA_OPT,
          video == VIDEO_VGA ? SELECTED_STR : EMPTY_STR);
-	printf("%d - Return to Main Menu\n", VIDEO_BACK_OPT);
+	printf("%c - Return to Main Menu\n", MAIN_MENU_OPT);
 	printf("\noption: ");
 
-	/* get input */
-	for (i = 0; (input[i] = getchar()) != '\n'; i++);
-
-	/* option is only returned if there is one character and it is an integer */
-	if (i = 1 && input[0] >= 0x30 && input[0] <= 0x39)
-		option = atoi(input);
-
-	return option;
+	return get_option();
 }
 
 void set_defaults(unsigned char data[])
@@ -176,6 +199,7 @@ void set_defaults(unsigned char data[])
 	data[U3_MOONS_INDEX] = ON;
 	data[GAMEPLAY_FIXES_INDEX] = ON;
 	data[SFX_INDEX] = SFX_TIMED;
+	data[MOD_INDEX] = MOD_ULTIMA3;
 }
 
 struct u3cfg get_u3cfg(File *file, BOOL gen_defaults)
@@ -198,6 +222,7 @@ struct u3cfg get_u3cfg(File *file, BOOL gen_defaults)
 	cfg.moon_phases = get_status_bool(data, U3_MOONS_INDEX);
 	cfg.gameplay_fixes = get_status_bool(data, GAMEPLAY_FIXES_INDEX);
 	cfg.sfx = get_status(data, SFX_INDEX);
+	cfg.mod = get_status(data, MOD_INDEX);
 
     return cfg;
 }
@@ -214,6 +239,7 @@ void save_u3cfg(File *file, struct u3cfg cfg)
 	set_status_bool(data, U3_MOONS_INDEX, cfg.moon_phases);
 	set_status(data, GAMEPLAY_FIXES_INDEX, cfg.gameplay_fixes);
 	set_status(data, SFX_INDEX, cfg.sfx);
+	set_status(data, MOD_INDEX, cfg.mod);
 
     /* overwrite file data */
     save_cfg_data(file, data);
