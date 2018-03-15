@@ -75,6 +75,7 @@
           <cTool>
             <incDir>
               <pElem>../WATCOM/h</pElem>
+              <pElem>tools/common</pElem>
             </incDir>
           </cTool>
         </makeTool>
