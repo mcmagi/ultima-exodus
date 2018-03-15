@@ -103,7 +103,7 @@ XY_TELEPORT             db  0x18,0x3b
                         db  0x18,0x3e
 
 ; x/y coordinates for exotics
-XY_EXOTIC_WEAPON        db  0x1c,0x03
+XY_EXOTIC_WEAPON        db  0x1e,0x04
 XY_EXOTIC_ARMOR         db  0x22,0x35
 
 
