@@ -18,7 +18,7 @@ void save_cfg_data(File *file, const unsigned char *data);
 #define OPT_GEN_DEFAULTS		"--gen-defaults"
 
 /* file size */
-#define	CFG_SZ                  7
+#define	CFG_SZ                  8
 
 /* data indexes */
 #define	MUSIC_INDEX             0
@@ -30,6 +30,7 @@ void save_cfg_data(File *file, const unsigned char *data);
 #define	U5_NONE_INDEX           4
 #define	GAMEPLAY_FIXES_INDEX    5
 #define	SFX_INDEX               6
+#define	MOD_INDEX               7
 
 /* status strings */
 #define	DISABLED_STR            "Disabled"
@@ -43,6 +44,9 @@ void save_cfg_data(File *file, const unsigned char *data);
 #define	VIDEO_VGA_STR           "VGA (256-color)"
 #define	SFX_ORIG_STR            "Unmodified"
 #define	SFX_TIMED_STR           "Constant Speed (Timed)"
+#define	MOD_ULTIMA2_STR         "Ultima II (Original)"
+#define	MOD_ULTIMA3_STR         "Ultima III (Original)"
+#define	MOD_SOSARIA_STR         "Sosaria Mod (Lands of Lord British)"
 
 /* music status values */
 #define MUSIC_NONE              0
@@ -58,9 +62,14 @@ void save_cfg_data(File *file, const unsigned char *data);
 #define SFX_ORIG                0
 #define SFX_TIMED               1
 
+/* mod options */
+#define MOD_ULTIMA3             0
+#define MOD_SOSARIA             1
+
 /* status str sizes */
 #define	STATUS_STR_SZ           8
 #define	VIDEO_STR_SZ            24
+#define	MOD_STR_SZ              40
 #define	MOONGATE_STR_SZ         6
 
 /* status on/off values */

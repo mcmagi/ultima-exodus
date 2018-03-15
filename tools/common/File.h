@@ -45,5 +45,4 @@ const char * concat_path(const char *path1, const char *path2);
 #define APPEND_MODE			"a+b"
 
 
-
 #endif

@@ -20,22 +20,29 @@ MIDPAK_DRV      db  "MIDPAK.DRV",0
 SFX_DRV_LIST    dw  SFX_DRV,SFXTIMED_DRV
 SFX_DRV         db  "SFX.DRV",0
 SFXTIMED_DRV    db  "SFXTIMED.DRV",0
+MOD_LIST        dw  ULTIMA3_MOD,SOSARIA_MOD
+ULTIMA3_MOD     db  "ULTIMA3",0
+SOSARIA_MOD     db  "SOSARIA",0
+MOD_SUFFIX      db  ".MOD",0
+MOD_FILENAME    db  0x0d dup 0
 U3_PARAMS       db  0x03,0x20,0xff,0xff,0x0d,0
 FILE_ERROR      db  "Error reading "
 FILE_ERROR_NAME db  "            ",0x0a,0x0d,"$"
+MOD_ERROR       db  "Error initializing mod",0x0a,0x0d,"$"
 MUSIC_ERROR     db  "Error initializing Music Driver",0x0a,0x0d,"$"
 LAUNCH_ERROR    db  "Error launching Ultima III",0x0a,0x0d,"$"
 FREE_ERROR      db  "Error releasing memory for driver",0x0a,0x0d,"$"
 OLD_CONFIG_INT  dd  0
 OLD_MIDPAK_INT  dd  0
 I_FLAG          db  0
-CFGDATA         db  0x07 dup 0        ; index: 00 = midi driver, 01 = autosave, 02 = framelimiter, 03 = video driver
-                                      ;        04 = moon phases, 05 = gameplay fixes, 06 = sfx driver
+CFGDATA         db  0x08 dup 0        ; index: 00 = midi driver, 01 = autosave, 02 = framelimiter, 03 = video driver
+                                      ;        04 = moon phases, 05 = gameplay fixes, 06 = sfx driver, 07 = mod
 PRM_BLOCK       db  0x16 dup 0
 FCB             db  0x20 dup 0
 VIDEO_DRV_ADDR  dd  0
 MUSIC_DRV_ADDR  dd  0
 SFX_DRV_ADDR	dd  0
+MOD_ADDR    	dd  0
 
 
 ;===========CODE===========
@@ -60,7 +67,7 @@ START:
     ; read u3.cfg into cfgdata location
     mov al,0x00
     lea bx,[CFGDATA]
-    mov cx,0x0007
+    mov cx,0x0008
     lea dx,[CFG_FILE]
     call LOAD_FILE
 
@@ -86,6 +93,76 @@ START:
 
     ; save offset to cfgdata in bx
     lea bx,[CFGDATA]
+
+  MOD_MODE:
+    push ds
+
+    ; read cmd line param length at cs-0010:0080
+    mov ax,cs
+    mov ds,ax
+    lea si,[0x0080]
+    lodsb
+
+    ; if none provided, use default mod name
+    and al,al
+    jz MOD_COPY_DEFAULT
+
+    ; otherwise, skip first space
+    cbw
+    mov cx,ax
+    inc si
+    dec cx
+
+    ; ensure cx is capped at 8 characters
+    cmp cx,0x08
+    jbe MOD_COPY_CMDLINE
+    mov cx,0x08
+
+  MOD_COPY_CMDLINE:
+    ; get mod name from command line
+    lea di,[MOD_FILENAME]
+    call STRNCPY
+    pop ds
+    jmp MOD_COPY_SUFFIX
+
+  MOD_COPY_DEFAULT:
+    pop ds
+
+    ; get mod id from config
+    mov si,[bx+0x07]
+    and si,0x00ff
+
+    ; lookup driver in table
+    shl si,1
+    mov dx,[MOD_LIST+si]
+
+    ; use default mod name
+    mov si,dx
+    lea di,[MOD_FILENAME]
+    call STRCPY
+
+	; set cx = length of mod name
+    call STRLEN
+
+  MOD_COPY_SUFFIX:
+    ; append .mod suffix
+    lea si,[MOD_SUFFIX]
+    add di,cx
+    call STRCPY
+
+    ; load mod
+    lea dx,[MOD_FILENAME]
+    call LOAD_DRIVER
+    lea bp,[MOD_ADDR]
+    mov [ds:bp+0x02],ax
+
+    ; initialize mod
+    call far [ds:bp]
+    jns SFX_MODE
+
+    ; print error & exit
+    lea dx,[MOD_ERROR]
+    call ERROR
 
   SFX_MODE:
     ; get sfx driver id from config
@@ -242,6 +319,28 @@ START:
     lea dx,[FREE_ERROR]
     call MESSAGE
 
+  FREE_MOD:
+    ; check if mod was loaded
+    lea bx,[MOD_ADDR]
+    mov ax,[bx+0x02]
+    and ax,ax
+    jz EXIT
+
+    ; close mod's resources
+    mov word [bx],0x0003
+    call far [bx]
+
+    ; free mod (ax = segment address)
+    call FREE_MEMORY
+
+    ; check for errors
+    and ax,ax
+    jz EXIT
+
+    ; print free error & exit
+    lea dx,[FREE_ERROR]
+    call MESSAGE
+
   EXIT:
     ; set errorlevel for exit
     mov al,0x00
@@ -285,7 +384,7 @@ LOAD_DRIVER:
 
     ; copy filename to error msg
     mov si,dx
-    mov di,FILE_ERROR_NAME
+    lea di,[FILE_ERROR_NAME]
     call STRCPY
 
     ; print error message
@@ -337,13 +436,13 @@ CONFIG_INT:
     cmp ah,0x04
     jz CONFIG_INT_MOONPHASE
 
-    ; fcn 05 = set timer [DEPRECATED: use INT 0x64 fcn 0x02]
+    ; fcn 05 = mod address
     cmp ah,0x05
-    jz CONFIG_INT_SET_TIMER
+    jz CONFIG_INT_MOD
 
-    ; fcn 06 = get timer [DEPRECATED: use INT 0x64 fcn 0x03]
+    ; fcn 06 = unused
     cmp ah,0x06
-    jz CONFIG_INT_GET_TIMER
+    jz CONFIG_INT_RETURN
 
 	; fcn 07 = gameplay fixes check
 	cmp ah,0x07
@@ -384,14 +483,11 @@ CONFIG_INT:
     mov al,[cs:bx+0x04]
     jmp CONFIG_INT_RETURN
 
-  CONFIG_INT_SET_TIMER:
-    ; sets counter to cx
-    mov [cs:TIMER_COUNTER],cx
-    jmp CONFIG_INT_RETURN
-
-  CONFIG_INT_GET_TIMER:
-    ; returns cx=counter
-    mov cx,[cs:TIMER_COUNTER]
+  CONFIG_INT_MOD:
+    ; returns dx:ax = mod address
+    mov bp,MOD_ADDR
+    mov ax,[cs:bp]
+    mov dx,[cs:bp+02]
     jmp CONFIG_INT_RETURN
 
   CONFIG_INT_FIXES:

@@ -91,15 +91,15 @@ ${U5PKG}:
 
 ${U2PKG_ZIP}: ${U2PKG}
 	### creating U2 Upgrade zip
-	${ZIP} -j ${U2PKG_ZIP} ${U2PKG}/*
+	pushd ${U2PKG}; ${ZIP} -r ../../${U2PKG_ZIP} .; popd
 
 ${U3PKG_ZIP}: ${U3PKG}
 	### creating U3 Upgrade zip
-	${ZIP} -j ${U3PKG_ZIP} ${U3PKG}/*
+	pushd ${U3PKG}; ${ZIP} -r ../../${U3PKG_ZIP} .; popd
 
 ${U5PKG_ZIP}: ${U5PKG}
 	### creating U5 Upgrade zip
-	${ZIP} -j ${U5PKG_ZIP} ${U5PKG}/*
+	pushd ${U5PKG}; ${ZIP} -r ../../${U5PKG_ZIP} .; popd
 
 ### install build targets ###
 
@@ -107,15 +107,15 @@ install: install_u2 install_u3 install_u5
 
 install_u2: ${U2UPGRADE}
 	### Installing U2 upgrade
-	cp -f ${U2PKG}/* ${U2UPGRADE}
+	cp -Rf ${U2PKG}/* ${U2UPGRADE}
 
 install_u3: ${U3UPGRADE}
 	### Installing U3 upgrade
-	cp -f ${U3PKG}/* ${U3UPGRADE}
+	cp -Rf ${U3PKG}/* ${U3UPGRADE}
 
 install_u5: ${U5UPGRADE}
 	### Installing U5 upgrade
-	cp -f ${U5PKG}/* ${U5UPGRADE}
+	cp -Rf ${U5PKG}/* ${U5UPGRADE}
 
 ${U2UPGRADE}:
 	cp -a ${U2ORIGINAL} ${U2UPGRADE}
