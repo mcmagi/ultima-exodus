@@ -74,13 +74,13 @@ STRNCPY:
 
 STRLEN:
     ; parameters
-    ;  ds:si = source address
+    ;  es:di = source address
     ; returns:
     ;  cx = length of string
 
     pushf
     push ax
-    push si
+    push di
 
     cld
 
@@ -88,9 +88,11 @@ STRLEN:
     mov cx,0xffff
     repnz scasb
 
-    neg cx
+    ; calc difference
+    not cx
+    dec cx
 
-    pop si
+    pop di
     pop ax
     popf
     ret

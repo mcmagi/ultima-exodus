@@ -20,7 +20,9 @@ MIDPAK_DRV      db  "MIDPAK.DRV",0
 SFX_DRV_LIST    dw  SFX_DRV,SFXTIMED_DRV
 SFX_DRV         db  "SFX.DRV",0
 SFXTIMED_DRV    db  "SFXTIMED.DRV",0
-MOD_DEFAULT     db  "SOSARIA",0
+MOD_LIST        dw  ULTIMA3_MOD,SOSARIA_MOD
+ULTIMA3_MOD     db  "ULTIMA3",0
+SOSARIA_MOD     db  "SOSARIA",0
 MOD_SUFFIX      db  ".MOD",0
 MOD_FILENAME    db  0x0d dup 0
 U3_PARAMS       db  0x03,0x20,0xff,0xff,0x0d,0
@@ -33,8 +35,8 @@ FREE_ERROR      db  "Error releasing memory for driver",0x0a,0x0d,"$"
 OLD_CONFIG_INT  dd  0
 OLD_MIDPAK_INT  dd  0
 I_FLAG          db  0
-CFGDATA         db  0x07 dup 0        ; index: 00 = midi driver, 01 = autosave, 02 = framelimiter, 03 = video driver
-                                      ;        04 = moon phases, 05 = gameplay fixes, 06 = sfx driver
+CFGDATA         db  0x08 dup 0        ; index: 00 = midi driver, 01 = autosave, 02 = framelimiter, 03 = video driver
+                                      ;        04 = moon phases, 05 = gameplay fixes, 06 = sfx driver, 07 = mod
 PRM_BLOCK       db  0x16 dup 0
 FCB             db  0x20 dup 0
 VIDEO_DRV_ADDR  dd  0
@@ -65,7 +67,7 @@ START:
     ; read u3.cfg into cfgdata location
     mov al,0x00
     lea bx,[CFGDATA]
-    mov cx,0x0007
+    mov cx,0x0008
     lea dx,[CFG_FILE]
     call LOAD_FILE
 
@@ -124,11 +126,23 @@ START:
     jmp MOD_COPY_SUFFIX
 
   MOD_COPY_DEFAULT:
-    ; use default mod name
     pop ds
-    lea si,[MOD_DEFAULT]
+
+    ; get mod id from config
+    mov si,[bx+0x07]
+    and si,0x00ff
+
+    ; lookup driver in table
+    shl si,1
+    mov dx,[MOD_LIST+si]
+
+    ; use default mod name
+    mov si,dx
     lea di,[MOD_FILENAME]
     call STRCPY
+
+	; set cx = length of mod name
+    call STRLEN
 
   MOD_COPY_SUFFIX:
     ; append .mod suffix
