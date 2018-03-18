@@ -68,7 +68,7 @@ clean:
 package: package_u2 package_u3 package_u5
 
 package_u2: ${UTILBIN}/upgrade
-	cp -f ${UTILBIN}/upgrade ${U3PKG}/u2up${BINSUFFIX}
+	cp -f ${UTILBIN}/upgrade ${U2PKG}/u2up${BINSUFFIX}
 
 package_u3: ${UTILBIN}/upgrade
 	cp -f ${UTILBIN}/upgrade ${U3PKG}/u3up${BINSUFFIX}

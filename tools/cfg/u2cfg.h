@@ -12,8 +12,8 @@
 #define	VIDEO_OPT           0
 #define	AUTOSAVE_OPT        1
 #define	FRAMELIMITER_OPT    2
-#define	SAVE_QUIT_OPT       3
-#define	QUIT_OPT            4
+#define	SAVE_QUIT_OPT       'S'
+#define	QUIT_OPT            'Q'
 
 /* filename */
 #define	CFG				"U2.CFG"
@@ -27,7 +27,7 @@ struct u2cfg {
 /* function prototypes */
 int menu(struct u2cfg cfg);
 void set_defaults(unsigned char data[]);
-struct u2cfg get_u2cfg(File *file);
+struct u2cfg get_u2cfg(File *file, BOOL gen_defaults);
 void save_u2cfg(File *file, struct u2cfg cfg);
 
 #endif

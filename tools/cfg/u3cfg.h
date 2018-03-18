@@ -44,8 +44,6 @@ struct u3cfg {
 /* function prototypes */
 int menu(struct u3cfg cfg);
 int video_menu(int video);
-int get_option();
-BOOL is_numeric(const char *input, int size);
 void set_defaults(unsigned char data[]);
 struct u3cfg get_u3cfg(File *file, BOOL gen_defaults);
 void save_u3cfg(File *file, struct u3cfg cfg);
