@@ -121,13 +121,13 @@ void apply_patch(File *patch, const char *dir)
 			/* close last file's file references (if any) */
 			if (old != NULL)
 				close_file(old);
-			if (new != NULL && fz.newname_flag)
+			if (new != NULL && fz.action > FA_NONE)
 				close_file(new);
 
 			/* read next file header */
 			read_from_file(patch, &fz, sizeof(struct file_header));
 			printf("patching file %s%s%s\n", fz.name,
-					fz.newname_flag ? " -> " : "", fz.newname);
+					fz.action > FA_NONE ? " -> " : "", fz.newname);
 
 			/* prepend directory if specified */
 			filename = concat_path(dir, fz.name);
@@ -141,7 +141,7 @@ void apply_patch(File *patch, const char *dir)
 						old->buf.st_size, fz.size);
 				file_error = TRUE;
 			}
-			else if (fz.newname_flag)
+			else if (fz.action > FA_NONE)
 			{
 				/* open old file */
 				open_file(old, READONLY_MODE);
@@ -220,7 +220,7 @@ void apply_patch(File *patch, const char *dir)
 	/* close file references (if any) */
 	if (old != NULL)
 		close_file(old);
-	if (new != NULL && fz.newname_flag)
+	if (new != NULL && fz.action > FA_NONE)
 		close_file(new);
 }
 

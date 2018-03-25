@@ -39,7 +39,7 @@ BOOL is_patch_applied(File *patch, const char *dir)
 			read_from_file(patch, &fz, sizeof(struct file_header));
 
 			/* prepend directory if specified */
-			filename = concat_path(dir, fz.newname_flag ? fz.newname : fz.name);
+			filename = concat_path(dir, fz.action > FA_NONE ? fz.newname : fz.name);
 
 			file = stat_file(filename);
 
@@ -122,10 +122,10 @@ void unapply_patch(File *patch, const char *dir)
 			/* read next file header */
 			read_from_file(patch, &fz, sizeof(struct file_header));
 			printf("unpatching file %s%s%s\n", fz.name,
-					fz.newname_flag ? " <- " : "", fz.newname);
+					fz.action > FA_NONE ? " <- " : "", fz.newname);
 
 			/* prepend directory if specified */
-			filename = concat_path(dir, fz.newname_flag ? fz.newname : fz.name);
+			filename = concat_path(dir, fz.action > FA_NONE ? fz.newname : fz.name);
 
 			file = stat_file(filename);
 

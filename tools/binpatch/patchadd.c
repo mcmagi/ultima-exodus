@@ -13,7 +13,7 @@
 
 /* DIFF Functions */
 
-int diff(const char oldfile[], const char newfile[], File *patch, BOOL newflag, int strip)
+int diff(const char oldfile[], const char newfile[], File *patch, int action, int strip)
 {
 	unsigned char oldbyte, newbyte;		/* storage for old and new bytes */
 	int idx;							/* index into file */
@@ -22,7 +22,7 @@ int diff(const char oldfile[], const char newfile[], File *patch, BOOL newflag, 
 	File *old;							/* ptr to old file */
 	File *new;							/* ptr to new file */
     int diffcount = 0;                  /* number of differences found */
-    char newfiletmp[BUFSIZ] = { 0 };    /* temp area for old filename */
+    char newfiletmp[BUFSIZ] = { 0 };    /* temp area for new filename */
     char oldfiletmp[BUFSIZ] = { 0 };    /* temp area for old filename */
     const char *filenametmp;            /* temp area for basename */
 
@@ -36,7 +36,7 @@ int diff(const char oldfile[], const char newfile[], File *patch, BOOL newflag, 
 	open_file(new, READONLY_MODE);
 
 	/* determine if we will use the new filename */
-	if (newflag)
+	if (action != FA_NONE)
         strcpy(newfiletmp, newfile);
     strcpy(oldfiletmp, oldfile);
 
@@ -58,7 +58,7 @@ int diff(const char oldfile[], const char newfile[], File *patch, BOOL newflag, 
     }
 
     /* create file header; wait to write it until we find our first difference */
-	fz = build_file_header(oldfiletmp, newfiletmp, old->buf.st_size);
+	fz = build_file_header(oldfiletmp, newfiletmp, action, old->buf.st_size);
 
     if (patch->fp != NULL)
     {

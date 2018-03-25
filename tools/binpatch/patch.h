@@ -3,12 +3,18 @@
 
 
 #include	"gendefs.h"
+#include	"File.h"
 
 
 /* definitions */
 #define	DT_REPLACE	0
 #define	DT_APPEND	1
 #define	DT_TRUNCATE	2
+
+#define	FA_NONE		0
+#define	FA_COPY		1
+#define	FA_RENAME	2
+#define	FA_CREATE	3
 
 #define PATCH_HEADER_ID	"PZ"
 #define FILE_HEADER_ID	"FZ"
@@ -36,7 +42,7 @@ struct file_header
 	char ver;					/* version 1 */
 	char name[FT_NAME_SZ];		/* file name */
 	char newname[FT_NAME_SZ];	/* suggested new filename */
-	BOOL newname_flag;			/* use suggested newname? */
+	char action;				/* file action = one of FA_* values */
 	long size;					/* file size */
 };
 
@@ -53,7 +59,7 @@ struct data_header
 
 /* Function Prototypes */
 struct patch_header build_patch_header(long size);
-struct file_header build_file_header(const char filename[], const char newname[], long size);
+struct file_header build_file_header(const char filename[], const char newname[], int action, long size);
 struct data_header build_data_header(long offset, long size, short type);
 void set_filename(char *out, const char *in);
 void verify_patch_header(File *patch);

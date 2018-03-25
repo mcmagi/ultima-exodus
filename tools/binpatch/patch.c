@@ -21,7 +21,7 @@ struct patch_header build_patch_header(long size)
 	return pz;
 }
 
-struct file_header build_file_header(const char filename[], const char newname[], long size)
+struct file_header build_file_header(const char filename[], const char newname[], int action, long size)
 {
 	struct file_header fz;				/* file header */
 
@@ -31,16 +31,11 @@ struct file_header build_file_header(const char filename[], const char newname[]
 	set_filename(fz.name, filename);
 
 	if (newname != NULL && strlen(newname) > 0)
-	{
 		set_filename(fz.newname, newname);
-		fz.newname_flag = TRUE;
-	}
 	else
-	{
 		set_filename(fz.newname, EMPTY_STR);
-		fz.newname_flag = FALSE;
-	}
 
+    fz.action = (char) action;
 	fz.size = size;
 
 	return fz;
