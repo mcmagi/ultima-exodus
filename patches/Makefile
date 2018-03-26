@@ -25,8 +25,44 @@ patch_u5: ${U5PAT}
 ${U2PAT}: ${U2UPGRADE}/ULTIMAII.EXE ${U2UPGRADE}/MAPX10 ${U2UPGRADE}/MAPX15
 	rm -f ${U2PAT}
 	${DIFF} -s 3 -o ${U2ORIGINAL}/ULTIMAII.EXE -n ${U2UPGRADE}/ULTIMAII.EXE -p ${U2PAT}
+	# patch greenland dungeon
 	${DIFF} -s 3 -o ${U2ORIGINAL}/MAPX10 -n ${U2UPGRADE}/MAPX10 -p ${U2PAT}
 	${DIFF} -s 3 -o ${U2ORIGINAL}/MAPX15 -n ${U2UPGRADE}/MAPX15 -p ${U2PAT}
+	# rename map files
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MAPX44 -n ${U2UPGRADE}/MAPG44 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MAPX50 -n ${U2UPGRADE}/MAPG50 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MAPX60 -n ${U2UPGRADE}/MAPG60 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MAPX61 -n ${U2UPGRADE}/MAPG61 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MAPX70 -n ${U2UPGRADE}/MAPG70 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MAPX71 -n ${U2UPGRADE}/MAPG71 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MAPX80 -n ${U2UPGRADE}/MAPG80 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MAPX81 -n ${U2UPGRADE}/MAPG81 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MAPX82 -n ${U2UPGRADE}/MAPG82 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MAPX85 -n ${U2UPGRADE}/MAPG85 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MAPX90 -n ${U2UPGRADE}/MAPG90 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MAPX92 -n ${U2UPGRADE}/MAPG92 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MAPX93 -n ${U2UPGRADE}/MAPG93 -p ${U2PAT}
+	# rename mon files
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MONX44 -n ${U2UPGRADE}/MONG44 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MONX50 -n ${U2UPGRADE}/MONG50 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MONX60 -n ${U2UPGRADE}/MONG60 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MONX61 -n ${U2UPGRADE}/MONG61 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MONX70 -n ${U2UPGRADE}/MONG70 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MONX71 -n ${U2UPGRADE}/MONG71 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MONX80 -n ${U2UPGRADE}/MONG80 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MONX81 -n ${U2UPGRADE}/MONG81 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MONX82 -n ${U2UPGRADE}/MONG82 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MONX85 -n ${U2UPGRADE}/MONG85 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MONX90 -n ${U2UPGRADE}/MONG90 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MONX92 -n ${U2UPGRADE}/MONG92 -p ${U2PAT}
+	${DIFF} -s 3 -a rename -o ${U2ORIGINAL}/MONX93 -n ${U2UPGRADE}/MONG93 -p ${U2PAT}
+	# create additional mon files
+	${DIFF} -s 3 -a create -n ${U2UPGRADE}/MONG20 -p ${U2PAT}
+	${DIFF} -s 3 -a copy -o ${U2ORIGINAL}/MONG20 -n ${U2UPGRADE}/MONG10 -p ${U2PAT}
+	${DIFF} -s 3 -a copy -o ${U2ORIGINAL}/MONG20 -n ${U2UPGRADE}/MONG15 -p ${U2PAT}
+	${DIFF} -s 3 -a copy -o ${U2ORIGINAL}/MONG20 -n ${U2UPGRADE}/MONG30 -p ${U2PAT}
+	${DIFF} -s 3 -a copy -o ${U2ORIGINAL}/MONG20 -n ${U2UPGRADE}/MONG40 -p ${U2PAT}
+	${DIFF} -s 3 -a copy -o ${U2ORIGINAL}/MONG20 -n ${U2UPGRADE}/MONG45 -p ${U2PAT}
 
 ${U3PAT}: ${U3UPGRADE}/ULTIMA.COM ${U3UPGRADE}/BOOTUP.BIN ${U3UPGRADE}/EXODUS.BIN ${U3UPGRADE}/DUNGEON.DAT
 	rm -f ${U3PAT}
