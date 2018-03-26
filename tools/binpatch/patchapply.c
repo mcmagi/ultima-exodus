@@ -33,7 +33,10 @@ BOOL is_patch_unapplied(File *patch, const char *dir)
 		{
 			/* close last file's file references (if any) */
 			if (file != NULL)
+			{
 				close_file(file);
+				file = NULL;
+			}
 
 			/* read next file header */
 			read_from_file(patch, &fz, sizeof(struct file_header));
@@ -120,9 +123,15 @@ void apply_patch(File *patch, const char *dir)
 
 			/* close last file's file references (if any) */
 			if (old != NULL)
+			{
 				close_file(old);
-			if (new != NULL && fz.action > FA_NONE)
+				old = NULL;
+			}
+			if (new != NULL)
+			{
 				close_file(new);
+				new = NULL;
+			}
 
 			/* read next file header */
 			read_from_file(patch, &fz, sizeof(struct file_header));
@@ -141,7 +150,21 @@ void apply_patch(File *patch, const char *dir)
 						old->buf.st_size, fz.size);
 				file_error = TRUE;
 			}
-			else if (fz.action > FA_NONE)
+			else if (fz.action == FA_RENAME)
+			{
+				/* prepend directory if specified */
+				filename = concat_path(dir, fz.newname);
+				new = stat_file(filename);
+
+				/* TODO: allow rename to take place if file exists? */
+
+				/* rename old file to new */
+				rename_file(old, new);
+
+				/* open new file */
+				open_file(new, OVERWRITE_MODE);
+			}
+			else if (fz.action == FA_COPY)
 			{
 				/* open old file */
 				open_file(old, READONLY_MODE);
@@ -155,6 +178,11 @@ void apply_patch(File *patch, const char *dir)
 
 				/* copy file (from old to new) */
 				copy_file(old, new);
+			}
+			else if (fz.action == FA_CREATE)
+			{
+				/* open only new file */
+				open_file(new, OVERWRITE_MODE);
 			}
 			else
 			{
@@ -220,7 +248,7 @@ void apply_patch(File *patch, const char *dir)
 	/* close file references (if any) */
 	if (old != NULL)
 		close_file(old);
-	if (new != NULL && fz.action > FA_NONE)
+	if (new != NULL)
 		close_file(new);
 }
 

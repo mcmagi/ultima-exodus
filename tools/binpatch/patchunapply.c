@@ -97,6 +97,7 @@ void unapply_patch(File *patch, const char *dir)
 	struct file_header fz;				/* header for patched file */
 	struct data_header dz;				/* header for patch data */
 	File *file = NULL;					/* file handle */
+	File *origfile = NULL;				/* file handle for original file */
 	BOOL file_error;					/* indicates error during patching */
 	BOOL data_error;					/* indicates error during patching */
 	int datasize;						/* size of data to skip if error */
@@ -117,7 +118,10 @@ void unapply_patch(File *patch, const char *dir)
 
 			/* close last file's file references (if any) */
 			if (file != NULL)
+			{
 				close_file(file);
+				file = NULL;
+			}
 
 			/* read next file header */
 			read_from_file(patch, &fz, sizeof(struct file_header));
@@ -126,13 +130,29 @@ void unapply_patch(File *patch, const char *dir)
 
 			/* prepend directory if specified */
 			filename = concat_path(dir, fz.action > FA_NONE ? fz.newname : fz.name);
-
 			file = stat_file(filename);
 
 			if (file->newfile)
 			{
 				printf("File not found '%s'", file->filename);
 				file_error = TRUE;
+			}
+			else if (fz.action == FA_RENAME)
+			{
+				/* rename file back to original */
+				filename = concat_path(dir, fz.name);
+				origfile = stat_file(filename);
+				rename(file, origfile);
+				close_file(origfile);
+
+				/* open file */
+				file = stat_file(filename);
+				open_file(file, READWRITE_MODE);
+			}
+			else if (fz.action == FA_COPY || fz.action == FA_CREATE)
+			{
+				/* remove patch-created or copied file */
+				delete_file(file);
 			}
 			else
 			{

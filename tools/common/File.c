@@ -1,8 +1,8 @@
 /* File.c */
 
 #include	<stdio.h>		/* FILE, fprintf, perror, fopen, fread, fwrite,
-							 * fseek, rewind, ftell, fclose, feof, fileno
-							 * freopen */
+							 * fseek, rewind, ftell, fclose, feof, fileno,
+							 * freopen, rename */
 #include	<unistd.h>		/* ftruncate */
 #include	<stdlib.h>		/* exit */
 #include	<sys/stat.h>	/* stat */
@@ -149,6 +149,18 @@ void copy_file_n(File *infile, File *outfile, off_t start, size_t size)
 
 	/* free space used by data */
 	free(data);
+}
+
+void rename_file(File *infile, File *outfile)
+{
+	if (rename(infile->filename, outfile->filename) != SUCCESS)
+		file_error(file, "Could not rename file");
+}
+
+void delete_file(File *file)
+{
+	if (remove(file->filename) != SUCCESS)
+		file_error(file, "Could not delete file");
 }
 
 long file_size(File *file)
