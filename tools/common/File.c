@@ -154,7 +154,7 @@ void copy_file_n(File *infile, File *outfile, off_t start, size_t size)
 void rename_file(File *infile, File *outfile)
 {
 	if (rename(infile->filename, outfile->filename) != SUCCESS)
-		file_error(file, "Could not rename file");
+		file_error(infile, "Could not rename file");
 }
 
 void delete_file(File *file)
