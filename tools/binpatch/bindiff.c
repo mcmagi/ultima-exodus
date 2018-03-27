@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 {
 	File *patch;					/* patch file */
 	PatchArgs args;					/* args structure */
-    int num_diffs;                  /* number of differences found */
+	int num_diffs;					/* number of differences found */
 
 
 	args = get_args(argc, argv);
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 	/* verify patch header */
 	if (! patch->newfile)
 	{
-	    open_file(patch, APPEND_MODE);
+		open_file(patch, APPEND_MODE);
 
 		printf("Found existing file - verifying\n");
 		verify_patch_header(patch);
@@ -39,21 +39,21 @@ int main(int argc, char *argv[])
 	/* copies diff data from old/new files to patch file */
 	num_diffs = diff(args.oldfile, args.newfile, patch, args.action, args.strip);
 
-    if (num_diffs > 0)
-    {
-	    /* write patch header with updated size */
-        int newsize = file_size(patch);
+	if (num_diffs > 0)
+	{
+		/* write patch header with updated size */
+		int newsize = file_size(patch);
 
-        /* must reopen to write to beginning of file */
-        reopen_file(patch, READWRITE_MODE);
-	    write_patch_header(patch, newsize);
+		/* must reopen to write to beginning of file */
+		reopen_file(patch, READWRITE_MODE);
+		write_patch_header(patch, newsize);
 
-	    printf("patch file '%s', size %d, number of differences %d\n", patch->filename, newsize, num_diffs);
-    }
-    else
-    {
-	    printf("no differences found\n");
-    }
+		printf("patch file '%s', size %d, number of differences %d\n", patch->filename, newsize, num_diffs);
+	}
+	else
+	{
+		printf("no differences found\n");
+	}
 
 
 	close_file(patch);
@@ -66,15 +66,15 @@ PatchArgs get_args(int argc, char *argv[])
 {
 	PatchArgs args;
 	int i;
-    char *error;
+	char *error;
 
 
 	/* initialize struct */
-    args.oldfile = NULL;
-    args.newfile = NULL;
-    args.patchfile = NULL;
+	args.oldfile = NULL;
+	args.newfile = NULL;
+	args.patchfile = NULL;
 	args.action = FA_NONE;
-    args.strip = 0;
+	args.strip = 0;
 
 	for (i = 1; i < argc; i++)
 	{
@@ -106,8 +106,11 @@ PatchArgs get_args(int argc, char *argv[])
 		}
 	}
 
-	if (args.oldfile == NULL)
+	if (args.oldfile == NULL && args.action != FA_CREATE)
 		error = "old (source) file is required";
+	else if (args.oldfile != NULL && args.action == FA_CREATE)
+		error = "old (source) file cannot be used for create action";
+
 	if (args.newfile == NULL)
 		error = "new (target) file is required";
 	if (args.patchfile == NULL)
@@ -123,7 +126,7 @@ void print_help_message(const char *error)
 {
 	if (error != NULL)
 		fprintf(stderr, "ERROR: %s\n\n", error);
-	fprintf(stderr, "bindiff [-a <action>] [-s <num>] -o <oldfile> -n <newfile> -p <patchfile>\n\n");
+	fprintf(stderr, "bindiff [-a <action>] [-s <num>] [-o <oldfile>] -n <newfile> -p <patchfile>\n\n");
 	fprintf(stderr, "Compares <oldfile> and <newfile>, applying difference to <patchfile>.\n");
 	fprintf(stderr, "\t-u\tAction to take when applying patch: copy, rename, create\n");
 	fprintf(stderr, "\t-s\tStrip <num> leading path components from file name\n\n");

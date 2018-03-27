@@ -28,7 +28,11 @@ struct file_header build_file_header(const char filename[], const char newname[]
 
 	strncpy(fz.hdr, FILE_HEADER_ID, HDR_SZ);
 	fz.ver = FILE_VER;
-	set_filename(fz.name, filename);
+
+	if (filename != NULL && strlen(filename) > 0)
+		set_filename(fz.name, filename);
+	else
+		set_filename(fz.name, EMPTY_STR);
 
 	if (newname != NULL && strlen(newname) > 0)
 		set_filename(fz.newname, newname);
