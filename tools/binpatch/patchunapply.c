@@ -1,7 +1,7 @@
 /* patchunapply.c */
 
 
-#include	<stdio.h>				/* printf */
+#include	<stdio.h>				/* printf, BUFSIZ */
 #include	<stdlib.h> 				/* malloc, free, exit */
 #include	<string.h>				/* strncmp, memcmp */
 
@@ -18,7 +18,7 @@ BOOL is_patch_applied(File *patch, const char *dir)
 	struct data_header dz;				/* header for patch data */
 	File *file = NULL;					/* file handle */
 	BOOL mismatch = FALSE;				/* indicates new data mismatch */
-	const char *filename;				/* filename */
+	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
 
 
 	/* read first header */
@@ -33,14 +33,16 @@ BOOL is_patch_applied(File *patch, const char *dir)
 		{
 			/* close last file's file references (if any) */
 			if (file != NULL)
+			{
 				close_file(file);
+				file = NULL;
+			}
 
 			/* read next file header */
 			read_from_file(patch, &fz, sizeof(struct file_header));
 
-			/* prepend directory if specified */
-			filename = concat_path(dir, fz.action > FA_NONE ? fz.newname : fz.name);
-
+			/* locate file */
+			concat_path(filename, dir, fz.action > FA_NONE ? fz.newname : fz.name);
 			file = stat_file(filename);
 
 			if (file->newfile)
@@ -101,7 +103,7 @@ void unapply_patch(File *patch, const char *dir)
 	BOOL file_error;					/* indicates error during patching */
 	BOOL data_error;					/* indicates error during patching */
 	int datasize;						/* size of data to skip if error */
-	const char *filename;				/* filename */
+	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
 
 
 	/* read first header */
@@ -128,8 +130,8 @@ void unapply_patch(File *patch, const char *dir)
 			printf("unpatching file %s%s%s\n", fz.name,
 					fz.action > FA_NONE ? " <- " : "", fz.newname);
 
-			/* prepend directory if specified */
-			filename = concat_path(dir, fz.action > FA_NONE ? fz.newname : fz.name);
+			/* locate file */
+			concat_path(filename, dir, fz.action > FA_NONE ? fz.newname : fz.name);
 			file = stat_file(filename);
 
 			if (file->newfile)
@@ -140,9 +142,9 @@ void unapply_patch(File *patch, const char *dir)
 			else if (fz.action == FA_RENAME)
 			{
 				/* rename file back to original */
-				filename = concat_path(dir, fz.name);
+				concat_path(filename, dir, fz.name);
 				origfile = stat_file(filename);
-				rename(file, origfile);
+				rename_file(file, origfile);
 				close_file(origfile);
 
 				/* open file */

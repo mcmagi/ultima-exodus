@@ -13,7 +13,7 @@
 
 /* DIFF Functions */
 
-int diff(const char oldfile[], const char newfile[], File *patch, int action, int strip)
+int diff(const char olddir[], const char oldfile[], const char newdir[], const char newfile[], File *patch, int action)
 {
 	unsigned char oldbyte, newbyte;		/* storage for old and new bytes */
 	int idx;							/* index into file */
@@ -22,46 +22,24 @@ int diff(const char oldfile[], const char newfile[], File *patch, int action, in
 	File *old;							/* ptr to old file */
 	File *new;							/* ptr to new file */
 	int diffcount = 0;					/* number of differences found */
-	char newfiletmp[BUFSIZ] = { 0 };	/* temp area for new filename */
-	char oldfiletmp[BUFSIZ] = { 0 };	/* temp area for old filename */
-	const char *filenametmp;			/* temp area for basename */
+	char oldfilepath[BUFSIZ] = { 0 };	/* full path to old file */
+	char newfilepath[BUFSIZ] = { 0 };	/* full path to new file */
 
 
 	/* open files */
 	if (oldfile != NULL)
 	{
-		old = stat_file(oldfile);
+		concat_path(oldfilepath, olddir, oldfile);
+		old = stat_file(oldfilepath);
 		open_file(old, READONLY_MODE);
-		strcpy(oldfiletmp, oldfile);
 	}
 
-	new = stat_file(newfile);
+	concat_path(newfilepath, newdir, newfile);
+	new = stat_file(newfilepath);
 	open_file(new, READONLY_MODE);
-	if (action != FA_NONE)
-		strcpy(newfiletmp, newfile);
-
-	/* strip leading path components if requested */
-	if (strip > 0)
-	{
-		if (oldfiletmp != NULL)
-		{
-			/* strip old filename */
-			filenametmp = strip_path(oldfiletmp, strip);
-			if (filenametmp != NULL)
-				strcpy(oldfiletmp, filenametmp);
-		}
-
-		if (newfiletmp != NULL)
-		{
-			/* strip new filename */
-			filenametmp = strip_path(newfiletmp, strip);
-			if (filenametmp != NULL)
-				strcpy(newfiletmp, filenametmp);
-		}
-	}
 
 	/* create file header; wait to write it until we find our first difference */
-	fz = build_file_header(oldfiletmp, newfiletmp, action, old == NULL ? 0 : old->buf.st_size);
+	fz = build_file_header(oldfile, newfile, action, old == NULL ? 0 : old->buf.st_size);
 
 	if (patch->fp != NULL)
 	{

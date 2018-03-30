@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* copies diff data from old/new files to patch file */
-	num_diffs = diff(args.oldfile, args.newfile, patch, args.action, args.strip);
+	num_diffs = diff(args.olddir, args.oldfile, args.newdir, args.newfile, patch, args.action);
 
 	if (num_diffs > 0)
 	{
@@ -70,11 +70,13 @@ PatchArgs get_args(int argc, char *argv[])
 
 
 	/* initialize struct */
+	args.olddir = NULL;
 	args.oldfile = NULL;
+	args.newdir = NULL;
 	args.newfile = NULL;
 	args.patchfile = NULL;
 	args.action = FA_NONE;
-	args.strip = 0;
+	args.strip = 0; /* no longer used */
 
 	for (i = 1; i < argc; i++)
 	{
@@ -93,14 +95,16 @@ PatchArgs get_args(int argc, char *argv[])
 		}
 		else /* (i != argc) */
 		{
-			if (strcmp(argv[i], "-o") == MATCH)
+			if (strcmp(argv[i], "-od") == MATCH)
+				args.olddir = argv[++i];
+			else if (strcmp(argv[i], "-o") == MATCH)
 				args.oldfile = argv[++i];
+			else if (strcmp(argv[i], "-nd") == MATCH)
+				args.newdir = argv[++i];
 			else if (strcmp(argv[i], "-n") == MATCH)
 				args.newfile = argv[++i];
 			else if (strcmp(argv[i], "-p") == MATCH)
 				args.patchfile = argv[++i];
-			else if (strcmp(argv[i], "-s") == MATCH)
-				args.strip = atoi(argv[++i]);
 			else
 				print_help_message("unrecognized argument");
 		}
@@ -126,11 +130,13 @@ void print_help_message(const char *error)
 {
 	if (error != NULL)
 		fprintf(stderr, "ERROR: %s\n\n", error);
-	fprintf(stderr, "bindiff [-a <action>] [-s <num>] [-o <oldfile>] -n <newfile> -p <patchfile>\n\n");
+	fprintf(stderr, "bindiff [-a copy|rename] [-od <olddir>] -o <oldfile> [-nd <newdir>] -n <newfile> -p <patchfile>\n");
+	fprintf(stderr, "bindiff -a create [-nd <newdir>] -n <newfile> -p <patchfile>\n\n");
 	fprintf(stderr, "Compares <oldfile> and <newfile>, applying difference to <patchfile>.\n");
-	fprintf(stderr, "\t-u\tAction to take when applying patch: copy, rename, create\n");
-	fprintf(stderr, "\t-s\tStrip <num> leading path components from file name\n\n");
+	fprintf(stderr, "\t-a\tAction to take when applying patch: copy, rename, create\n");
+	fprintf(stderr, "\t-od\tPath to location of old (or source) file\n");
 	fprintf(stderr, "\t-o\tName of old (or source) file\n");
+	fprintf(stderr, "\t-nd\tPath to location of new (or target) file\n");
 	fprintf(stderr, "\t-n\tName of new (or target) file\n");
 	fprintf(stderr, "\t-p\tName of patchfile\n");
 	exit(HELPMSG);

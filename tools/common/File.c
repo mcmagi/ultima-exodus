@@ -228,26 +228,23 @@ void file_error(const File *file, const char *text)
 }
 
 /* concatenates two path elements */
-const char * concat_path(const char *path1, const char *path2)
+void concat_path(char *fullpath, const char *path1, const char *path2)
 {
-    static char filename[BUFSIZ];
     int i = 0;
 
     if (path1 != NULL && strlen(path1) > 0)
     {
-        strcpy(filename, path1);
+        strcpy(fullpath, path1);
         i = strlen(path1);
 
         /* insert directory separator if both paths are specified */
         if (path2 != NULL && strlen(path2) > 0)
         {
-            if (filename[i] != '/' || filename[i] != '\\')
-                filename[i++] = '/';
+            if (fullpath[i] != '/' || fullpath[i] != '\\')
+                fullpath[i++] = '/';
         }
     }
 
     if (path2 != NULL && strlen(path2) > 0)
-        strcpy(&filename[i], path2);
-
-    return filename;
+        strcpy(&fullpath[i], path2);
 }

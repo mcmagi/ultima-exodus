@@ -15,7 +15,9 @@
 /* argument structure */
 typedef struct
 {
+	char *olddir;
 	char *oldfile;
+	char *newdir;
 	char *newfile;
 	char *patchfile;
 	int action;

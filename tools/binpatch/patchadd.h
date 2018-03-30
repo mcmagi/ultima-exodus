@@ -8,7 +8,7 @@
 
 
 /* Function Prototypes */
-int diff(const char oldfile[], const char newfile[], File *patch, int action, int strip);
+int diff(const char olddir[], const char oldfile[], const char newdir[], const char newfile[], File *patch, int action);
 long patch_add_append(File *new, File *patch, long idx);
 long patch_add_truncate(File *old, File *patch, long idx);
 long patch_add_replace(File *old, File *new, File *patch, long idx);

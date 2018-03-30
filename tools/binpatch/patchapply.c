@@ -1,7 +1,7 @@
 /* patchapply.c */
 
 
-#include	<stdio.h>				/* printf */
+#include	<stdio.h>				/* printf, BUFSIZ */
 #include	<stdlib.h> 				/* malloc, free, exit */
 #include	<string.h>				/* strncmp, memcmp */
 
@@ -16,9 +16,9 @@ BOOL is_patch_unapplied(File *patch, const char *dir)
 	char hdrtype[HDR_SZ];				/* holds header type */
 	struct file_header fz;				/* header for patched file */
 	struct data_header dz;				/* header for patch data */
-	File *file = NULL;					/* file handle */
+	File *old = NULL, *new = NULL;		/* input/output file handles */
 	BOOL mismatch = FALSE;				/* indicates old data mismatch */
-	const char *filename;				/* filename */
+	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
 
 
 	/* read first header */
@@ -32,32 +32,45 @@ BOOL is_patch_unapplied(File *patch, const char *dir)
 		if (strncmp(hdrtype, FILE_HEADER_ID, HDR_SZ) == MATCH)
 		{
 			/* close last file's file references (if any) */
-			if (file != NULL)
+			if (old != NULL)
 			{
-				close_file(file);
-				file = NULL;
+				close_file(old);
+				old = NULL;
 			}
 
 			/* read next file header */
 			read_from_file(patch, &fz, sizeof(struct file_header));
 
-			/* prepend directory if specified */
-			filename = concat_path(dir, fz.name);
-
-			file = stat_file(filename);
-
-			if (fz.size != file->buf.st_size)
+			if (strlen(fz.name) > 0 )
 			{
-				mismatch = TRUE;
-				break;
+				/* locate & validate old file */
+				concat_path(filename, dir, fz.name);
+				old = stat_file(filename);
+
+				if (fz.size != old->buf.st_size)
+				{
+					mismatch = TRUE;
+					break;
+				}
+
+				/* open only old file */
+				open_file(old, READONLY_MODE);
 			}
-			else
+
+			if (strlen(fz.newname) > 0)
 			{
-				/* open only one file */
-				open_file(file, READONLY_MODE);
+				/* ensure new file doesn't exist */
+				concat_path(filename, dir, fz.newname);
+				new = stat_file(filename);
+
+				if (! new->newfile)
+				{
+					mismatch = TRUE;
+					break;
+				}
 			}
 		}
-		else if (strncmp(hdrtype, DATA_HEADER_ID, HDR_SZ) == MATCH)
+		else if (strncmp(hdrtype, DATA_HEADER_ID, HDR_SZ) == MATCH && fz.action != FA_CREATE)
 		{
 			/* read next data header */
 			read_from_file(patch, &dz, sizeof(struct data_header));
@@ -69,10 +82,10 @@ BOOL is_patch_unapplied(File *patch, const char *dir)
 					seek_through_file(patch, dz.size, SEEK_CUR); /* skip */
 					break;
 				case DT_TRUNCATE:
-					mismatch = ! compare_old_data(patch, file, dz);
+					mismatch = ! compare_old_data(patch, old, dz);
 					break;
 				case DT_REPLACE:
-					mismatch = ! compare_old_data(patch, file, dz);
+					mismatch = ! compare_old_data(patch, old, dz);
 					seek_through_file(patch, dz.size, SEEK_CUR); /* skip new data */
 					break;
 			}
@@ -91,8 +104,8 @@ BOOL is_patch_unapplied(File *patch, const char *dir)
 	}
 
 	/* close file references (if any) */
-	if (file != NULL)
-		close_file(file);
+	if (old != NULL)
+		close_file(old);
 
 	return ! mismatch;
 }
@@ -106,7 +119,7 @@ void apply_patch(File *patch, const char *dir)
 	BOOL file_error;					/* indicates error during patching */
 	BOOL data_error;					/* indicates error during patching */
 	int datasize;						/* size of data to skip if error */
-	const char *filename;				/* filename */
+	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
 
 
 	/* read first header */
@@ -136,61 +149,64 @@ void apply_patch(File *patch, const char *dir)
 			/* read next file header */
 			read_from_file(patch, &fz, sizeof(struct file_header));
 			printf("patching file %s%s%s\n", fz.name,
-					fz.action > FA_NONE ? " -> " : "", fz.newname);
+					strlen(fz.newname) > 0 ? " -> " : "", fz.newname);
 
-			/* prepend directory if specified */
-			filename = concat_path(dir, fz.name);
-
-			old = stat_file(filename);
-
-			if (fz.size != old->buf.st_size)
+			/* locate old file */
+			if (strlen(fz.name) > 0)
 			{
-				printf("File not found or size mismatch on file '%s';"
-						"found %d expected %d\n", old->filename,
-						old->buf.st_size, fz.size);
-				file_error = TRUE;
+				concat_path(filename, dir, fz.name);
+				old = stat_file(filename);
+
+				if (fz.size != old->buf.st_size)
+				{
+					printf("File not found or size mismatch on file '%s';"
+							"found %d expected %d\n", old->filename,
+							old->buf.st_size, fz.size);
+					file_error = TRUE;
+				}
 			}
-			else if (fz.action == FA_RENAME)
+
+			/* locate old file */
+			if (strlen(fz.newname) > 0)
 			{
-				/* prepend directory if specified */
-				filename = concat_path(dir, fz.newname);
+				/* locate new file */
+				concat_path(filename, dir, fz.newname);
 				new = stat_file(filename);
 
-				/* TODO: allow rename to take place if file exists? */
-
-				/* rename old file to new */
-				rename_file(old, new);
-
-				/* open new file */
-				open_file(new, OVERWRITE_MODE);
+				if (! new->newfile)
+				{
+					printf("File '%s' already exists\n", new->filename);
+					file_error = TRUE;
+				}
 			}
-			else if (fz.action == FA_COPY)
+
+			switch (fz.action)
 			{
-				/* open old file */
-				open_file(old, READONLY_MODE);
+				case FA_RENAME:
+					/* rename old file to new, open new file */
+					rename_file(old, new);
+					open_file(new, READWRITE_MODE);
+					break;
 
-				/* prepend directory if specified */
-				filename = concat_path(dir, fz.newname);
+				case FA_COPY:
+					/* copy file (from old to new) */
+					open_file(old, READONLY_MODE);
+					open_file(new, OVERWRITE_MODE);
+					copy_file(old, new);
+					break;
 
-				/* open new file */
-				new = stat_file(filename);
-				open_file(new, OVERWRITE_MODE);
+				case FA_CREATE:
+					/* open only new file */
+					open_file(new, OVERWRITE_MODE);
+					break;
 
-				/* copy file (from old to new) */
-				copy_file(old, new);
-			}
-			else if (fz.action == FA_CREATE)
-			{
-				/* open only new file */
-				open_file(new, OVERWRITE_MODE);
-			}
-			else
-			{
-				/* open only one file */
-				open_file(old, READWRITE_MODE);
+				case FA_NONE:
+					/* open only old file */
+					open_file(old, READWRITE_MODE);
 
-				/* the newfile is the oldfile */
-				new = old;
+					/* the newfile is the oldfile */
+					new = old;
+					break;
 			}
 		}
 		else if (strncmp(hdrtype, DATA_HEADER_ID, HDR_SZ) == MATCH)
