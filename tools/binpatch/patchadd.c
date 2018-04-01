@@ -16,11 +16,11 @@
 int diff(const char olddir[], const char oldfile[], const char newdir[], const char newfile[], File *patch, int action)
 {
 	unsigned char oldbyte, newbyte;		/* storage for old and new bytes */
-	int idx;							/* index into file */
-	int max_idx;						/* max index */
+	int idx = 0;						/* index into file */
+	int max_idx = 0;					/* max index */
 	struct file_header fz;				/* file header */
-	File *old;							/* ptr to old file */
-	File *new;							/* ptr to new file */
+	File *old = NULL;					/* ptr to old file */
+	File *new = NULL;					/* ptr to new file */
 	int diffcount = 0;					/* number of differences found */
 	char oldfilepath[BUFSIZ] = { 0 };	/* full path to old file */
 	char newfilepath[BUFSIZ] = { 0 };	/* full path to new file */
@@ -40,6 +40,16 @@ int diff(const char olddir[], const char oldfile[], const char newdir[], const c
 
 	/* create file header; wait to write it until we find our first difference */
 	fz = build_file_header(oldfile, newfile, action, old == NULL ? 0 : old->buf.st_size);
+
+	if (action > FA_NONE)
+	{
+		/* first diff found; write patch header and/or file header */
+		if (patch->fp == NULL)
+			create_patch_file(patch, fz);
+		else
+			write_to_file(patch, &fz, sizeof(fz));
+		diffcount++;
+	}
 
 	if (patch->fp != NULL)
 	{
@@ -110,8 +120,10 @@ int diff(const char olddir[], const char oldfile[], const char newdir[], const c
 		printf("Files %s and %s are identical\n", old->filename, new->filename);
 
 	/* close files */
-	close_file(old);
-	close_file(new);
+	if (old != NULL)
+		close_file(old);
+	if (new != NULL)
+		close_file(new);
 
 	return diffcount;
 }

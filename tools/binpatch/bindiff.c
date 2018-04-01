@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 		reopen_file(patch, READWRITE_MODE);
 		write_patch_header(patch, newsize);
 
-		printf("patch file '%s', size %d, number of differences %d\n", patch->filename, newsize, num_diffs);
+		printf("patch file '%s', size %d: number of differences added %d\n", patch->filename, newsize, num_diffs);
 	}
 	else
 	{
