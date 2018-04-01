@@ -11,7 +11,7 @@ u2cfg		    db	"U2.CFG",0
 midpak		    db	"MIDPAK.COM",0
 midpak_start	db	0x02," 8",0x0d,0
 midpak_stop	    db	0x02," u",0x0d,0
-u2ega		    db	"U2EGA.EXE",0
+u2ega		    db	"ULTIMAII.EXE",0
 u2vga		    db	"U2VGA.EXE",0
 u2_params	    db	0x03,0x20,0xff,0xff,0x0d,0
 file_error	    db	"Error reading U2.CFG",0x0a,0x0d,"$"
