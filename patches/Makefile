@@ -22,7 +22,7 @@ patch_u3: ${U3PAT}
 
 patch_u5: ${U5PAT}
 
-${U2PAT}: ${U2UPGRADE}/ULTIMAII.EXE ${U2UPGRADE}/MAPX10 ${U2UPGRADE}/MAPX15
+${U2PAT}:
 	rm -f ${U2PAT}
 	${DIFF} -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o ULTIMAII.EXE -n ULTIMAII.EXE -p ${U2PAT}
 	# patch greenland dungeon
@@ -44,23 +44,21 @@ ${U2PAT}: ${U2UPGRADE}/ULTIMAII.EXE ${U2UPGRADE}/MAPX10 ${U2UPGRADE}/MAPX15
 	# add missing galaxy map & monster files
 	for i in 10 15 20 30 32 40 41 45; do \
 		${DIFF} -a add -nd ${U2UPGRADE} -n MAPG$${i} -p ${U2PAT}; \
-		${DIFF} -a add -nd ${U2UPGRADE} -n MAPG$${i} -p ${U2PAT}; \
+		${DIFF} -a add -nd ${U2UPGRADE} -n MONG$${i} -p ${U2PAT}; \
 	done
 	# add missing galaxy talk files
 	for i in 32 41; do \
 		${DIFF} -a add -nd ${U2UPGRADE} -n TLKG$${i} -p ${U2PAT}; \
-		${DIFF} -a add -nd ${U2UPGRADE} -n TLKG$${i} -p ${U2PAT}; \
 	done
 
-${U3PAT}: ${U3UPGRADE}/ULTIMA.COM ${U3UPGRADE}/BOOTUP.BIN ${U3UPGRADE}/EXODUS.BIN ${U3UPGRADE}/DUNGEON.DAT
+${U3PAT}:
 	rm -f ${U3PAT}
 	${DIFF} -od ${U3ORIGINAL} -nd ${U3UPGRADE} -o ULTIMA.COM -n ULTIMA.COM -p ${U3PAT}
 	${DIFF} -od ${U3ORIGINAL} -nd ${U3UPGRADE} -o BOOTUP.BIN -n BOOTUP.BIN -p ${U3PAT}
 	${DIFF} -od ${U3ORIGINAL} -nd ${U3UPGRADE} -o EXODUS.BIN -n EXODUS.BIN -p ${U3PAT}
 	${DIFF} -od ${U3ORIGINAL} -nd ${U3UPGRADE} -o DUNGEON.DAT -n DUNGEON.DAT -p ${U3PAT}
 
-${U5PAT}: ${U5UPGRADE}/ULTIMA.EXE ${U5UPGRADE}/INTRO.OVL ${U5UPGRADE}/MAINOUT.OVL ${U5UPGRADE}/TOWN.OVL \
-        ${U5UPGRADE}/DUNGEON.OVL ${U5UPGRADE}/ENDGAME.OVL ${U5UPGRADE}/FONT.OVL ${U5UPGRADE}/DATA.OVL
+${U5PAT}:
 	rm -f ${U5PAT}
 	${DIFF} -od ${U5ORIGINAL} -nd ${U5UPGRADE} -o ULTIMA.EXE -n ULTIMA.EXE -p ${U5PAT}
 	${DIFF} -od ${U5ORIGINAL} -nd ${U5UPGRADE} -o INTRO.OVL -n INTRO.OVL -p ${U5PAT}
