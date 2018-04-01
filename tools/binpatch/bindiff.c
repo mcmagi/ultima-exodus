@@ -66,7 +66,7 @@ PatchArgs get_args(int argc, char *argv[])
 {
 	PatchArgs args;
 	int i;
-	char *error;
+	char *error = NULL;
 
 
 	/* initialize struct */
