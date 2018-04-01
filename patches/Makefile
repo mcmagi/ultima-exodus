@@ -29,27 +29,27 @@ ${U2PAT}: ${U2UPGRADE}/ULTIMAII.EXE ${U2UPGRADE}/MAPX10 ${U2UPGRADE}/MAPX15
 	${DIFF} -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o MAPX10 -n MAPX10 -p ${U2PAT}
 	${DIFF} -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o MAPX15 -n MAPX15 -p ${U2PAT}
 	# patch earth talk files
-	for i in 03 11 21 22 23 31 32 33 41; do
-		${DIFF} -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o TLKX${i} -n TLKG${i} -p ${U2PAT}
+	for i in 03 11 21 22 23 31 32 33 41; do \
+		${DIFF} -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o TLKX$${i} -n TLKX$${i} -p ${U2PAT}; \
 	done
 	# rename existing galaxy map & monster files
-	for i in 44 50 60 61 70 71 80 81 82 85 90 92 93; do
-		${DIFF} -a rename -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o MAPX${i} -n MAPG${i} -p ${U2PAT}
-		${DIFF} -a rename -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o MONX${i} -n MONG${i} -p ${U2PAT}
+	for i in 44 50 60 61 70 71 80 81 82 85 90 92 93; do \
+		${DIFF} -a rename -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o MAPX$${i} -n MAPG$${i} -p ${U2PAT}; \
+		${DIFF} -a rename -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o MONX$${i} -n MONG$${i} -p ${U2PAT}; \
 	done
 	# rename & patch existing galaxy talk files
-	for i in 61 71 81 82 92 93; do
-		${DIFF} -a rename -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o TLKX${i} -n TLKG${i} -p ${U2PAT}
+	for i in 61 71 81 82 92 93; do \
+		${DIFF} -a rename -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o TLKX$${i} -n TLKG$${i} -p ${U2PAT}; \
 	done
 	# add missing galaxy map & monster files
-	for i in 10 15 20 30 32 40 41 45; do
-		${DIFF} -a create -nd ${U2UPGRADE} -n MAPG${i} -p ${U2PAT}
-		${DIFF} -a create -nd ${U2UPGRADE} -n MAPG${i} -p ${U2PAT}
+	for i in 10 15 20 30 32 40 41 45; do \
+		${DIFF} -a create -nd ${U2UPGRADE} -n MAPG$${i} -p ${U2PAT}; \
+		${DIFF} -a create -nd ${U2UPGRADE} -n MAPG$${i} -p ${U2PAT}; \
 	done
 	# add missing galaxy talk files
-	for i in 32 41; do
-		${DIFF} -a create -nd ${U2UPGRADE} -n TLKG${i} -p ${U2PAT}
-		${DIFF} -a create -nd ${U2UPGRADE} -n TLKG${i} -p ${U2PAT}
+	for i in 32 41; do \
+		${DIFF} -a create -nd ${U2UPGRADE} -n TLKG$${i} -p ${U2PAT}; \
+		${DIFF} -a create -nd ${U2UPGRADE} -n TLKG$${i} -p ${U2PAT}; \
 	done
 
 ${U3PAT}: ${U3UPGRADE}/ULTIMA.COM ${U3UPGRADE}/BOOTUP.BIN ${U3UPGRADE}/EXODUS.BIN ${U3UPGRADE}/DUNGEON.DAT
