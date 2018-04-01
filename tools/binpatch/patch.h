@@ -14,7 +14,7 @@
 #define	FA_NONE		0
 #define	FA_COPY		1
 #define	FA_RENAME	2
-#define	FA_CREATE	3
+#define	FA_ADD		3
 
 #define PATCH_HEADER_ID	"PZ"
 #define FILE_HEADER_ID	"FZ"

@@ -70,7 +70,7 @@ BOOL is_patch_unapplied(File *patch, const char *dir)
 				}
 			}
 		}
-		else if (strncmp(hdrtype, DATA_HEADER_ID, HDR_SZ) == MATCH && fz.action != FA_CREATE)
+		else if (strncmp(hdrtype, DATA_HEADER_ID, HDR_SZ) == MATCH && fz.action != FA_ADD)
 		{
 			/* read next data header */
 			read_from_file(patch, &dz, sizeof(struct data_header));
@@ -195,7 +195,7 @@ void apply_patch(File *patch, const char *dir)
 					copy_file(old, new);
 					break;
 
-				case FA_CREATE:
+				case FA_ADD:
 					/* open only new file */
 					open_file(new, OVERWRITE_MODE);
 					break;

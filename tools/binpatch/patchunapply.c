@@ -151,7 +151,7 @@ void unapply_patch(File *patch, const char *dir)
 				file = stat_file(filename);
 				open_file(file, READWRITE_MODE);
 			}
-			else if (fz.action == FA_COPY || fz.action == FA_CREATE)
+			else if (fz.action == FA_COPY || fz.action == FA_ADD)
 			{
 				/* remove patch-created or copied file */
 				delete_file(file);

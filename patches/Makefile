@@ -43,13 +43,13 @@ ${U2PAT}: ${U2UPGRADE}/ULTIMAII.EXE ${U2UPGRADE}/MAPX10 ${U2UPGRADE}/MAPX15
 	done
 	# add missing galaxy map & monster files
 	for i in 10 15 20 30 32 40 41 45; do \
-		${DIFF} -a create -nd ${U2UPGRADE} -n MAPG$${i} -p ${U2PAT}; \
-		${DIFF} -a create -nd ${U2UPGRADE} -n MAPG$${i} -p ${U2PAT}; \
+		${DIFF} -a add -nd ${U2UPGRADE} -n MAPG$${i} -p ${U2PAT}; \
+		${DIFF} -a add -nd ${U2UPGRADE} -n MAPG$${i} -p ${U2PAT}; \
 	done
 	# add missing galaxy talk files
 	for i in 32 41; do \
-		${DIFF} -a create -nd ${U2UPGRADE} -n TLKG$${i} -p ${U2PAT}; \
-		${DIFF} -a create -nd ${U2UPGRADE} -n TLKG$${i} -p ${U2PAT}; \
+		${DIFF} -a add -nd ${U2UPGRADE} -n TLKG$${i} -p ${U2PAT}; \
+		${DIFF} -a add -nd ${U2UPGRADE} -n TLKG$${i} -p ${U2PAT}; \
 	done
 
 ${U3PAT}: ${U3UPGRADE}/ULTIMA.COM ${U3UPGRADE}/BOOTUP.BIN ${U3UPGRADE}/EXODUS.BIN ${U3UPGRADE}/DUNGEON.DAT

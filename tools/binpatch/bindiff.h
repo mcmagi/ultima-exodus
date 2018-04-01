@@ -8,7 +8,7 @@
 
 #define		ACTION_COPY		"copy"
 #define		ACTION_RENAME	"rename"
-#define		ACTION_CREATE	"create"
+#define		ACTION_ADD		"add"
 
 #define HELPMSG	1
 

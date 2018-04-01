@@ -88,10 +88,10 @@ PatchArgs get_args(int argc, char *argv[])
 				args.action = FA_COPY;
 			else if (strcmp(argv[i], ACTION_RENAME) == MATCH)
 				args.action = FA_RENAME;
-			else if (strcmp(argv[i], ACTION_CREATE) == MATCH)
-				args.action = FA_CREATE;
+			else if (strcmp(argv[i], ACTION_ADD) == MATCH)
+				args.action = FA_ADD;
 			else
-				print_help_message("allowed actions: copy, rename, create");
+				print_help_message("allowed actions: copy, rename, add");
 		}
 		else /* (i != argc) */
 		{
@@ -110,10 +110,10 @@ PatchArgs get_args(int argc, char *argv[])
 		}
 	}
 
-	if (args.oldfile == NULL && args.action != FA_CREATE)
+	if (args.oldfile == NULL && args.action != FA_ADD)
 		error = "old (source) file is required";
-	else if (args.oldfile != NULL && args.action == FA_CREATE)
-		error = "old (source) file cannot be used for create action";
+	else if (args.oldfile != NULL && args.action == FA_ADD)
+		error = "old (source) file cannot be used for add action";
 
 	if (args.newfile == NULL)
 		error = "new (target) file is required";
@@ -130,10 +130,10 @@ void print_help_message(const char *error)
 {
 	if (error != NULL)
 		fprintf(stderr, "ERROR: %s\n\n", error);
-	fprintf(stderr, "bindiff [-a copy|rename] [-od <olddir>] -o <oldfile> [-nd <newdir>] -n <newfile> -p <patchfile>\n");
-	fprintf(stderr, "bindiff -a create [-nd <newdir>] -n <newfile> -p <patchfile>\n\n");
+	fprintf(stderr, "bindiff [-a %s|%s] [-od <olddir>] -o <oldfile> [-nd <newdir>] -n <newfile> -p <patchfile>\n", ACTION_COPY, ACTION_RENAME);
+	fprintf(stderr, "bindiff -a %s [-nd <newdir>] -n <newfile> -p <patchfile>\n\n", ACTION_ADD);
 	fprintf(stderr, "Compares <oldfile> and <newfile>, applying difference to <patchfile>.\n");
-	fprintf(stderr, "\t-a\tAction to take when applying patch: copy, rename, create\n");
+	fprintf(stderr, "\t-a\tAction to take when applying patch: %s, %s, %s\n", ACTION_COPY, ACTION_RENAME, ACTION_ADD);
 	fprintf(stderr, "\t-od\tPath to location of old (or source) file\n");
 	fprintf(stderr, "\t-o\tName of old (or source) file\n");
 	fprintf(stderr, "\t-nd\tPath to location of new (or target) file\n");
