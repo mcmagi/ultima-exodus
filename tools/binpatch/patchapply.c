@@ -70,28 +70,31 @@ BOOL is_patch_unapplied(File *patch, const char *dir)
 				}
 			}
 		}
-		else if (strncmp(hdrtype, DATA_HEADER_ID, HDR_SZ) == MATCH && fz.action != FA_ADD)
+		else if (strncmp(hdrtype, DATA_HEADER_ID, HDR_SZ) == MATCH)
 		{
-			/* read next data header */
-			read_from_file(patch, &dz, sizeof(struct data_header));
-
-			/* perform operation based on patch type */
-			switch (dz.type)
+			if (fz.action != FA_ADD)
 			{
-				case DT_APPEND:
-					seek_through_file(patch, dz.size, SEEK_CUR); /* skip */
-					break;
-				case DT_TRUNCATE:
-					mismatch = ! compare_old_data(patch, old, dz);
-					break;
-				case DT_REPLACE:
-					mismatch = ! compare_old_data(patch, old, dz);
-					seek_through_file(patch, dz.size, SEEK_CUR); /* skip new data */
+				/* read next data header */
+				read_from_file(patch, &dz, sizeof(struct data_header));
+
+				/* perform operation based on patch type */
+				switch (dz.type)
+				{
+					case DT_APPEND:
+						seek_through_file(patch, dz.size, SEEK_CUR); /* skip */
+						break;
+					case DT_TRUNCATE:
+						mismatch = ! compare_old_data(patch, old, dz);
+						break;
+					case DT_REPLACE:
+						mismatch = ! compare_old_data(patch, old, dz);
+						seek_through_file(patch, dz.size, SEEK_CUR); /* skip new data */
+						break;
+				}
+
+				if (mismatch)
 					break;
 			}
-
-			if (mismatch)
-				break;
 		}
 		else
 		{

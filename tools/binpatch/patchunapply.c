@@ -164,44 +164,47 @@ void unapply_patch(File *patch, const char *dir)
 		}
 		else if (strncmp(hdrtype, DATA_HEADER_ID, HDR_SZ) == MATCH)
 		{
-			/* read next data header */
-			//printf("read data header\n");
-			read_from_file(patch, &dz, sizeof(struct data_header));
-
-			if (! file_error)
+			if (fz.action != FA_COPY && fz.action != FA_ADD)
 			{
-				unpatch_message(dz);
+				/* read next data header */
+				//printf("read data header\n");
+				read_from_file(patch, &dz, sizeof(struct data_header));
 
-				/* perform operation based on patch type */
-				switch (dz.type)
+				if (! file_error)
 				{
-					case DT_APPEND:
-						data_error = patch_unappend(patch, file, dz);
-						break;
-					case DT_TRUNCATE:
-						data_error = patch_untruncate(patch, file, dz);
-						break;
-					case DT_REPLACE:
-						data_error = patch_unreplace(patch, file, dz);
-						break;
-				}
+					unpatch_message(dz);
 
-				if (data_error)
+					/* perform operation based on patch type */
+					switch (dz.type)
+					{
+						case DT_APPEND:
+							data_error = patch_unappend(patch, file, dz);
+							break;
+						case DT_TRUNCATE:
+							data_error = patch_untruncate(patch, file, dz);
+							break;
+						case DT_REPLACE:
+							data_error = patch_unreplace(patch, file, dz);
+							break;
+					}
+
+					if (data_error)
+					{
+						printf("patched data did not match in file %s at offset %d\n",
+								file->filename, dz.offset);
+					}
+				}
+				else
 				{
-					printf("patched data did not match in file %s at offset %d\n",
-							file->filename, dz.offset);
+					//printf("file_error; skipping data\n");
+
+					/* skip over data */
+					datasize = dz.size;
+					if (dz.type == DT_REPLACE)
+						datasize *= 2;
+
+					seek_through_file(patch, datasize, SEEK_CUR);
 				}
-			}
-			else
-			{
-				//printf("file_error; skipping data\n");
-
-				/* skip over data */
-				datasize = dz.size;
-				if (dz.type == DT_REPLACE)
-					datasize *= 2;
-
-				seek_through_file(patch, datasize, SEEK_CUR);
 			}
 		}
 		else
