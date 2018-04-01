@@ -107,7 +107,7 @@ PatchData *examine_patches(const char *path)
 				r->latest = patch;
 
 			/* find latest applied patch version */
-			if ((r->applied == NULL || strcmp(patch->filename, r->applied->filename) > MATCH) && is_patch_applied(patch, path))
+			if ((r->applied == NULL || strcmp(patch->filename, r->applied->filename) > MATCH) && is_patch_applied(patch, path, FALSE))
 				r->applied = patch;
 		}
 
@@ -143,7 +143,7 @@ void do_upgrade(PatchData data)
 	/* apply latest patch */
 	open_file(data.latest, READONLY_MODE);
 	verify_patch_header(data.latest);
-	if (is_patch_unapplied(data.latest, data.dir))
+	if (is_patch_unapplied(data.latest, data.dir, TRUE))
 	{
 		seek_through_file(data.latest, sizeof(struct patch_header), SEEK_SET);
 		apply_patch(data.latest, data.dir);

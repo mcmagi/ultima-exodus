@@ -11,13 +11,14 @@
 #include	"patchapply.h"
 
 
-BOOL is_patch_unapplied(File *patch, const char *dir)
+BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 {
 	char hdrtype[HDR_SZ];				/* holds header type */
 	struct file_header fz;				/* header for patched file */
 	struct data_header dz;				/* header for patch data */
 	File *old = NULL, *new = NULL;		/* input/output file handles */
 	BOOL mismatch = FALSE;				/* indicates old data mismatch */
+	int datasize;						/* size of data to skip if no file */
 	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
 
 
@@ -33,10 +34,8 @@ BOOL is_patch_unapplied(File *patch, const char *dir)
 		{
 			/* close last file's file references (if any) */
 			if (old != NULL)
-			{
 				close_file(old);
-				old = NULL;
-			}
+			old = NULL;
 
 			/* read next file header */
 			read_from_file(patch, &fz, sizeof(struct file_header));
@@ -49,6 +48,8 @@ BOOL is_patch_unapplied(File *patch, const char *dir)
 
 				if (fz.size != old->buf.st_size)
 				{
+					if (showmsg)
+						printf("is_patch_unapplied: file '%s' size %d expected %d\n", old->filename, old->buf.st_size, fz.size);
 					mismatch = TRUE;
 					break;
 				}
@@ -57,7 +58,7 @@ BOOL is_patch_unapplied(File *patch, const char *dir)
 				open_file(old, READONLY_MODE);
 			}
 
-			if (strlen(fz.newname) > 0)
+			if (fz.action > FA_NONE)
 			{
 				/* ensure new file doesn't exist */
 				concat_path(filename, dir, fz.newname);
@@ -65,6 +66,8 @@ BOOL is_patch_unapplied(File *patch, const char *dir)
 
 				if (! new->newfile)
 				{
+					if (showmsg)
+						printf("is_patch_unapplied: unexpected file '%s'\n", new->filename);
 					mismatch = TRUE;
 					break;
 				}
@@ -72,11 +75,11 @@ BOOL is_patch_unapplied(File *patch, const char *dir)
 		}
 		else if (strncmp(hdrtype, DATA_HEADER_ID, HDR_SZ) == MATCH)
 		{
+			/* read next data header */
+			read_from_file(patch, &dz, sizeof(struct data_header));
+
 			if (fz.action != FA_ADD)
 			{
-				/* read next data header */
-				read_from_file(patch, &dz, sizeof(struct data_header));
-
 				/* perform operation based on patch type */
 				switch (dz.type)
 				{
@@ -93,7 +96,20 @@ BOOL is_patch_unapplied(File *patch, const char *dir)
 				}
 
 				if (mismatch)
+				{
+					if (showmsg)
+						printf("is_patch_unapplied: file '%s' unexpected data at offset %d\n", old->filename, dz.offset);
 					break;
+				}
+			}
+			else
+			{
+				/* skip over data */
+				datasize = dz.size;
+				if (dz.type == DT_REPLACE)
+					datasize *= 2;
+
+				seek_through_file(patch, datasize, SEEK_CUR);
 			}
 		}
 		else
@@ -139,24 +155,19 @@ void apply_patch(File *patch, const char *dir)
 
 			/* close last file's file references (if any) */
 			if (old != NULL)
-			{
 				close_file(old);
-				old = NULL;
-			}
-			if (new != NULL)
-			{
+			if (new != NULL && old != new)
 				close_file(new);
-				new = NULL;
-			}
+			old = NULL;
+			new = NULL;
 
 			/* read next file header */
 			read_from_file(patch, &fz, sizeof(struct file_header));
-			printf("patching file %s%s%s\n", fz.name,
-					strlen(fz.newname) > 0 ? " -> " : "", fz.newname);
+			patch_file_message(fz);
 
-			/* locate old file */
 			if (strlen(fz.name) > 0)
 			{
+				/* locate old file */
 				concat_path(filename, dir, fz.name);
 				old = stat_file(filename);
 
@@ -169,8 +180,7 @@ void apply_patch(File *patch, const char *dir)
 				}
 			}
 
-			/* locate old file */
-			if (strlen(fz.newname) > 0)
+			if (fz.action > FA_NONE)
 			{
 				/* locate new file */
 				concat_path(filename, dir, fz.newname);
@@ -220,7 +230,7 @@ void apply_patch(File *patch, const char *dir)
 
 			if (! file_error)
 			{
-				patch_message(dz);
+				patch_data_message(dz);
 
 				/* perform operation based on patch type */
 				switch (dz.type)
@@ -267,7 +277,7 @@ void apply_patch(File *patch, const char *dir)
 	/* close file references (if any) */
 	if (old != NULL)
 		close_file(old);
-	if (new != NULL)
+	if (new != NULL && old != new)
 		close_file(new);
 }
 
@@ -344,7 +354,26 @@ void add_new_data(File *patch, File *new, struct data_header dz)
 	write_to_file(new, newdata, dz.size);
 }
 
-void patch_message(struct data_header dz)
+void patch_file_message(struct file_header fz)
+{
+	switch (fz.action)
+	{
+		case FA_NONE:
+			printf("patching file %s\n", fz.name);
+			break;
+		case FA_COPY:
+			printf("copying file %s -> %s\n", fz.name, fz.newname);
+			break;
+		case FA_RENAME:
+			printf("renaming file %s -> %s\n", fz.name, fz.newname);
+			break;
+		case FA_ADD:
+			printf("adding file %s\n", fz.newname);
+			break;
+	}
+}
+
+void patch_data_message(struct data_header dz)
 {
 	const char *typetext = NULL;
 
