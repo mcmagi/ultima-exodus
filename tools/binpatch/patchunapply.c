@@ -147,6 +147,7 @@ void unapply_patch(File *patch, const char *dir)
 				origfile = stat_file(filename);
 				rename_file(file, origfile);
 				close_file(origfile);
+				origfile = NULL;
 
 				/* open file */
 				file = stat_file(filename);

@@ -3,7 +3,7 @@
 
 #include	<stdio.h>				/* printf, BUFSIZ */
 #include	<stdlib.h> 				/* malloc, free, exit */
-#include	<string.h>				/* strncmp, memcmp */
+#include	<string.h>				/* strcpy, strncmp, memcmp */
 
 #include	"File.h"
 #include	"gendefs.h"
@@ -196,9 +196,15 @@ void apply_patch(File *patch, const char *dir)
 			switch (fz.action)
 			{
 				case FA_RENAME:
-					/* rename old file to new, open new file */
+					/* rename old file to new, reopen new file */
 					rename_file(old, new);
+					close_file(new);
+					concat_path(filename, dir, fz.newname);
+					new = stat_file(filename);
 					open_file(new, READWRITE_MODE);
+
+					/* the oldfile is the newfile */
+					old = new;
 					break;
 
 				case FA_COPY:
