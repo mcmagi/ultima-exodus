@@ -8,7 +8,7 @@
 #endif
 #include	<ctype.h>		/* toupper */
 #include	<malloc.h>		/* malloc, free */
-#include	<string.h>		/* strlen, strcpy, strchr */
+#include	<string.h>		/* strlen, strcpy */
 
 #include	"gendefs.h"		/* general use defs */
 #include	"File.h"		/* file handling */
@@ -70,18 +70,17 @@ DirList *list_dir(const File *file, const char *suffix)
 
 BOOL has_suffix(const char *filename, const char *suffix)
 {
-	char filename_upper[30];
-	char suffix_upper[30];
-	char *dot_ptr;
+	char filename_upper[256];
+	char suffix_upper[256];
+	int suffix_idx;
 
 	str_to_upper(filename_upper, filename);
 	str_to_upper(suffix_upper, suffix);
 
-	dot_ptr = strchr(filename_upper, '.');
+	suffix_idx = strlen(filename_upper) - strlen(suffix);
 
 	/* compare file extension */
-	return dot_ptr == NULL ? FALSE :
-		strcmp(&dot_ptr[1], suffix_upper) == 0;
+	return strcmp(&filename_upper[suffix_idx], suffix_upper) == MATCH;
 }
 
 void str_to_upper(char *dest, const char *src)
