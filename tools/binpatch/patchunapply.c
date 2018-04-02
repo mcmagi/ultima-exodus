@@ -1,7 +1,7 @@
 /* patchunapply.c */
 
 
-#include	<stdio.h>				/* printf */
+#include	<stdio.h>				/* printf, BUFSIZ */
 #include	<stdlib.h> 				/* malloc, free, exit */
 #include	<string.h>				/* strncmp, memcmp */
 
@@ -11,14 +11,14 @@
 #include	"patchunapply.h"
 
 
-BOOL is_patch_applied(File *patch, const char *dir)
+BOOL is_patch_applied(File *patch, const char *dir, BOOL showmsg)
 {
 	char hdrtype[HDR_SZ];				/* holds header type */
 	struct file_header fz;				/* header for patched file */
 	struct data_header dz;				/* header for patch data */
 	File *file = NULL;					/* file handle */
 	BOOL mismatch = FALSE;				/* indicates new data mismatch */
-	const char *filename;				/* filename */
+	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
 
 
 	/* read first header */
@@ -34,17 +34,19 @@ BOOL is_patch_applied(File *patch, const char *dir)
 			/* close last file's file references (if any) */
 			if (file != NULL)
 				close_file(file);
+			file = NULL;
 
 			/* read next file header */
 			read_from_file(patch, &fz, sizeof(struct file_header));
 
-			/* prepend directory if specified */
-			filename = concat_path(dir, fz.newname_flag ? fz.newname : fz.name);
-
+			/* locate file */
+			concat_path(filename, dir, fz.action > FA_NONE ? fz.newname : fz.name);
 			file = stat_file(filename);
 
 			if (file->newfile)
 			{
+				if (showmsg)
+					printf("is_patch_unapplied: missing file '%s'\n", file->filename);
 				mismatch = TRUE;
 				break;
 			}
@@ -72,7 +74,11 @@ BOOL is_patch_applied(File *patch, const char *dir)
 			}
 
 			if (mismatch)
+			{
+				if (showmsg)
+					printf("is_patch_applied: file '%s' unexpected data at offset %d\n", file->filename, dz.offset);
 				break;
+			}
 		}
 		else
 		{
@@ -97,10 +103,11 @@ void unapply_patch(File *patch, const char *dir)
 	struct file_header fz;				/* header for patched file */
 	struct data_header dz;				/* header for patch data */
 	File *file = NULL;					/* file handle */
+	File *origfile = NULL;				/* file handle for original file */
 	BOOL file_error;					/* indicates error during patching */
 	BOOL data_error;					/* indicates error during patching */
-	int datasize;						/* size of data to skip if error */
-	const char *filename;				/* filename */
+	int datasize;						/* size of data to skip if error or deleted file */
+	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
 
 
 	/* read first header */
@@ -118,21 +125,38 @@ void unapply_patch(File *patch, const char *dir)
 			/* close last file's file references (if any) */
 			if (file != NULL)
 				close_file(file);
+			file = NULL;
 
 			/* read next file header */
 			read_from_file(patch, &fz, sizeof(struct file_header));
-			printf("unpatching file %s%s%s\n", fz.name,
-					fz.newname_flag ? " <- " : "", fz.newname);
+			unpatch_file_message(fz);
 
-			/* prepend directory if specified */
-			filename = concat_path(dir, fz.newname_flag ? fz.newname : fz.name);
-
+			/* locate file */
+			concat_path(filename, dir, fz.action > FA_NONE ? fz.newname : fz.name);
 			file = stat_file(filename);
 
 			if (file->newfile)
 			{
 				printf("File not found '%s'", file->filename);
 				file_error = TRUE;
+			}
+			else if (fz.action == FA_RENAME)
+			{
+				/* rename file back to original */
+				concat_path(filename, dir, fz.name);
+				origfile = stat_file(filename);
+				rename_file(file, origfile);
+				close_file(origfile);
+				origfile = NULL;
+
+				/* open file */
+				file = stat_file(filename);
+				open_file(file, READWRITE_MODE);
+			}
+			else if (fz.action == FA_COPY || fz.action == FA_ADD)
+			{
+				/* remove patch-created or copied file */
+				delete_file(file);
 			}
 			else
 			{
@@ -143,12 +167,11 @@ void unapply_patch(File *patch, const char *dir)
 		else if (strncmp(hdrtype, DATA_HEADER_ID, HDR_SZ) == MATCH)
 		{
 			/* read next data header */
-			//printf("read data header\n");
 			read_from_file(patch, &dz, sizeof(struct data_header));
 
-			if (! file_error)
+			if (! file_error && fz.action != FA_COPY && fz.action != FA_ADD)
 			{
-				unpatch_message(dz);
+				unpatch_data_message(dz);
 
 				/* perform operation based on patch type */
 				switch (dz.type)
@@ -172,8 +195,6 @@ void unapply_patch(File *patch, const char *dir)
 			}
 			else
 			{
-				//printf("file_error; skipping data\n");
-
 				/* skip over data */
 				datasize = dz.size;
 				if (dz.type == DT_REPLACE)
@@ -280,8 +301,26 @@ void add_old_data(File *patch, File *file, struct data_header dz)
 	write_to_file(file, olddata, dz.size);
 }
 
+void unpatch_file_message(struct file_header fz)
+{
+	switch (fz.action)
+	{
+		case FA_NONE:
+			printf("unpatching file %s\n", fz.name);
+			break;
+		case FA_COPY:
+			printf("deleting copied file %s (from %s)\n", fz.newname, fz.name);
+			break;
+		case FA_RENAME:
+			printf("renaming file %s -> %s\n", fz.newname, fz.name);
+			break;
+		case FA_ADD:
+			printf("deleting added file %s\n", fz.newname);
+			break;
+	}
+}
 
-void unpatch_message(struct data_header dz)
+void unpatch_data_message(struct data_header dz)
 {
 	const char *typetext = NULL;
 

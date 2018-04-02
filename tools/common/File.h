@@ -31,10 +31,12 @@ void seek_through_file(File *file, long offset, int seek_type);
 BOOL end_of_file(File *file);
 void copy_file(File *infile, File *outfile);
 void copy_file_n(File *infile, File *outfile, off_t start, size_t size);
+void rename_file(File *infile, File *outfile);
+void delete_file(File *file);
 void truncate_file(File *file, long offset);
 long file_size(File *file);
 void file_error(const File *file, const char *text);
-const char * concat_path(const char *path1, const char *path2);
+void concat_path(char *fullpath, const char *path1, const char *path2);
 
 
 /* read mode defines */

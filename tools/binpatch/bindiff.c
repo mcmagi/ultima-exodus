@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 {
 	File *patch;					/* patch file */
 	PatchArgs args;					/* args structure */
-    int num_diffs;                  /* number of differences found */
+	int num_diffs;					/* number of differences found */
 
 
 	args = get_args(argc, argv);
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 	/* verify patch header */
 	if (! patch->newfile)
 	{
-	    open_file(patch, APPEND_MODE);
+		open_file(patch, APPEND_MODE);
 
 		printf("Found existing file - verifying\n");
 		verify_patch_header(patch);
@@ -37,23 +37,23 @@ int main(int argc, char *argv[])
 	}
 
 	/* copies diff data from old/new files to patch file */
-	num_diffs = diff(args.oldfile, args.newfile, patch, args.usenew, args.strip);
+	num_diffs = diff(args.olddir, args.oldfile, args.newdir, args.newfile, patch, args.action);
 
-    if (num_diffs > 0)
-    {
-	    /* write patch header with updated size */
-        int newsize = file_size(patch);
+	if (num_diffs > 0)
+	{
+		/* write patch header with updated size */
+		int newsize = file_size(patch);
 
-        /* must reopen to write to beginning of file */
-        reopen_file(patch, READWRITE_MODE);
-	    write_patch_header(patch, newsize);
+		/* must reopen to write to beginning of file */
+		reopen_file(patch, READWRITE_MODE);
+		write_patch_header(patch, newsize);
 
-	    printf("patch file '%s', size %d, number of differences %d\n", patch->filename, newsize, num_diffs);
-    }
-    else
-    {
-	    printf("no differences found\n");
-    }
+		printf("patch file '%s', size %d: number of differences added %d\n", patch->filename, newsize, num_diffs);
+	}
+	else
+	{
+		printf("no differences found\n");
+	}
 
 
 	close_file(patch);
@@ -66,49 +66,77 @@ PatchArgs get_args(int argc, char *argv[])
 {
 	PatchArgs args;
 	int i;
+	char *error = NULL;
 
 
 	/* initialize struct */
-    args.oldfile = NULL;
-    args.newfile = NULL;
-    args.patchfile = NULL;
-	args.usenew = FALSE;
-    args.strip = 0;
+	args.olddir = NULL;
+	args.oldfile = NULL;
+	args.newdir = NULL;
+	args.newfile = NULL;
+	args.patchfile = NULL;
+	args.action = FA_NONE;
+	args.strip = 0; /* no longer used */
 
 	for (i = 1; i < argc; i++)
 	{
 		if (strcmp(argv[i], "-h") == MATCH)
-			print_help_message();
-		if (strcmp(argv[i], "-u") == MATCH)
-			args.usenew = TRUE;
+			print_help_message(NULL);
+		if (strcmp(argv[i], "-a") == MATCH)
+		{
+			if (strcmp(argv[++i], ACTION_COPY) == MATCH)
+				args.action = FA_COPY;
+			else if (strcmp(argv[i], ACTION_RENAME) == MATCH)
+				args.action = FA_RENAME;
+			else if (strcmp(argv[i], ACTION_ADD) == MATCH)
+				args.action = FA_ADD;
+			else
+				print_help_message("allowed actions: copy, rename, add");
+		}
 		else /* (i != argc) */
 		{
-			if (strcmp(argv[i], "-o") == MATCH)
+			if (strcmp(argv[i], "-od") == MATCH)
+				args.olddir = argv[++i];
+			else if (strcmp(argv[i], "-o") == MATCH)
 				args.oldfile = argv[++i];
+			else if (strcmp(argv[i], "-nd") == MATCH)
+				args.newdir = argv[++i];
 			else if (strcmp(argv[i], "-n") == MATCH)
 				args.newfile = argv[++i];
 			else if (strcmp(argv[i], "-p") == MATCH)
 				args.patchfile = argv[++i];
-			else if (strcmp(argv[i], "-s") == MATCH)
-				args.strip = atoi(argv[++i]);
 			else
-				print_help_message();
+				print_help_message("unrecognized argument");
 		}
 	}
 
-	if (args.oldfile == NULL || args.newfile == NULL || args.patchfile == NULL)
-		print_help_message();
+	if (args.oldfile == NULL && args.action != FA_ADD)
+		error = "old (source) file is required";
+	else if (args.oldfile != NULL && args.action == FA_ADD)
+		error = "old (source) file cannot be used for add action";
+
+	if (args.newfile == NULL)
+		error = "new (target) file is required";
+	if (args.patchfile == NULL)
+		error = "patch file is required";
+
+	if (error != NULL)
+		print_help_message(error);
 
 	return args;
 }
 
-void print_help_message()
+void print_help_message(const char *error)
 {
-	fprintf(stderr, "bindiff [-u] [-s <num>] -o <oldfile> -n <newfile> -p <patchfile>\n\n");
+	if (error != NULL)
+		fprintf(stderr, "ERROR: %s\n\n", error);
+	fprintf(stderr, "bindiff [-a %s|%s] [-od <olddir>] -o <oldfile> [-nd <newdir>] -n <newfile> -p <patchfile>\n", ACTION_COPY, ACTION_RENAME);
+	fprintf(stderr, "bindiff -a %s [-nd <newdir>] -n <newfile> -p <patchfile>\n\n", ACTION_ADD);
 	fprintf(stderr, "Compares <oldfile> and <newfile>, applying difference to <patchfile>.\n");
-	fprintf(stderr, "\t-u\tUse new name when applying patch\n");
-	fprintf(stderr, "\t-s\tStrip <num> leading path components from file name\n\n");
+	fprintf(stderr, "\t-a\tAction to take when applying patch: %s, %s, %s\n", ACTION_COPY, ACTION_RENAME, ACTION_ADD);
+	fprintf(stderr, "\t-od\tPath to location of old (or source) file\n");
 	fprintf(stderr, "\t-o\tName of old (or source) file\n");
+	fprintf(stderr, "\t-nd\tPath to location of new (or target) file\n");
 	fprintf(stderr, "\t-n\tName of new (or target) file\n");
 	fprintf(stderr, "\t-p\tName of patchfile\n");
 	exit(HELPMSG);

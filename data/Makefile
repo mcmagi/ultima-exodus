@@ -11,8 +11,8 @@ package: package_u2 package_u3 package_u5
 package_u2: ${U2PKG}
 	echo "Packaging Data for U2"
 	cp -f ${DATA}/u2gfx/* ${U2PKG}
-	cp -f ${DATA}/u2tlk/* ${U2PKG}
-	cp -f ${DATA}/u2gal/* ${U2PKG}
+	#cp -f ${DATA}/u2tlk/* ${U2PKG}
+	#cp -f ${DATA}/u2gal/* ${U2PKG}
 
 package_u3: ${U3PKG}
 	echo "Packaging Data for U3"

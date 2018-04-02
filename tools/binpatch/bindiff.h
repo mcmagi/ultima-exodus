@@ -6,22 +6,28 @@
 #include	"File.h"
 
 
+#define		ACTION_COPY		"copy"
+#define		ACTION_RENAME	"rename"
+#define		ACTION_ADD		"add"
+
 #define HELPMSG	1
 
 /* argument structure */
 typedef struct
 {
+	char *olddir;
 	char *oldfile;
+	char *newdir;
 	char *newfile;
 	char *patchfile;
-	BOOL usenew;
+	int action;
     int strip;
 } PatchArgs;
 
 
 /* Function Prototypes */
 PatchArgs get_args(int argc, char *argv[]);
-void print_help_message();
+void print_help_message(const char *error);
 
 
 #endif

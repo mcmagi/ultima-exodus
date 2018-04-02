@@ -109,9 +109,10 @@ U5ORIGINAL=${ROOT}/game/u5orig
 U2UPGRADE=${ROOT}/game/u2up
 U3UPGRADE=${ROOT}/game/u3up
 U5UPGRADE=${ROOT}/game/u5up
+U2GOG=${ROOT}/game/u2orig.gog
 
 # upgrade package versions
-U2VER=1.1
+U2VER=1.2
 U3VER=3.3
 U5VER=1.0
 

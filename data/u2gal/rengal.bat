@@ -2,49 +2,49 @@
 
 
 echo Renaming all MAP files...
-if not exist mapg44 ren mapx44 mapg44
-if not exist mapg50 ren mapx50 mapg50
-if not exist mapg60 ren mapx60 mapg60
-if not exist mapg61 ren mapx61 mapg61
-if not exist mapg70 ren mapx70 mapg70
-if not exist mapg71 ren mapx71 mapg71
-if not exist mapg80 ren mapx80 mapg80
-if not exist mapg81 ren mapx81 mapg81
-if not exist mapg82 ren mapx82 mapg82
-if not exist mapg85 ren mapx85 mapg85
-if not exist mapg90 ren mapx90 mapg90
-if not exist mapg92 ren mapx92 mapg92
-if not exist mapg93 ren mapx93 mapg93
+if not exist MAPG44 ren MAPX44 MAPG44
+if not exist MAPG50 ren MAPX50 MAPG50
+if not exist MAPG60 ren MAPX60 MAPG60
+if not exist MAPG61 ren MAPX61 MAPG61
+if not exist MAPG70 ren MAPX70 MAPG70
+if not exist MAPG71 ren MAPX71 MAPG71
+if not exist MAPG80 ren MAPX80 MAPG80
+if not exist MAPG81 ren MAPX81 MAPG81
+if not exist MAPG82 ren MAPX82 MAPG82
+if not exist MAPG85 ren MAPX85 MAPG85
+if not exist MAPG90 ren MAPX90 MAPG90
+if not exist MAPG92 ren MAPX92 MAPG92
+if not exist MAPG93 ren MAPX93 MAPG93
 
 echo Renaming all MON files...
-if not exist mong44 ren monx44 mong44
-if not exist mong50 ren monx50 mong50
-if not exist mong60 ren monx60 mong60
-if not exist mong61 ren monx61 mong61
-if not exist mong70 ren monx70 mong70
-if not exist mong71 ren monx71 mong71
-if not exist mong80 ren monx80 mong80
-if not exist mong81 ren monx81 mong81
-if not exist mong82 ren monx82 mong82
-if not exist mong85 ren monx85 mong85
-if not exist mong90 ren monx90 mong90
-if not exist mong92 ren monx92 mong92
-if not exist mong93 ren monx93 mong93
+if not exist MONG44 ren MONX44 MONG44
+if not exist MONG50 ren MONX50 MONG50
+if not exist MONG60 ren MONX60 MONG60
+if not exist MONG61 ren MONX61 MONG61
+if not exist MONG70 ren MONX70 MONG70
+if not exist MONG71 ren MONX71 MONG71
+if not exist MONG80 ren MONX80 MONG80
+if not exist MONG81 ren MONX81 MONG81
+if not exist MONG82 ren MONX82 MONG82
+if not exist MONG85 ren MONX85 MONG85
+if not exist MONG90 ren MONX90 MONG90
+if not exist MONG92 ren MONX92 MONG92
+if not exist MONG93 ren MONX93 MONG93
 
 echo Creating additional MON files...
-if not exist mong10 copy mong20 mong10 /y
-if not exist mong15 copy mong20 mong15 /y
-if not exist mong30 copy mong20 mong30 /y
-if not exist mong40 copy mong20 mong40 /y
-if not exist mong45 copy mong20 mong45 /y
+if not exist MONG10 copy MONG20 MONG10 /y
+if not exist MONG15 copy MONG20 MONG15 /y
+if not exist MONG30 copy MONG20 MONG30 /y
+if not exist MONG40 copy MONG20 MONG40 /y
+if not exist MONG45 copy MONG20 MONG45 /y
 
 echo Deleting unneeded TLK files...
-if exist tlkx61 del tlkx61
-if exist tlkx71 del tlkx71
-if exist tlkx81 del tlkx81
-if exist tlkx82 del tlkx82
-if exist tlkx92 del tlkx92
-if exist tlkx93 del tlkx93
+if exist TLKX61 del TLKX61
+if exist TLKX71 del TLKX71
+if exist TLKX81 del TLKX81
+if exist TLKX82 del TLKX82
+if exist TLKX92 del TLKX92
+if exist TLKX93 del TLKX93
 
 
 echo Galaxy Maps applied

@@ -69,6 +69,7 @@ ${U2PKG}:
 			make -C "$$i" package_u2; \
 		fi \
 	done
+	make -C "${TOOLS}" gen_config_u2
 
 ${U3PKG}:
 	### packaging U3 Upgrade files

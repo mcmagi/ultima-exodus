@@ -1,8 +1,8 @@
 /* File.c */
 
 #include	<stdio.h>		/* FILE, fprintf, perror, fopen, fread, fwrite,
-							 * fseek, rewind, ftell, fclose, feof, fileno
-							 * freopen */
+							 * fseek, rewind, ftell, fclose, feof, fileno,
+							 * freopen, rename */
 #include	<unistd.h>		/* ftruncate */
 #include	<stdlib.h>		/* exit */
 #include	<sys/stat.h>	/* stat */
@@ -151,6 +151,18 @@ void copy_file_n(File *infile, File *outfile, off_t start, size_t size)
 	free(data);
 }
 
+void rename_file(File *infile, File *outfile)
+{
+	if (rename(infile->filename, outfile->filename) != SUCCESS)
+		file_error(infile, "Could not rename file");
+}
+
+void delete_file(File *file)
+{
+	if (remove(file->filename) != SUCCESS)
+		file_error(file, "Could not delete file");
+}
+
 long file_size(File *file)
 {
 	long offset;
@@ -216,26 +228,23 @@ void file_error(const File *file, const char *text)
 }
 
 /* concatenates two path elements */
-const char * concat_path(const char *path1, const char *path2)
+void concat_path(char *fullpath, const char *path1, const char *path2)
 {
-    static char filename[BUFSIZ];
     int i = 0;
 
     if (path1 != NULL && strlen(path1) > 0)
     {
-        strcpy(filename, path1);
+        strcpy(fullpath, path1);
         i = strlen(path1);
 
         /* insert directory separator if both paths are specified */
         if (path2 != NULL && strlen(path2) > 0)
         {
-            if (filename[i] != '/' || filename[i] != '\\')
-                filename[i++] = '/';
+            if (fullpath[i] != '/' || fullpath[i] != '\\')
+                fullpath[i++] = '/';
         }
     }
 
     if (path2 != NULL && strlen(path2) > 0)
-        strcpy(&filename[i], path2);
-
-    return filename;
+        strcpy(&fullpath[i], path2);
 }
