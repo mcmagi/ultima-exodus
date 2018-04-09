@@ -46,6 +46,7 @@ SET_TEXT_DISPLAY_MODE:
 	pop ax
 	ret
 
+
 SET_GRAPHIC_DISPLAY_MODE:
 	push ax
 	push bx
@@ -65,6 +66,7 @@ SET_GRAPHIC_DISPLAY_MODE:
 	mov ah,0x0b
 	mov bh,0x01
 	mov bl,0x01
+	int 0x10
 
 	; set graphic mode = 1 = graphic
 	mov byte ptr [GRAPHIC_MODE],0x01
