@@ -14,5 +14,5 @@ clean:
 
 package: package_u2
 
-package_u3:
+package_u2:
 	cp -f ${U2BIN}/ega.drv ${U2PKG}

@@ -1,15 +1,18 @@
 ROOT=../..
 include ${ROOT}/Makefile.include
 
+DEPS=core.asm interrupts.asm timer.asm vector.asm ../common/loadfile.asm \
+    ../common/strcpy.asm
+
 compile: ${U2BIN}/ultima2.com ${U3BIN}/ultima3.com ${U5BIN}/ultima5.com
 
-${U2BIN}/ultima2.com: ultima2.asm | ${U2BIN}
+${U2BIN}/ultima2.com: ultima2.asm ${DEPS} | ${U2BIN}
 	${ASM} ultima2.asm ${U2BIN}/ultima2.com
 
-${U3BIN}/ultima3.com: ultima3.asm ../common/loadfile.asm ../common/strcpy.asm | ${U3BIN}
+${U3BIN}/ultima3.com: ultima3.asm ${DEPS} | ${U3BIN}
 	${ASM} ultima3.asm ${U3BIN}/ultima3.com
 
-${U5BIN}/ultima5.com: ultima5.asm ${VIDDEPS} | ${U5BIN}
+${U5BIN}/ultima5.com: ultima5.asm | ${U5BIN}
 	${ASM} ultima5.asm ${U5BIN}/ultima5.com
 
 clean:
