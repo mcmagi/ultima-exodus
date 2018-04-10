@@ -1,5 +1,5 @@
 # directories
-DIRS = color launcher u3drv u5drv u3mod test
+DIRS = color launcher u2drv u3drv u5drv u3mod test
 
 
 %: FORCE
@@ -11,6 +11,7 @@ DIRS = color launcher u3drv u5drv u3mod test
 
 package_u2: FORCE
 	make -C launcher $@
+	make -C u2drv $@
 
 package_u3: FORCE
 	make -C launcher $@

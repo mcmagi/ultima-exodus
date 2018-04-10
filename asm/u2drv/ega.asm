@@ -7,6 +7,11 @@
 ; be unpacked to one pixel per byte before outputting to the video buffer at 
 ; segment address A000.
 
+; ===== start jumps into code here =====
+include 'vidjmp.asm'
+
+
+; ===== data here =====
 
 INTRO_FILE      db      "PICDRA-E",0
 DEMO1_FILE      db      "PICOUT-E",0
@@ -15,59 +20,49 @@ DEMO3_FILE      db      "PICCAS-E",0
 DEMO4_FILE      db      "PICDNG-E",0
 DEMO5_FILE      db      "PICSPA-E",0
 DEMO6_FILE      db      "PICMIN-E",0
-TILESET         db      "EGATILES",0
+TILESET_FILE    db      "EGATILES",0
 VIDEO_SEGMENT   dw      0xa000
+DRIVER_INIT		db		0
 TILESET_ADDR	dd		0
 GRAPHIC_MODE	db		0
+
+
+; ===== video driver functions here =====
+
+INIT_DRIVER:
+	cmp [DRIVER_INIT],0x01
+	jz INIT_DRIVER_DONE
+
+	call SET_VGA_VIDEO_MODE
+
+	call LOAD_TILESET_FILE
+
+  INIT_DRIVER_DONE:
+	mov [DRIVER_INIT],0x01
+	ret
+
+
+CLOSE_DRIVER:
+	push bx
+
+	; free tileset
+	lea bx,[TILESET_ADDR]
+	call FREE_GRAPHIC_FILE
+
+	pop bx
+	ret
+
 
 ; TODO:
 ; intro/demo files are loaded directly to video buffer in game code
 
 
 SET_TEXT_DISPLAY_MODE:
-	push ax
-
 	call SET_VGA_VIDEO_MODE
-
-	; set coordinates to upper-left corner
-	mov byte ptr [es:0x002f],0x00		; text cursor y position
-	mov byte ptr [es:0x002e],0x00		; text cursor x position
-
-	call RESET_CURSOR_POSITION
-
-	; set default width to 28 characters
-	mov byte ptr [es:0x0031],0x28		; text mode width
-
-	; set display mode = 0 = text
-	mov byte ptr [GRAPHIC_MODE],0x00
-
-	call SET_TEXT_COLOR
-
-	pop ax
 	ret
 
 SET_GRAPHIC_DISPLAY_MODE:
-	push ax
-	push bx
-
 	call SET_VGA_VIDEO_MODE
-
-	; set graphic mode = 1 = graphic
-	mov byte ptr [GRAPHIC_MODE],0x01
-
-	call SET_TEXT_COLOR
-
-	mov bx,0x00fe
-	mov bx,0xffff
-  SET_GRAPHIC_DISPLAY_MODE_LOOP:
-	; set something??? to 0xffff
-	mov [bx+0x0272],ax
-	mov [bx+0x0372],ax
-	sub bx,0x02
-	jns SET_GRAPHIC_DISPLAY_MODE_LOOP
-
-	pop bx
-	pop ax
 	ret
 
 
@@ -130,7 +125,8 @@ ROTATE_TILE:
 	pushf
 	push ax
 	push cx
-	push di
+	push si
+	push ds
 
 	; ds:si => tile in shapes file
 	call GET_TILE_ADDRESS
@@ -163,12 +159,13 @@ ROTATE_TILE:
 	mov cx,0x0004
   ROTATE_TILE_LAST_ROW:
 	; pop first row off of stack into last row
-	pop [si]
+	popw [si]
 	dec si
 	dec si
 	loop ROTATE_TILE_LAST_ROW
 
-	pop di
+	pop ds
+	pop si
 	pop cx
 	pop ax
 	popf
@@ -194,7 +191,7 @@ INVERT_GAME_SCREEN:
 	xor [es:bx],ax
 	; advance by 2 vga pixels
 	add bx,0x02
-	cmp bx,0xc8000
+	cmp bx,0xc800
 	jnz INVERT_GAME_SCREEN_LOOP
 
 	pop es
@@ -223,7 +220,7 @@ CLEAR_GAME_SCREEN:
 	mov [es:bx],ax
 	; advance by 2 vga pixels
 	add bx,0x02
-	cmp bx,0xc8000
+	cmp bx,0xc800
 	jnz CLEAR_GAME_SCREEN_LOOP
 
 	pop es
@@ -232,11 +229,67 @@ CLEAR_GAME_SCREEN:
 	popf
 	ret
 
+
 WRITE_PIXEL:
+	; parameters:
+	;  ax = pixel column number (x coordinate)
+	;  bx = pixel row number (y coordinate)
+	;  cl = pixel value
 
-CLEAR_PIXEL:
+	pushf
+	push ax
+	push di
+	push es
 
-WRITE_COLORED_PIXEL:
+	; di = y * 320 +x
+	mov di,ax
+	mov ax,0x0140
+	mul bx
+	add di,ax
+
+	mov es,[VIDEO_SEGMENT]
+
+	; 'or' pixel to es:di
+	mov al,cl
+	or [es:di],al		; TODO: CGA was or, EGA used mov; which is better?
+
+	pop es
+	pop di
+	pop ax
+	popf
+	ret
+
+
+CLEAR__PIXEL:
+	; parameters:
+	;  ax = pixel column number (x coordinate)
+	;  bx = pixel row number (y coordinate)
+	;  cl = pixel value
+
+	pushf
+	push ax
+	push di
+	push es
+
+	; di = y * 320 +x
+	mov di,ax
+	mov ax,0x0140
+	mul bx
+	add di,ax
+
+	mov es,[VIDEO_SEGMENT]
+
+	; toggle pixel, 'and' pixel to es:di
+	mov al,cl
+	xor al,0xff
+	and [es:di],al		; TODO: CGA was and, EGA used mov 00; which is better?
+
+	pop es
+	pop di
+	pop ax
+	popf
+	ret
+
 
 ; TODO: change where this is called so that params are passed properly
 INVERT_TILE:
@@ -264,7 +317,7 @@ INVERT_TILE:
 	mov dh,0x08
   INVERT_TILE_COLUMN:
 	mov al,[si]
-	call UNPACK_EGA_DATA
+	call UNPACK_VIDEO_DATA
 	xor [es:di],ax
 	inc si
 	inc di
@@ -297,7 +350,7 @@ GET_TILE_ADDRESS:
 	push cx
 
 	; ds:si => shapes file
-	lea bx,[SHAPES_ADDR]
+	lea bx,[TILESET_ADDR]
 	mov si,[bx]
 	mov ax,[bx+0x02]
 	mov ds,ax
@@ -389,10 +442,32 @@ SET_VGA_VIDEO_MODE:
 	mov [es:bx],al
 	inc bx
 	cmp bh,0xfa
-	jnz SET_VGA_VIDE_MODE_CLEAR_PIXEL
+	jnz SET_VGA_VIDEO_MODE_CLEAR_PIXEL
 
 	pop es
 	pop bx
 	pop ax
 	popf
 	ret
+
+
+; ===== file handling functions here =====
+
+LOAD_TILESET_FILE:
+    push bx
+    push dx
+
+    lea dx,[TILESET_FILE]
+    lea bx,[TILESET_ADDR]
+    call LOAD_GRAPHIC_FILE
+
+    pop dx
+    pop bx
+    ret
+
+
+include '../common/vidfile.asm'
+
+
+; ===== far functions here (jumped to from above) =====
+include 'vidfar.asm'
