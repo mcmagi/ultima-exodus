@@ -63,22 +63,23 @@ SET_GRAPHIC_DISPLAY_MODE:
 
 DRAW_TILE:
 	; parameters:
-	;  ax = tile column number (x coordinate)
-	;  bx = tile row number (y coordinate)
+	;  ax = pixel x coordinate of tile
+	;  bx = pixel y coordinate of tile
 	;  cx = tile number (multiple of 4)
 
 	pushf
+	push ax
 	push dx
 	push di
 	push si
 	push es
 
+	; es:di => offset to x,y in video segment
+	mov es,[VIDEO_SEGMENT]
+	call GET_VIDEO_OFFSET
+
 	; ds:si => tile in shapes file
 	call GET_TILE_ADDRESS
-
-	; es:di => row+col in video segment
-	mov es,[VIDEO_SEGMENT]
-	call GET_TILE_VIDEO_OFFSET
 
     ; prepare to write 0x10 (16) rows
 	mov dh,0x10
@@ -103,6 +104,7 @@ DRAW_TILE:
 	pop si
 	pop di
 	pop dx
+	pop ax
 	popf
 	ret
 
@@ -231,13 +233,9 @@ WRITE_PIXEL:
 	push di
 	push es
 
-	; di = y * 320 +x
-	mov di,ax
-	mov ax,0x0140
-	mul bx
-	add di,ax
-
+	; es:di => offset to x,y in video segment
 	mov es,[VIDEO_SEGMENT]
+	call GET_VIDEO_OFFSET
 
 	; 'or' pixel to es:di
 	mov al,cl
@@ -261,13 +259,9 @@ CLEAR_PIXEL:
 	push di
 	push es
 
-	; di = y * 320 +x
-	mov di,ax
-	mov ax,0x0140
-	mul bx
-	add di,ax
-
+	; es:di => offset to x,y in video segment
 	mov es,[VIDEO_SEGMENT]
+	call GET_VIDEO_OFFSET
 
 	; toggle pixel, 'and' pixel to es:di
 	mov al,cl
@@ -284,8 +278,8 @@ CLEAR_PIXEL:
 ; TODO: change where this is called so that params are passed properly
 INVERT_TILE:
 	; parameters:
-	;  ax = tile column number (x coordinate)
-	;  bx = tile row number (y coordinate)
+	;  ax = pixel x coordinate of tile
+	;  bx = pixel y coordinate of tile
 	;  cx = tile number (multiple of 4)
 
 	pushf
@@ -295,12 +289,12 @@ INVERT_TILE:
 	push si
 	push es
 
+	; es:di => offset to x,y in video segment
+	mov es,[VIDEO_SEGMENT]
+	call GET_VIDEO_OFFSET
+
 	; ds:si => tile in shapes file
 	call GET_TILE_ADDRESS
-
-	; es:di => row+col in video segment
-	mov es,[VIDEO_SEGMENT]
-	call GET_TILE_VIDEO_OFFSET
 
 	mov dl,0x10
   INVERT_TILE_ROW:
@@ -357,31 +351,25 @@ GET_TILE_ADDRESS:
 	ret
 
 
-; Calculates the offset to the tile row+col in the video segment
-GET_TILE_VIDEO_OFFSET:
+; Calculates the offset to the pixel row+col in the video segment
+GET_VIDEO_OFFSET:
 	; parameters:
-	;  ax = tile column number (x coordinate)
-	;  bx = tile row number (y coordinate)
+	;  ax = pixel x coordinate of tile
+	;  bx = pixel y coordinate of tile
 	; returns:
 	;  di = video offset
 
 	pushf
 	push ax
-	push bx
 	push dx
 
-	xchg bx,ax
-	mov dl,0x10
-	mul dl				; ax = tile row # * 16 rows per tile
-	mov dx,0x0140
-	mul dx				; ax = pixel row # * 320 pixels/row
+	; di = y * 320 + x
 	mov di,ax
-	mov ax,0x0010
-	mul bx				; ax = tile col * 16 cols per tile
-	add di,ax			; ax += col
-
+	mov ax,0x0140
+	mul bx
+	add di,ax
+	
 	pop dx
-	pop bx
 	pop ax
 	popf
 	ret
