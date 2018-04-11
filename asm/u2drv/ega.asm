@@ -332,7 +332,7 @@ GET_TILE_ADDRESS:
 	; parameters:
 	;  cx = tile number (multiple of 4)
 	; returns:
-	;  es:di => tile address in shapes file
+	;  ds:si => tile address in shapes file
 
 	pushf
 	push ax
@@ -354,6 +354,7 @@ GET_TILE_ADDRESS:
 	pop bx
 	pop ax
 	popf
+	ret
 
 
 ; Calculates the offset to the tile row+col in the video segment
@@ -364,6 +365,7 @@ GET_TILE_VIDEO_OFFSET:
 	; returns:
 	;  di = video offset
 
+	pushf
 	push ax
 	push bx
 	push dx
@@ -389,9 +391,10 @@ GET_TILE_VIDEO_OFFSET:
 ; the current video mode (13h) is 8bpp, thus 1 pixel/byte
 ; we must move the upper nybble to the high-order byte
 UNPACK_VIDEO_DATA:
-    ; parameters
-    ; al = packed (ega) video data
-    ; returns ax = unpacked (vga) video data
+    ; parameters:
+    ;  al = packed (ega) video data
+    ; returns:
+	;  ax = unpacked (vga) video data
 
     mov ah,al       ; get copy of data
     and ah,0x0f     ; clear upper nybble of ah
