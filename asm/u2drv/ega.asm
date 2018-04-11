@@ -33,8 +33,6 @@ INIT_DRIVER:
 	cmp [DRIVER_INIT],0x01
 	jz INIT_DRIVER_DONE
 
-	call SET_VGA_VIDEO_MODE
-
 	call LOAD_TILESET_FILE
 
   INIT_DRIVER_DONE:
@@ -53,20 +51,16 @@ CLOSE_DRIVER:
 	ret
 
 
-; TODO:
-; intro/demo files are loaded directly to video buffer in game code
-
-
 SET_TEXT_DISPLAY_MODE:
 	call SET_VGA_VIDEO_MODE
 	ret
+
 
 SET_GRAPHIC_DISPLAY_MODE:
 	call SET_VGA_VIDEO_MODE
 	ret
 
 
-; TODO: change where this is called so that params are passed properly
 DRAW_TILE:
 	; parameters:
 	;  ax = tile column number (x coordinate)
@@ -112,10 +106,6 @@ DRAW_TILE:
 	popf
 	ret
 
-
-ANIMATE_WATER:
-
-ANIMATE_FORCEFIELD:
 
 ; TODO: change where this is called so that params are passed properly
 ROTATE_TILE:
@@ -260,7 +250,7 @@ WRITE_PIXEL:
 	ret
 
 
-CLEAR__PIXEL:
+CLEAR_PIXEL:
 	; parameters:
 	;  ax = pixel column number (x coordinate)
 	;  bx = pixel row number (y coordinate)
@@ -438,6 +428,8 @@ SET_VGA_VIDEO_MODE:
 	mov es,[VIDEO_SEGMENT]
 	xor bx,bx
 
+	; blacks out screen
+	mov al,0x00
   SET_VGA_VIDEO_MODE_CLEAR_PIXEL:
 	mov [es:bx],al
 	inc bx
@@ -449,6 +441,10 @@ SET_VGA_VIDEO_MODE:
 	pop ax
 	popf
 	ret
+
+
+; TODO:
+; intro/demo files are loaded directly to video buffer in game code
 
 
 ; ===== file handling functions here =====
