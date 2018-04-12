@@ -109,7 +109,6 @@ DRAW_TILE:
 	ret
 
 
-; TODO: change where this is called so that params are passed properly
 ROTATE_TILE:
 	; parameters:
 	;  cx = tile number (multiple of 4)
@@ -124,7 +123,7 @@ ROTATE_TILE:
 	call GET_TILE_ADDRESS
 
 	; set cx = 4 words (length of one row)
-	mov cx,0x004
+	mov cx,0x0004
   ROTATE_TILE_FIRST_ROW:
 	; push first row onto stack
 	lodsw
@@ -141,11 +140,11 @@ ROTATE_TILE:
 	mov ax,[si+0x08]
 	mov [si],ax
 	; advance to next word
-	add si,0x02
+	add si,0x0002
 	loop ROTATE_TILE_ROW
 
 	; move to end of tile
-	add si,0x06
+	add si,0x0006
 
 	; set cx = 4 words (length of one row)
 	mov cx,0x0004
