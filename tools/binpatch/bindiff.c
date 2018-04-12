@@ -29,7 +29,6 @@ int main(int argc, char *argv[])
 	{
 		open_file(patch, APPEND_MODE);
 
-		printf("Found existing file - verifying\n");
 		verify_patch_header(patch);
 
 		/* seek to end of file */
