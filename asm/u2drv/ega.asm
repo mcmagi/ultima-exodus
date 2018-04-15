@@ -238,7 +238,7 @@ WRITE_PIXEL:
 
 	; 'or' pixel to es:di
 	mov al,cl
-	or [es:di],al		; TODO: CGA was or, EGA used mov; which is better?
+	mov [es:di],al		; TODO: CGA was or, EGA used mov; which is better?
 
 	pop es
 	pop di
@@ -263,9 +263,8 @@ CLEAR_PIXEL:
 	call GET_VIDEO_OFFSET
 
 	; toggle pixel, 'and' pixel to es:di
-	mov al,cl
-	xor al,0xff
-	and [es:di],al		; TODO: CGA was and, EGA used mov 00; which is better?
+	mov al,0x00
+	mov [es:di],al		; TODO: CGA was and, EGA used mov 00; which is better?
 
 	pop es
 	pop di
