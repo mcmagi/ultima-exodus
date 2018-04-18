@@ -24,7 +24,6 @@ TILESET_FILE    db      "EGATILES",0
 VIDEO_SEGMENT   dw      0xa000
 DRIVER_INIT		db		0
 TILESET_ADDR	dd		0
-GRAPHIC_MODE	db		0
 
 
 ; ===== video driver functions here =====
@@ -195,7 +194,8 @@ INVERT_GAME_SCREEN:
 CLEAR_GAME_SCREEN:
 	pushf
 	push ax
-	push bx
+	push cx
+	push di
 	push es
 
 	; set video segment
@@ -204,18 +204,15 @@ CLEAR_GAME_SCREEN:
 	; set data = 0 (row of 2 black vga pixels)
 	mov ax,0x0000
 
-	; initial offset
-	mov bx,0x0000
-  CLEAR_GAME_SCREEN_LOOP:
 	; write black pixels to screen
-	mov [es:bx],ax
-	; advance by 2 vga pixels
-	add bx,0x02
-	cmp bx,0xc800
-	jnz CLEAR_GAME_SCREEN_LOOP
+	mov di,0x0000
+	mov cx,0x7d00
+	rep
+	stosw
 
 	pop es
-	pop bx
+	pop di
+	pop cx
 	pop ax
 	popf
 	ret
@@ -273,7 +270,6 @@ CLEAR_PIXEL:
 	ret
 
 
-; TODO: change where this is called so that params are passed properly
 INVERT_TILE:
 	; parameters:
 	;  ax = pixel x coordinate of tile
