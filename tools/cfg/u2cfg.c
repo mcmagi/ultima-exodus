@@ -40,7 +40,7 @@ int main(int argc, const char *argv[])
 				{
 					sub_option = video_menu(cfg.video);
 				}
-				while ((sub_option < VIDEO_CGA_OPT || sub_option > VIDEO_EGA_OPT) && sub_option != MAIN_MENU_OPT);
+				while (sub_option != VIDEO_CGA_OPT && sub_option != VIDEO_EGA_OPT && sub_option != MAIN_MENU_OPT);
 
 				if (sub_option != MAIN_MENU_OPT)
 					cfg.video = sub_option - 1;

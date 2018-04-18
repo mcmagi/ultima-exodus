@@ -18,9 +18,9 @@
 
 /* video menu options */
 #define VIDEO_CGA_OPT           1
-#define VIDEO_CGA_COMP_OPT      0
-#define VIDEO_EGA_OPT           2
-#define VIDEO_VGA_OPT           0
+#define VIDEO_CGA_COMP_OPT      2
+#define VIDEO_EGA_OPT           3
+#define VIDEO_VGA_OPT           4
 
 /* filename */
 #define	CFG				"U2.CFG"
