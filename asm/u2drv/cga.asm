@@ -133,6 +133,56 @@ DRAW_TILE:
 
 
 ROTATE_TILE:
+	; parameters:
+	;  cx = tile number (multiple of 4)
+
+	pushf
+	push ax
+	push cx
+	push si
+	push ds
+
+	; ds:si => tile in shapes file
+	call GET_TILE_ADDRESS
+
+	; set cx = 2 words (length of one row)
+	mov cx,0x0002
+  ROTATE_TILE_FIRST_ROW:
+	; push first row onto stack
+	lodsw
+	push ax
+	loop ROTATE_TILE_FIRST_ROW
+
+	; move si back to start of tile
+	sub si,0x0004
+
+	; set cx = 30 words (2 words/row, 15 rows)
+	mov cx,0x001e
+  ROTATE_TILE_ROW:
+	; fetch next row, store it into this row
+	mov ax,[si+0x04]
+	mov [si],ax
+	; advance to next word
+	add si,0x0002
+	loop ROTATE_TILE_ROW
+
+	; move to end of tile
+	add si,0x0002
+
+	; set cx = 2 words (length of one row)
+	mov cx,0x0002
+  ROTATE_TILE_LAST_ROW:
+	; pop first row off of stack into last row
+	popw [si]
+	dec si
+	dec si
+	loop ROTATE_TILE_LAST_ROW
+
+	pop ds
+	pop si
+	pop cx
+	pop ax
+	popf
 	ret
 
 
