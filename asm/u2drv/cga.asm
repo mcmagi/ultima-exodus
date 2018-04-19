@@ -22,7 +22,7 @@ DEMO6_FILE      db      "PICMIN",0
 TILESET_FILE    db      "CGATILES",0
 VIDEO_SEGMENT   dw      0xb800
 DRIVER_INIT		db		0
-TILESET_ADDR	db		0
+TILESET_ADDR	dd		0
 
 
 ; ===== video driver functions here =====
@@ -94,6 +94,7 @@ DRAW_TILE:
 
 	pushf
 	push ax
+	push bx
 	push dx
 	push di
 	push si
@@ -116,6 +117,7 @@ DRAW_TILE:
 	movsw
 	movsw
 
+	inc bx		; advance to next row
 	dec dl
 	jnz DRAW_TILE_LOOP
 
@@ -124,6 +126,7 @@ DRAW_TILE:
 	pop si
 	pop di
 	pop dx
+	pop bx
 	pop ax
 	popf
 	ret
@@ -217,7 +220,7 @@ GET_TILE_ADDRESS:
 	mov ax,[bx+0x02]
 	mov ds,ax
 
-	; si = compute offset to EGA tile in shapes file
+	; si = compute offset to CGA tile in shapes file
 	mov al,0x20
 	mul cl				; ax = tile num * 128 bytes/tile (4 * 32)
 	add si,ax
@@ -256,9 +259,11 @@ GET_CGA_OFFSET:
 
   GET_CGA_OFFSET_FIRST_PAGE:
     ; calculate offset to row
-    mov al,0x50             ; size of CGA row = 0x50
+	push ax
+    mov al,0x50             ; size of CGA row = 80 bytes
     mul bl                  ; get row offset w/i page
     add di,ax               ; di => row offset within video buffer
+	pop ax
 
     ; get dh = number of bits into byte
     mov dh,bl
