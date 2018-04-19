@@ -181,7 +181,7 @@ INVERT_GAME_SCREEN:
 	xor [es:bx],ax
 	; advance by 2 vga pixels
 	add bx,0x02
-	cmp bx,0xc800
+	cmp bx,0xc800			; 320x160 pixels
 	jnz INVERT_GAME_SCREEN_LOOP
 
 	pop es
@@ -206,7 +206,7 @@ CLEAR_GAME_SCREEN:
 
 	; write black pixels to screen
 	mov di,0x0000
-	mov cx,0x7d00
+	mov cx,0x6400			; 320x160 pixels / 2 pixels/word
 	rep
 	stosw
 

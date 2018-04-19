@@ -187,34 +187,78 @@ ROTATE_TILE:
 
 
 INVERT_GAME_SCREEN:
+	push ax
+	push es
+
+	; set video segment = first page
+	mov ax,[VIDEO_SEGMENT]
+	mov es,ax
+	call INVERT_GAME_SCREEN_PAGE
+
+	; set video segment = second page
+	add ax,0x0200
+	mov es,ax
+	call INVERT_GAME_SCREEN_PAGE
+
+	pop es
+	pop ax
+	ret
+
+INVERT_GAME_SCREEN_PAGE:
+	pushf
+	push ax
+	push bx
+
+	; set data = row of 4 white pixels
+	mov ax,0xffff
+
+	; initial offset
+	mov bx,0x0000
+  INVERT_GAME_SCREEN_PAGE_LOOP:
+	; invert pixels on screen
+	xor [es:bx],ax
+	; advance by 8 cga pixels
+	add bx,0x02
+	cmp bx,0x1900			; 320x160 pixels / 4 pixels/byte / 2 pages
+	jnz INVERT_GAME_SCREEN_PAGE_LOOP
+
+	pop bx
+	pop ax
+	popf
 	ret
 
 
 CLEAR_GAME_SCREEN:
+	push ax
+	push es
+
+	; set video segment = first page
+	mov ax,[VIDEO_SEGMENT]
+	mov es,ax
+	call CLEAR_GAME_SCREEN_PAGE
+
+	; set video segment = second page
+	add ax,0x0200
+	mov es,ax
+	call CLEAR_GAME_SCREEN_PAGE
+
+	pop es
+	pop ax
+	ret
+
+CLEAR_GAME_SCREEN_PAGE:
 	pushf
 	push ax
 	push cx
 	push di
-	push es
 
-	mov es,[VIDEO_SEGMENT]
-
-	; set data = 0 (row of 8 black vga pixels)
+	; set data = 0 (row of 8 black cga pixels)
 	mov ax,0x0000
-
-	; write black pixels to first page
 	mov di,0x0000
-	mov cx,0x0fa0
+	mov cx,0x0c80			; 320x160 pixels / 8 pixels/word / 2 pages
 	rep
 	stosw
 
-	; write black pixels to second page
-	mov di,0x2000
-	mov cx,0x0fa0
-	rep
-	stosw
-
-	pop es
 	pop di
 	pop cx
 	pop ax
