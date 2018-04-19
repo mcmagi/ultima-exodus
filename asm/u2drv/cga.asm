@@ -95,6 +95,7 @@ DRAW_TILE:
 	pushf
 	push ax
 	push bx
+	push cx
 	push dx
 	push di
 	push si
@@ -106,9 +107,8 @@ DRAW_TILE:
 	; ds:si => tile in shapes file
 	call GET_TILE_ADDRESS
 
-	; dl = 16 rows
-	mov dl,0x10
-
+	; cx = 16 rows
+	mov cx,0x0010
   DRAW_TILE_LOOP:
 	; es:di => offset to x,y in video segment, dh = bit number
 	call GET_CGA_OFFSET
@@ -118,14 +118,14 @@ DRAW_TILE:
 	movsw
 
 	inc bx		; advance to next row
-	dec dl
-	jnz DRAW_TILE_LOOP
+	loop DRAW_TILE_LOOP
 
 	pop es
 	pop ds
 	pop si
 	pop di
 	pop dx
+	pop cx
 	pop bx
 	pop ax
 	popf
@@ -275,26 +275,50 @@ CLEAR_PIXEL:
 
 
 INVERT_TILE:
-	ret ; for now
-	; ax = pixel col #
-	; bx = pixel row #
-	; cx = tile offset
+	; parameters:
+	;  ax = pixel x coordinate of tile
+	;  bx = pixel y coordinate of tile
+	;  cx = tile number (multiple of 4)
 
+	pushf
+	push bx
+	push cx
 	push dx
-	push di
 	push si
+	push di
 	push es
 
-	mov si,cx
+	mov es,[VIDEO_SEGMENT]
 
-	shr ax,1
-	shr ax,1
-	mov di,ax
+	; ds:si => tile in shapes file
+	call GET_TILE_ADDRESS
 
-	shl bx,1
+	; cx = 16 rows
+	mov cx,0x0010
+  INVERT_TILE_LOOP:
+	; es:di => offset to x,y in video segment, dh = bit number
+	call GET_CGA_OFFSET
 
-	mov dl,0x10
-	add si,0x02
+	; xor pixel row (4 bytes) into video segment
+	push ax
+	lodsw
+	xor [es:di],ax
+	lodsw
+	xor [es:di+0x02],ax
+	add di,0x04
+	pop ax
+
+	inc bx		; advance to next row
+	loop INVERT_TILE_LOOP
+
+	pop es
+	pop di
+	pop si
+	pop dx
+	pop cx
+	pop bx
+	popf
+	ret
 
 
 GET_TILE_ADDRESS:

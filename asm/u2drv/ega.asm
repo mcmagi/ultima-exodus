@@ -71,6 +71,7 @@ DRAW_TILE:
 	push dx
 	push di
 	push si
+	push ds
 	push es
 
 	; es:di => offset to x,y in video segment
@@ -100,6 +101,7 @@ DRAW_TILE:
 	jnz DRAW_TILE_ROW_LOOP
 
 	pop es
+	pop ds
 	pop si
 	pop di
 	pop dx
@@ -279,8 +281,9 @@ INVERT_TILE:
 	pushf
 	push ax
 	push dx
-	push di
 	push si
+	push di
+	push ds
 	push es
 
 	; es:di => offset to x,y in video segment
@@ -308,8 +311,9 @@ INVERT_TILE:
 	jnz INVERT_TILE_ROW
 
 	pop es
-	pop si
+	pop ds
 	pop di
+	pop si
 	pop dx
 	pop ax
 	popf
