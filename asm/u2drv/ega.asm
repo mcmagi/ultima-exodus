@@ -78,7 +78,7 @@ DRAW_TILE:
 
 	; es:di => offset to x,y in video segment
 	mov es,[VIDEO_SEGMENT]
-	call GET_VIDEO_OFFSET
+	call GET_VGA_OFFSET
 
 	; ds:si => tile in shapes file
 	call GET_TILE_ADDRESS
@@ -240,7 +240,7 @@ WRITE_PIXEL:
 
 	; es:di => offset to x,y in video segment
 	mov es,[VIDEO_SEGMENT]
-	call GET_VIDEO_OFFSET
+	call GET_VGA_OFFSET
 
 	; write pixel to video buffer
 	mov al,cl
@@ -267,7 +267,7 @@ CLEAR_PIXEL:
 
 	; es:di => offset to x,y in video segment
 	mov es,[VIDEO_SEGMENT]
-	call GET_VIDEO_OFFSET
+	call GET_VGA_OFFSET
 
 	; toggle pixel, 'and' pixel to es:di
 	mov al,0x00
@@ -296,7 +296,7 @@ INVERT_TILE:
 
 	; es:di => offset to x,y in video segment
 	mov es,[VIDEO_SEGMENT]
-	call GET_VIDEO_OFFSET
+	call GET_VGA_OFFSET
 
 	; ds:si => tile in shapes file
 	call GET_TILE_ADDRESS
@@ -323,35 +323,6 @@ INVERT_TILE:
 	pop di
 	pop si
 	pop dx
-	pop ax
-	popf
-	ret
-
-
-GET_TILE_ADDRESS:
-	; parameters:
-	;  cx = tile number (multiple of 4)
-	; returns:
-	;  ds:si => tile address in shapes file
-
-	pushf
-	push ax
-	push bx
-	push cx
-
-	; ds:si => shapes file
-	lea bx,[TILESET_ADDR]
-	mov si,[bx]
-	mov ax,[bx+0x02]
-	mov ds,ax
-
-	; si = compute offset to EGA tile in shapes file
-	mov al,0x40
-	mul cl				; ax = tile num * 256 bytes/tile (4 * 64)
-	add si,ax
-
-	pop cx
-	pop bx
 	pop ax
 	popf
 	ret
@@ -505,8 +476,37 @@ WRITE_HELM_BLOCK:
 	ret
 
 
+GET_TILE_ADDRESS:
+	; parameters:
+	;  cx = tile number (multiple of 4)
+	; returns:
+	;  ds:si => tile address in shapes file
+
+	pushf
+	push ax
+	push bx
+	push cx
+
+	; ds:si => shapes file
+	lea bx,[TILESET_ADDR]
+	mov si,[bx]
+	mov ax,[bx+0x02]
+	mov ds,ax
+
+	; si = compute offset to EGA tile in shapes file
+	mov al,0x40
+	mul cl				; ax = tile num * 256 bytes/tile (4 * 64)
+	add si,ax
+
+	pop cx
+	pop bx
+	pop ax
+	popf
+	ret
+
+
 ; Calculates the offset to the pixel row+col in the video segment
-GET_VIDEO_OFFSET:
+GET_VGA_OFFSET:
 	; parameters:
 	;  ax = pixel x coordinate of tile
 	;  bx = pixel y coordinate of tile
