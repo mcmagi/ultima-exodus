@@ -23,6 +23,8 @@ TILESET_FILE    db      "CGATILES",0
 VIDEO_SEGMENT   dw      0xb800
 DRIVER_INIT		db		0
 TILESET_ADDR	dd		0
+PIXEL_X_OFFSET	dw		0x0010
+PIXEL_Y_OFFSET	dw		0x0010
 
 
 ; ===== video driver functions here =====
@@ -267,6 +269,41 @@ CLEAR_GAME_SCREEN_PAGE:
 
 
 WRITE_PIXEL:
+	; parameters:
+	;  ax = pixel column number (x coordinate)
+	;  bx = pixel row number (y coordinate)
+
+	pushf
+	push ax
+	push bx
+	push cx
+	push dx
+	push di
+	push es
+
+	; offset by display origin
+	add ax,[PIXEL_X_OFFSET]
+	add bx,[PIXEL_Y_OFFSET]
+
+	; es:di => offset to x,y in video segment, dh = bit number
+	mov es,[VIDEO_SEGMENT]
+	call GET_CGA_OFFSET
+
+	; position pixel within byte
+	mov cl,dh
+	mov al,0x03
+	shl al,cl
+
+	; 'or' pixel into video buffer
+	or [es:di],al
+
+	pop es
+	pop di
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	popf
 	ret
 
 
@@ -286,6 +323,7 @@ INVERT_TILE:
 	push dx
 	push si
 	push di
+	push ds
 	push es
 
 	mov es,[VIDEO_SEGMENT]
@@ -312,11 +350,176 @@ INVERT_TILE:
 	loop INVERT_TILE_LOOP
 
 	pop es
+	pop ds
 	pop di
 	pop si
 	pop dx
 	pop cx
 	pop bx
+	popf
+	ret
+
+
+; Given a tile number and location on the map, outputs a
+; 4x2 block to the display.
+VIEW_HELM_TILE:
+	; parameters:
+	;  al = tile number
+	;  dl,dh = x,y tile coordinate
+
+	pushf
+	push bx
+
+	; if terrain == water, don't output
+	and al,al
+	jz VIEW_HELM_TILE_DONE
+
+	; if terrain == mountains
+	cmp al,0x10
+	jz VIEW_HELM_TILE_WALLS
+
+	; if terrain is a wall
+	cmp al,0x78
+	jb VIEW_HELM_TILE_NOT_WALLS
+	cmp al,0xf0
+	jb VIEW_HELM_TILE_WALLS
+
+  VIEW_HELM_TILE_NOT_WALLS:
+	; if terrain == grass
+	cmp al,0x08
+	jz VIEW_HELM_TILE_GRASS
+
+	; if terrain == forets
+	cmp al,0x0c
+	jz VIEW_HELM_TILE_FORESTS
+
+	; if terrain == swamp
+	cmp al,0x04
+	jz VIEW_HELM_TILE_SWAMP
+
+	; if terrain == brick
+	cmp al,0x70
+	jz VIEW_HELM_TILE_BRICK
+
+	jmp VIEW_HELM_TILE_OTHER
+	
+  VIEW_HELM_TILE_WALLS:
+	mov bl,0x00
+	mov bh,0x00
+	call WRITE_HELM_PIXEL
+	mov bl,0x00
+	mov bh,0x01
+	call WRITE_HELM_PIXEL
+	mov bl,0x02
+	mov bh,0x01
+	call WRITE_HELM_PIXEL
+	mov bl,0x02
+	mov bh,0x00
+	call WRITE_HELM_PIXEL
+
+  VIEW_HELM_TILE_FORESTS:
+	mov bl,0x01
+	mov bh,0x01
+	call WRITE_HELM_PIXEL
+	mov bl,0x03
+	mov bh,0x00
+	call WRITE_HELM_PIXEL
+
+  VIEW_HELM_TILE_GRASS:
+	mov bl,0x01
+	mov bh,0x00
+	call WRITE_HELM_PIXEL
+	mov bl,0x03
+	mov bh,0x01
+	call WRITE_HELM_PIXEL
+
+	jmp VIEW_HELM_TILE_DONE
+
+  VIEW_HELM_TILE_SWAMP:
+	mov bl,0x01
+	mov bh,0x00
+	call WRITE_HELM_PIXEL
+	mov bl,0x03
+	mov bh,0x00
+	call WRITE_HELM_PIXEL
+
+	jmp VIEW_HELM_TILE_DONE
+
+  VIEW_HELM_TILE_BRICK:
+	mov bl,0x00
+	mov bh,0x00
+	call WRITE_HELM_PIXEL
+	mov bl,0x00
+	mov bh,0x01
+	call WRITE_HELM_PIXEL
+	mov bl,0x02
+	mov bh,0x00
+	call WRITE_HELM_PIXEL
+	mov bl,0x02
+	mov bh,0x01
+	call WRITE_HELM_PIXEL
+
+	jmp VIEW_HELM_TILE_DONE
+
+  VIEW_HELM_TILE_OTHER:
+	mov bl,0x01
+	mov bh,0x00
+	call WRITE_HELM_PIXEL
+	mov bl,0x02
+	mov bh,0x00
+	call WRITE_HELM_PIXEL
+	mov bl,0x02
+	mov bh,0x01
+	call WRITE_HELM_PIXEL
+	mov bl,0x01
+	mov bh,0x01
+	call WRITE_HELM_PIXEL
+
+  VIEW_HELM_TILE_DONE:
+	pop bx
+	popf
+	ret
+
+
+WRITE_HELM_PIXEL:
+	; parameters:
+	;  bl,bh = x,y of pixel w/i block
+	;  dl,dh = x,y of tile
+
+	pushf
+	push ax
+	push bx
+	push cx
+
+	mov ah,0x00
+
+	; get x coordinate of pixel to write
+	mov al,dl
+	add al,al
+	add al,al		; multiply by block width (4 pixels)
+	adc al,bl		; offset to pixel w/i block
+
+	; save x coordinate
+	push ax
+
+	; get y coordinate of pixel to write
+	mov al,dh
+	add al,al		; multiply by block height (2 pixels)
+	adc al,bh		; offset to pixel w/i block
+
+	; set bx = y coordinate
+	mov bl,al
+	mov bh,0x00
+
+	; set ax = x coordinate
+	pop ax
+
+	; write a pixel to ax,bx
+	call WRITE_PIXEL
+
+	pop cx
+	pop bx
+	pop ax
 	popf
 	ret
 
@@ -363,6 +566,11 @@ GET_CGA_OFFSET:
     push ax
     push bx
 
+    ; get dh = number of bits into byte
+    mov dh,al
+    and dh,0x03             ; last two bits are pixel index w/i byte
+    shl dh,1                ; two bits per pixel
+
     ; set di = 0000 = offset of first page
     xor di,di
 
@@ -382,11 +590,6 @@ GET_CGA_OFFSET:
     mul bl                  ; get row offset w/i page
     add di,ax               ; di => row offset within video buffer
 	pop ax
-
-    ; get dh = number of bits into byte
-    mov dh,bl
-    and dh,0x03             ; last two bits are pixel index w/i byte
-    shl dh,1                ; two bits per pixel
 
     ; calculate column offset (there are 4 pixels per byte)
     shr ax,1

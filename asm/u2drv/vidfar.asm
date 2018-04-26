@@ -119,3 +119,12 @@ INVERT_TILE_FAR:
 	pop es
 	pop ds
 	retf
+
+VIEW_HELM_TILE_FAR:
+	push ds
+	push es
+	call SET_SEGMENT
+	call VIEW_HELM_TILE
+	pop es
+	pop ds
+	retf

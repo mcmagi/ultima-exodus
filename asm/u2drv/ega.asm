@@ -24,6 +24,8 @@ TILESET_FILE    db      "EGATILES",0
 VIDEO_SEGMENT   dw      0xa000
 DRIVER_INIT		db		0
 TILESET_ADDR	dd		0
+PIXEL_X_OFFSET	dw		0x0010
+PIXEL_Y_OFFSET	dw		0x0010
 
 
 ; ===== video driver functions here =====
@@ -228,19 +230,25 @@ WRITE_PIXEL:
 
 	pushf
 	push ax
+	push bx
 	push di
 	push es
+
+	; offset by display origin
+	add ax,[PIXEL_X_OFFSET]
+	add bx,[PIXEL_Y_OFFSET]
 
 	; es:di => offset to x,y in video segment
 	mov es,[VIDEO_SEGMENT]
 	call GET_VIDEO_OFFSET
 
-	; 'or' pixel to es:di
+	; write pixel to video buffer
 	mov al,cl
-	mov [es:di],al		; TODO: CGA was or, EGA used mov; which is better?
+	mov [es:di],al
 
 	pop es
 	pop di
+	pop bx
 	pop ax
 	popf
 	ret
@@ -343,6 +351,154 @@ GET_TILE_ADDRESS:
 	add si,ax
 
 	pop cx
+	pop bx
+	pop ax
+	popf
+	ret
+
+
+; Given a tile number and a location on the map, outputs a
+; 4x2 block to the display.
+VIEW_HELM_TILE:
+	; parameters:
+	;  al = tile number
+	;  dl,dh = x,y tile coordinates
+
+	pushf
+	push cx
+
+	cmp al,0x00
+	jz VIEW_HELM_TILE_WATER
+	cmp al,0x04
+	jz VIEW_HELM_TILE_SWAMP
+	cmp al,0x08
+	jz VIEW_HELM_TILE_GRASS
+	cmp al,0x0c
+	jz VIEW_HELM_TILE_FOREST
+	cmp al,0x10
+	jz VIEW_HELM_TILE_MOUNTAINS
+	cmp al,0x5c
+	jz VIEW_HELM_TILE_FORCE
+	cmp al,0x70
+	jz VIEW_HELM_TILE_BRICK
+	cmp al,0xc0
+	jz VIEW_HELM_TILE_MOONGATE
+	cmp al,0x28
+	jz VIEW_HELM_TILE_ENTERABLE
+	cmp al,0x6c
+	jbe VIEW_HELM_TILE_NPCS
+	cmp al,0xec
+	jbe VIEW_HELM_TILE_WALLS
+	jmp VIEW_HELM_TILE_NPCS
+
+  VIEW_HELM_TILE_WATER:
+	mov cl,0x01 ; blue
+	jmp VIEW_HELM_TILE_CALL
+
+  VIEW_HELM_TILE_SWAMP:
+	mov cl,0x03 ; cyan
+	jmp VIEW_HELM_TILE_CALL
+
+  VIEW_HELM_TILE_GRASS:
+	mov cl,0x02 ; green
+	jmp VIEW_HELM_TILE_CALL
+
+  VIEW_HELM_TILE_FOREST:
+	mov cl,0x0a ; light green
+	jmp VIEW_HELM_TILE_CALL
+
+  VIEW_HELM_TILE_MOUNTAINS:
+	mov cl,0x08 ; dark gray
+	jmp VIEW_HELM_TILE_CALL
+
+  VIEW_HELM_TILE_FORCE:
+	mov cl,0x0e ; yellow
+	jmp VIEW_HELM_TILE_CALL
+
+  VIEW_HELM_TILE_BRICK:
+	mov cl,0x04 ; red
+	jmp VIEW_HELM_TILE_CALL
+
+  VIEW_HELM_TILE_MOONGATE:
+	mov cl,0x0b ; light cyan
+	jmp VIEW_HELM_TILE_CALL
+
+  VIEW_HELM_TILE_ENTERABLE:
+	mov cl,0x07 ; gray
+	jmp VIEW_HELM_TILE_CALL
+
+  VIEW_HELM_TILE_NPCS:
+	mov cl,0x07 ; grey
+	jmp VIEW_HELM_TILE_CALL
+
+  VIEW_HELM_TILE_WALLS:
+	mov cl,0x0f ; white
+	jmp VIEW_HELM_TILE_CALL
+
+  VIEW_HELM_TILE_CALL:
+	call WRITE_HELM_BLOCK
+
+	pop cx
+	popf
+	ret
+
+
+WRITE_HELM_BLOCK:
+	; parameters:
+	;  cl = block color
+	;  dl,dh = x,y of tile
+
+	pushf
+	push ax
+	push bx
+
+	mov ah,0x00
+
+	; loop for each column
+	mov bl,0x03
+  WRITE_HELM_BLOCK_COLUMN:
+
+	; loop for each row
+	mov bh,0x01
+  WRITE_HELM_BLOCK_ROW:
+	; save loop counters
+	push bx
+
+	; get x coordinate of pixel to write
+	mov al,dl
+	add al,al
+	add al,al		; multiply by block width (4 pixels)
+	adc al,bl		; offset to pixel w/i block
+
+	; save x cordinate
+	push ax
+
+	; get y coordinate of pixel to write
+	mov al,dh
+	add al,al		; multiple by block width (4 pixels)
+	adc al,bh		; offset to pixel w/i block
+
+	; set bx = y coordinate
+	mov bl,al
+	mov bh,0x00
+
+	; set ax = x coordinate
+	pop ax
+
+	; write cl to ax,bx
+	call WRITE_PIXEL
+
+	; restore loop counters
+	pop bx
+
+	; repeat for each pixel in row
+	dec bh
+	jns WRITE_HELM_BLOCK_ROW
+
+	; repeat for each row in column
+	dec bl
+	jns WRITE_HELM_BLOCK_COLUMN
+
 	pop bx
 	pop ax
 	popf
