@@ -20,11 +20,15 @@ DEMO4_FILE      db      "PICDNG",0
 DEMO5_FILE      db      "PICSPA",0
 DEMO6_FILE      db      "PICMIN",0
 TILESET_FILE    db      "CGATILES",0
+MONSTERS_FILE   db      "MONSTERS",0
 VIDEO_SEGMENT   dw      0xb800
 DRIVER_INIT		db		0
 TILESET_ADDR	dd		0
 PIXEL_X_OFFSET	dw		0x0010
 PIXEL_Y_OFFSET	dw		0x0010
+MONSTERS_ADDR	dd		0
+MONSTERS_DIST	db		0,0,0x80,0xc0,0xe0,0xf0,0xf8,0xfc,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+COLORED_PIXELS	db		0xff,0x11,0x88,0xcc,0x33,0,0,0
 
 
 ; ===== video driver functions here =====
@@ -34,6 +38,7 @@ INIT_DRIVER:
 	jz INIT_DRIVER_DONE
 
 	call LOAD_TILESET_FILE
+	call LOAD_MONSTERS_FILE
 
   INIT_DRIVER_DONE:
 	mov [DRIVER_INIT],0x01
@@ -268,10 +273,25 @@ CLEAR_GAME_SCREEN_PAGE:
 	ret
 
 
+WRITE_WHITE_PIXEL:
+	; parameters:
+	;  ax = pixel column number (x coordinate)
+	;  bx = pixel row number (y coordinate)
+
+	push cx
+
+	mov cl,0x03			; white
+	call WRITE_PIXEL
+
+	pop cx
+	ret
+
+
 WRITE_PIXEL:
 	; parameters:
 	;  ax = pixel column number (x coordinate)
 	;  bx = pixel row number (y coordinate)
+	;  cl = pixel color
 
 	pushf
 	push ax
@@ -281,6 +301,9 @@ WRITE_PIXEL:
 	push di
 	push es
 
+	; save color in ch
+	mov ch,cl
+
 	; offset by display origin
 	add ax,[PIXEL_X_OFFSET]
 	add bx,[PIXEL_Y_OFFSET]
@@ -289,9 +312,15 @@ WRITE_PIXEL:
 	mov es,[VIDEO_SEGMENT]
 	call GET_CGA_OFFSET
 
-	; position pixel within byte
+	; clear pixel at location
+	mov al,0x3
 	mov cl,dh
-	mov al,0x03
+	shl al,cl
+	xor al,0xff			; invert white pixel to clear existing value
+	and [es:di],al
+
+	; position pixel within byte
+	mov al,ch
 	shl al,cl
 
 	; 'or' pixel into video buffer
@@ -308,6 +337,62 @@ WRITE_PIXEL:
 
 
 CLEAR_PIXEL:
+	; parameters:
+	;  ax = pixel column number (x coordinate)
+	;  bx = pixel row number (y coordinate)
+
+	push cx
+
+	; write black pixel to clear it
+	mov cl,0x00
+	call WRITE_PIXEL
+
+	pop cx
+	ret
+
+
+WRITE_COLORED_BLOCK:
+	; parameters:
+	;  ax = pixel x coord
+	;  bx = pixel y coord
+	;  cl = color index
+
+	pushf
+	push ax
+	push bx
+	push cx
+	push dx
+	push bp
+
+	; get color data from color index
+	mov ch,0x00
+	mov bp,cx
+	mov cl,[ds:COLORED_PIXELS+bp]
+
+	mov dh,0x04
+  WRITE_COLORED_BLOCK_ROW:
+	mov dl,0x04
+  WRITE_COLORED_BLOCK_COL:
+	call WRITE_PIXEL
+
+	inc ax
+
+	dec dl
+	jnz WRITE_COLORED_BLOCK_COL
+
+	; rewind x coord, advance y coord
+	sub ax,0x0004
+	inc bx
+
+	dec dh
+	jnz WRITE_COLORED_BLOCK_ROW
+
+	pop bp
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	popf
 	ret
 
 
@@ -515,9 +600,109 @@ WRITE_HELM_PIXEL:
 	pop ax
 
 	; write a pixel to ax,bx
-	call WRITE_PIXEL
+	call WRITE_WHITE_PIXEL
 
 	pop cx
+	pop bx
+	pop ax
+	popf
+	ret
+
+
+DRAW_DUNGEON_MONSTER:
+	; parameters:
+	;  ah = monster type (in MONSTERS file)
+	;  di = monster distance
+
+	pushf
+	push ax
+	push bx
+	push cx
+	push dx
+	push di
+	push es
+
+	; es = address of MONSTERS file
+	lea bx,[MONSTERS_ADDR]
+	mov es,[bx+0x02]
+
+	; is monster directly in front of player?
+	cmp di,0x01
+	jz DRAW_DUNGEON_MONSTER_FULL
+
+	; si = offset to distant monster display data
+	mov ah,0x00
+	mov al,[MONSTERS_DIST+di]
+	mov si,ax
+
+	jmp DRAW_DUNGEON_MONSTER_LOOP
+
+  DRAW_DUNGEON_MONSTER_FULL:
+	; si = offset to monster data
+	mov al,0x00
+	mov si,ax
+
+  DRAW_DUNGEON_MONSTER_LOOP:
+	; dh = x coordinate
+	mov al,[es:si]
+	inc si
+	mov dh,al
+
+	; return if 0
+	and al,al
+	jz DRAW_DUNGEON_MONSTER_DONE
+
+	; dl = y coordinate
+	mov al,[es:si]
+	inc si
+	mov dl,al
+	and dl,0x1f			; y coordinate is lower 5 bits
+
+	; set cl = color
+	mov cl,0x05
+	shr al,cl			; x coordinate is top 3 bits
+	mov cl,al
+
+	; draw cl @ dh,dl
+	call DRAW_DUNGEON_MONSTER_BLOCK
+
+	jmp DRAW_DUNGEON_MONSTER_LOOP
+
+  DRAW_DUNGEON_MONSTER_DONE:
+	pop es
+	pop si
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	popf
+	ret
+
+
+DRAW_DUNGEON_MONSTER_BLOCK:
+	; parameters:
+	;  cl = monster block color
+	;  dh,dl = x,y coordinates of monster block
+
+	pushf
+	push ax
+	push bx
+
+	; calc ax = x pixel coordinate
+	mov al,dh
+	mov ah,0x00
+	shl ax,1
+	shl ax,1
+
+	; calc bx = y pixel coordinate
+	mov bl,dl
+	mov bh,0x00
+	shl bx,1
+	shl bx,1
+
+	; write cl @ ax,bx
+	call WRITE_COLORED_BLOCK
+
 	pop bx
 	pop ax
 	popf
@@ -616,6 +801,19 @@ LOAD_TILESET_FILE:
 
     lea dx,[TILESET_FILE]
     lea bx,[TILESET_ADDR]
+    call LOAD_GRAPHIC_FILE
+
+    pop dx
+    pop bx
+    ret
+
+
+LOAD_MONSTERS_FILE:
+    push bx
+    push dx
+
+    lea dx,[MONSTERS_FILE]
+    lea bx,[MONSTERS_ADDR]
     call LOAD_GRAPHIC_FILE
 
     pop dx

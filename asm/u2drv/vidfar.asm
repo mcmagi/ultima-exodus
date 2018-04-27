@@ -93,11 +93,11 @@ CLEAR_GAME_SCREEN_FAR:
 	pop ds
 	retf
 
-WRITE_PIXEL_FAR:
+WRITE_WHITE_PIXEL_FAR:
 	push ds
 	push es
 	call SET_SEGMENT
-	call WRITE_PIXEL
+	call WRITE_WHITE_PIXEL
 	pop es
 	pop ds
 	retf
@@ -125,6 +125,15 @@ VIEW_HELM_TILE_FAR:
 	push es
 	call SET_SEGMENT
 	call VIEW_HELM_TILE
+	pop es
+	pop ds
+	retf
+
+DRAW_DUNGEON_MONSTER_FAR:
+	push ds
+	push es
+	call SET_SEGMENT
+	call DRAW_DUNGEON_MONSTER
 	pop es
 	pop ds
 	retf
