@@ -531,7 +531,7 @@ WRITE_HELM_BLOCK:
 
 DRAW_DUNGEON_MONSTER:
 	; parameters:
-	;  ah = monster type (in MONSTERS file)
+	;  ah = monster type 1-8 (in MONSTERS file)
 	;  di = monster distance
 
 	pushf
@@ -551,7 +551,7 @@ DRAW_DUNGEON_MONSTER:
 	jz DRAW_DUNGEON_MONSTER_FULL
 
 	; si = offset to distant monster display data
-	mov ah,0x00
+	mov ah,0x00					; monster type = distant
 	mov al,[MONSTERS_DIST+di]
 	mov si,ax
 

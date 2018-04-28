@@ -362,32 +362,39 @@ WRITE_COLORED_BLOCK:
 	push bx
 	push cx
 	push dx
+	push di
 	push bp
+	push es
 
-	; get color data from color index
+	; set es = video segment
+	mov es,[VIDEO_SEGMENT]
+
+	; offset by display origin
+	add ax,[PIXEL_X_OFFSET]
+	add bx,[PIXEL_Y_OFFSET]
+
+	; get color data (1 byte = 4 pixels) from color index
 	mov ch,0x00
 	mov bp,cx
 	mov cl,[ds:COLORED_PIXELS+bp]
 
-	mov dh,0x04
+	; repeat for 4 rows
+	mov ch,0x04
   WRITE_COLORED_BLOCK_ROW:
-	mov dl,0x04
-  WRITE_COLORED_BLOCK_COL:
-	call WRITE_PIXEL
+	; es:di => offset to x,y in video segment, dh = bit number
+	call GET_CGA_OFFSET
 
-	inc ax
+	; write all 4 pixels of cl @ ax,bx
+	mov [es:di],cl
 
-	dec dl
-	jnz WRITE_COLORED_BLOCK_COL
-
-	; rewind x coord, advance y coord
-	sub ax,0x0004
+	; advance y coord
 	inc bx
-
-	dec dh
+	dec ch
 	jnz WRITE_COLORED_BLOCK_ROW
 
+	pop es
 	pop bp
+	pop di
 	pop dx
 	pop cx
 	pop bx
@@ -611,7 +618,7 @@ WRITE_HELM_PIXEL:
 
 DRAW_DUNGEON_MONSTER:
 	; parameters:
-	;  ah = monster type (in MONSTERS file)
+	;  ah = monster type 1-8 (in MONSTERS file)
 	;  di = monster distance
 
 	pushf
@@ -631,7 +638,7 @@ DRAW_DUNGEON_MONSTER:
 	jz DRAW_DUNGEON_MONSTER_FULL
 
 	; si = offset to distant monster display data
-	mov ah,0x00
+	mov ah,0x00					; monster type = distant
 	mov al,[MONSTERS_DIST+di]
 	mov si,ax
 
@@ -754,6 +761,7 @@ GET_CGA_OFFSET:
     ; get dh = number of bits into byte
     mov dh,al
     and dh,0x03             ; last two bits are pixel index w/i byte
+	xor dh,0x03				; and invert
     shl dh,1                ; two bits per pixel
 
     ; set di = 0000 = offset of first page
