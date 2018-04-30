@@ -273,6 +273,7 @@ CLEAR_GAME_SCREEN_PAGE:
 	ret
 
 
+; For dungeon walls
 WRITE_WHITE_PIXEL:
 	; parameters:
 	;  ax = pixel column number (x coordinate)
@@ -716,6 +717,94 @@ DRAW_DUNGEON_MONSTER_BLOCK:
 	ret
 
 
+WRITE_STAR_PIXEL:
+	; parameters:
+	;  ax = pixel column number (x coordinate)
+	;  bx = pixel row number (y coordinate)
+	;  si = star index
+
+	push cx
+	mov cl,0x03			; white
+	call WRITE_PIXEL
+	pop cx
+	ret
+
+
+DRAW_CROSSHAIRS:
+	; parameters:
+	;  ax = crosshairs column number (x coordinate)
+	;  bx = crosshairs column number (y coordinate)
+
+	pushf
+	push bx
+
+	; bx = y - 3
+	stc
+	cmc	
+	sbb bx,0x0003
+	cmc
+
+	; vertical component
+	call WRITE_CROSSHAIRS_PIXEL
+	inc bx
+	call WRITE_CROSSHAIRS_PIXEL
+	inc bx
+	call WRITE_CROSSHAIRS_PIXEL
+	inc bx
+	call WRITE_CROSSHAIRS_PIXEL
+	inc bx
+	call WRITE_CROSSHAIRS_PIXEL
+	inc bx
+	call WRITE_CROSSHAIRS_PIXEL
+	inc bx
+	call WRITE_CROSSHAIRS_PIXEL
+
+	pop bx
+	push ax
+
+	; ax = x - 3
+	stc
+	cmc
+	sbb ax,0x0003
+	cmc
+
+	; horizontal component line
+	call WRITE_CROSSHAIRS_PIXEL
+	inc ax
+	call WRITE_CROSSHAIRS_PIXEL
+	inc ax
+	call WRITE_CROSSHAIRS_PIXEL
+	inc ax
+	inc ax
+	call WRITE_CROSSHAIRS_PIXEL
+	inc ax
+	call WRITE_CROSSHAIRS_PIXEL
+	inc ax
+	call WRITE_CROSSHAIRS_PIXEL
+
+	pop ax
+	popf
+	ret
+
+	
+WRITE_CROSSHAIRS_PIXEL:
+	; parameters:
+	;  ax = pixel column number (x coordinate)
+	;  bx = pixel row number (y coordinate)
+
+	push cx
+	mov cl,0x03			; white
+	call WRITE_PIXEL
+	pop cx
+	ret
+
+
+; TODO:
+; intro/demo files are loaded directly to video buffer in game code
+
+
+; ===== utility functions =====
+
 GET_TILE_ADDRESS:
 	; parameters:
 	;  cx = tile number (multiple of 4)
@@ -795,10 +884,6 @@ GET_CGA_OFFSET:
     pop ax
     popf
     ret
-
-
-; TODO:
-; intro/demo files are loaded directly to video buffer in game code
 
 
 ; ===== file handling functions here =====

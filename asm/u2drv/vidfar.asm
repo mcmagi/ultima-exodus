@@ -137,3 +137,21 @@ DRAW_DUNGEON_MONSTER_FAR:
 	pop es
 	pop ds
 	retf
+
+WRITE_STAR_PIXEL_FAR:
+	push ds
+	push es
+	call SET_SEGMENT
+	call WRITE_STAR_PIXEL
+	pop es
+	pop ds
+	retf
+
+DRAW_CROSSHAIRS_FAR:
+	push ds
+	push es
+	call SET_SEGMENT
+	call DRAW_CROSSHAIRS
+	pop es
+	pop ds
+	retf

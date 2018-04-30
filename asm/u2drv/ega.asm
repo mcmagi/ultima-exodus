@@ -227,6 +227,7 @@ CLEAR_GAME_SCREEN:
 	ret
 
 
+; For dungeon walls
 WRITE_WHITE_PIXEL:
 	; parameters:
 	;  ax = pixel column number (x coordinate)
@@ -629,6 +630,119 @@ DRAW_DUNGEON_MONSTER_BLOCK:
 	ret
 
 
+WRITE_STAR_PIXEL:
+	; parameters:
+	;  ax = pixel column number (x coordinate)
+	;  bx = pixel row number (y coordinate)
+	;  si = star index
+
+	pushf
+	push cx
+	push si
+	and si,0x03
+
+	cmp si,0x0003
+	jz WRITE_STAR_PIXEL_YELLOW
+	cmp si,0x0002
+	jz WRITE_STAR_PIXEL_LIGHT_BLUE
+	cmp si,0x0001
+	jz WRITE_STAR_PIXEL_BLUE
+
+	mov cl,0x0f			; white
+	jmp WRITE_STAR_PIXEL_DO
+  WRITE_STAR_PIXEL_BLUE:
+	mov cl,0x09			; light blue
+	jmp WRITE_STAR_PIXEL_DO
+  WRITE_STAR_PIXEL_LIGHT_BLUE:
+	mov cl,0x0c			; light red
+	jmp WRITE_STAR_PIXEL_DO
+  WRITE_STAR_PIXEL_YELLOW:
+	mov cl,0x0e			; yellow
+	jmp WRITE_STAR_PIXEL_DO
+
+  WRITE_STAR_PIXEL_DO:
+	call WRITE_PIXEL
+	pop si
+	pop cx
+	popf
+	ret
+
+
+DRAW_CROSSHAIRS:
+	; parameters:
+	;  ax = crosshairs column number (x coordinate)
+	;  bx = crosshairs column number (y coordinate)
+
+	pushf
+	push bx
+
+	; bx = y - 3
+	stc
+	cmc	
+	sbb bx,0x0003
+	cmc
+
+	; vertical component
+	call WRITE_CROSSHAIRS_PIXEL
+	inc bx
+	call WRITE_CROSSHAIRS_PIXEL
+	inc bx
+	call WRITE_CROSSHAIRS_PIXEL
+	inc bx
+	call WRITE_CROSSHAIRS_PIXEL
+	inc bx
+	call WRITE_CROSSHAIRS_PIXEL
+	inc bx
+	call WRITE_CROSSHAIRS_PIXEL
+	inc bx
+	call WRITE_CROSSHAIRS_PIXEL
+
+	pop bx
+	push ax
+
+	; ax = x - 3
+	stc
+	cmc
+	sbb ax,0x0003
+	cmc
+
+	; horizontal component line
+	call WRITE_CROSSHAIRS_PIXEL
+	inc ax
+	call WRITE_CROSSHAIRS_PIXEL
+	inc ax
+	call WRITE_CROSSHAIRS_PIXEL
+	inc ax
+	inc ax
+	call WRITE_CROSSHAIRS_PIXEL
+	inc ax
+	call WRITE_CROSSHAIRS_PIXEL
+	inc ax
+	call WRITE_CROSSHAIRS_PIXEL
+
+	pop ax
+	popf
+	ret
+	
+
+WRITE_CROSSHAIRS_PIXEL:
+	; parameters:
+	;  ax = pixel column number (x coordinate)
+	;  bx = pixel row number (y coordinate)
+
+	push cx
+	mov cl,0x08			; dark grey
+	call WRITE_PIXEL
+	pop cx
+	ret
+
+
+; TODO:
+; intro/demo files are loaded directly to video buffer in game code
+
+
+; ===== utility functions =====
+
 GET_TILE_ADDRESS:
 	; parameters:
 	;  cx = tile number (multiple of 4)
@@ -739,10 +853,6 @@ SET_VGA_VIDEO_MODE:
 	pop ax
 	popf
 	ret
-
-
-; TODO:
-; intro/demo files are loaded directly to video buffer in game code
 
 
 ; ===== file handling functions here =====
