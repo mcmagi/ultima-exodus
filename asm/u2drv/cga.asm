@@ -12,6 +12,7 @@ include 'vidjmp.asm'
 
 ; ===== data here =====
 
+GRAPHIC_IMAGES	dw		INTRO_FILE,DEMO1_FILE,DEMO2_FILE,DEMO3_FILE,DEMO4_FILE,DEMO5_FILE,DEMO6_FILE
 INTRO_FILE      db      "PICDRA",0
 DEMO1_FILE      db      "PICOUT",0
 DEMO2_FILE      db      "PICTWN",0
@@ -24,6 +25,7 @@ MONSTERS_FILE   db      "MONSTERS",0
 VIDEO_SEGMENT   dw      0xb800
 DRIVER_INIT		db		0
 TILESET_ADDR	dd		0
+GRAPHIC_ADDR	dd		0
 PIXEL_X_OFFSET	dw		0x0010
 PIXEL_Y_OFFSET	dw		0x0010
 MONSTERS_ADDR	dd		0
@@ -799,8 +801,61 @@ WRITE_CROSSHAIRS_PIXEL:
 	ret
 
 
-; TODO:
-; intro/demo files are loaded directly to video buffer in game code
+DISPLAY_GRAPHIC_IMAGE:
+	; parameters:
+	;  al = graphic file number
+
+	push ax
+	push bx
+	push cx
+	push dx
+	push si
+	push di
+	push es
+
+	; ds:dx = image filename
+	mov bl,al
+	mov bh,0x00
+	shl bx,1
+	mov dx,[GRAPHIC_IMAGES+bx]
+
+	; ds:bx = image address
+	lea bx,[GRAPHIC_ADDR]
+
+	; load image, save address to ds:bx
+	call LOAD_GRAPHIC_FILE
+	jc DISPLAY_GRAPHIC_IMAGE_DONE
+
+	push ds
+
+	; set es:di => start of video segment
+	mov es,[VIDEO_SEGMENT]
+	mov di,0x0000
+
+	; set ds:si => start of video segment
+	mov si,[bx]
+	mov ax,[bx+0x02]
+	mov ds,ax
+
+	; move contents of file to video segment
+	mov cx,0x4000
+	rep movsb
+
+	pop ds
+
+	; free image
+	lea bx,[GRAPHIC_ADDR]
+	call FREE_GRAPHIC_FILE
+
+  DISPLAY_GRAPHIC_IMAGE_DONE:
+	pop es
+	pop di
+	pop si
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
 
 
 ; ===== utility functions =====

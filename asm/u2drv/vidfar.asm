@@ -155,3 +155,12 @@ DRAW_CROSSHAIRS_FAR:
 	pop es
 	pop ds
 	retf
+
+DISPLAY_GRAPHIC_IMAGE_FAR:
+	push ds
+	push es
+	call SET_SEGMENT
+	call DISPLAY_GRAPHIC_IMAGE
+	pop es
+	pop ds
+	retf
