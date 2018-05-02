@@ -164,3 +164,30 @@ DISPLAY_GRAPHIC_IMAGE_FAR:
 	pop es
 	pop ds
 	retf
+
+DISPLAY_CHAR_FAR:
+	push ds
+	push es
+	call SET_SEGMENT
+	call DISPLAY_CHAR
+	pop es
+	pop ds
+	retf
+
+SCROLL_TEXT_WINDOW_FAR:
+	push ds
+	push es
+	call SET_SEGMENT
+	call SCROLL_TEXT_WINDOW
+	pop es
+	pop ds
+	retf
+
+SET_CURSOR_POSITION_FAR:
+	push ds
+	push es
+	call SET_SEGMENT
+	call SET_CURSOR_POSITION
+	pop es
+	pop ds
+	retf

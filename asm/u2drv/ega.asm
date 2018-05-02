@@ -32,6 +32,8 @@ PIXEL_Y_OFFSET	dw		0x0010
 MONSTERS_ADDR	dd		0
 MONSTERS_DIST	db		0,0,0x80,0xc0,0xe0,0xf0,0xf8,0xfc,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 COLORED_PIXELS	db		0x0f,0x02,0x04,0x0c,0x09,0,0,0
+; 00 = default, 01 = title, 02 = header, 03 = subheader, 04 = low value, 05 = text value, 06 = number value, 07 = highlighted
+TEXT_COLOR		db		0x0b,0x0d,0x0f,0x0d,0x0c,0x0c,0x09,0x0f
 
 
 ; ===== video driver functions here =====
@@ -53,6 +55,10 @@ CLOSE_DRIVER:
 
 	; free tileset
 	lea bx,[TILESET_ADDR]
+	call FREE_GRAPHIC_FILE
+
+	; free monsters
+	lea bx,[MONSTERS_ADDR]
 	call FREE_GRAPHIC_FILE
 
 	pop bx
@@ -791,6 +797,144 @@ DISPLAY_GRAPHIC_IMAGE:
 	pop si
 	pop dx
 	pop cx
+	pop bx
+	pop ax
+	ret
+
+
+SCROLL_TEXT_WINDOW:
+	; parameters:
+	;  cx = y,x of upper-left
+	;  dx = y,x of lower-right
+
+	push ax
+	push bx
+
+	; scroll up window by 1 line
+	mov ah,0x06		; 06 = scroll up window
+	mov al,0x01		; 1 line
+	mov bh,0x00		; no attributes
+	int 0x10
+
+	pop bx
+	pop ax
+	ret
+
+
+DISPLAY_CHAR:
+	; parameters:
+	;  al = ascii code
+	;  bl = text type
+
+	pushf
+	push ax
+	push bx
+	push cx
+	push dx
+
+	mov dx,0xffff
+	cmp bl,0x07
+	jnz DISPLAY_CHAR_DO
+
+	; dh,dl = y,x cursor position
+	push ax
+	mov ah,0x03		; 03 = get cursor position & size
+	mov bh,0x00		; page 0
+	int 0x10
+	pop ax
+
+  DISPLAY_CHAR_DO:
+	; converts bl to text color
+	call GET_TEXT_COLOR
+
+	mov ah,0x09		; 09 = write char
+	mov cx,0x0001	; write it once
+	mov bh,0x00		; background = black (doesn't seem to work)
+	int 0x10
+
+	and dx,dx
+	js DISPLAY_CHAR_DONE
+
+	; invert character @ dl,dh
+	call INVERT_CHAR
+
+  DISPLAY_CHAR_DONE:
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	popf
+	ret
+
+
+GET_TEXT_COLOR:
+	; parameters:
+	;  bl = text type
+
+	mov bh,0x00
+	mov bl,[TEXT_COLOR+bx]
+	ret
+
+
+INVERT_CHAR:
+	; parameters:
+	;  dh,dl = y,x cursor position
+
+	pushf
+	push ax
+	push bx
+	push di
+	push es
+
+	; bx = y * 8 (cursor -> pixel)
+	mov al,0x08
+	mul dh
+	mov bx,ax
+
+	; ax = x * 8 (cursor -> pixel)
+	mov al,0x08
+	mul dl
+
+	; es:di => offset in video segment
+	mov es,[VIDEO_SEGMENT]
+	call GET_VGA_OFFSET
+
+	; prepare to xor lo-nibble
+	mov al,0x0f
+
+	mov bl,0x08
+  INVERT_CHAR_ROW:
+
+	mov bh,0x08
+  INVERT_CHAR_COL:
+	xor [es:di],al
+	inc di ; advance to next byte/column
+	dec bh
+	jnz INVERT_CHAR_COL
+
+	add di,0x0138 ; advance to next row
+	dec bl
+	jnz INVERT_CHAR_ROW
+
+	pop es
+	pop di
+	pop bx
+	pop ax
+	popf
+	ret
+
+
+SET_CURSOR_POSITION:
+	; parameters:
+	;  dh,dl = x,y cursor position
+
+	push ax
+	push bx
+
+	mov ah,0x02			; 02 = set cursor position
+	mov bh,0x00
+	int 0x10
+
 	pop bx
 	pop ax
 	ret

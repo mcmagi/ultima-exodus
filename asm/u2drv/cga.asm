@@ -31,6 +31,8 @@ PIXEL_Y_OFFSET	dw		0x0010
 MONSTERS_ADDR	dd		0
 MONSTERS_DIST	db		0,0,0x80,0xc0,0xe0,0xf0,0xf8,0xfc,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 COLORED_PIXELS	db		0xff,0x11,0x88,0xcc,0x33,0,0,0
+; 00 = default, 01 = title, 02 = header, 03 = subheader, 04 = low value, 05 = text value, 06 = number value, 07 = highlighted
+TEXT_COLOR		db		0x0f,0x0f,0x0f,0x0f,0x02,0x0f,0x0f,0x70
 
 
 ; ===== video driver functions here =====
@@ -52,6 +54,10 @@ CLOSE_DRIVER:
 
 	; free tileset
 	lea bx,[TILESET_ADDR]
+	call FREE_GRAPHIC_FILE
+
+	; free monsters
+	lea bx,[MONSTERS_ADDR]
 	call FREE_GRAPHIC_FILE
 
 	pop bx
@@ -853,6 +859,73 @@ DISPLAY_GRAPHIC_IMAGE:
 	pop si
 	pop dx
 	pop cx
+	pop bx
+	pop ax
+	ret
+
+
+SCROLL_TEXT_WINDOW:
+	; parameters:
+	;  cx = y,x of upper-left
+	;  dx = y,x of lower-right
+
+	push ax
+	push bx
+
+	; scroll up window by 1 line
+	mov ah,0x06		; 06 = scroll up window
+	mov al,0x01		; 1 line
+	mov bh,0x00		; no attributes
+	int 0x10
+
+	pop bx
+	pop ax
+	ret
+
+
+DISPLAY_CHAR:
+	; parameters:
+	;  al = ascii code
+	;  bl = text type
+
+	push ax
+	push bx
+	push cx
+
+	; converts bl to text color
+	call GET_TEXT_COLOR
+
+	mov ah,0x09		; 09 = write char
+	mov cx,0x0001	; write it once
+	mov bh,0x00		; page 0
+	int 0x10
+
+	pop cx
+	pop bx
+	pop ax
+	ret
+
+
+GET_TEXT_COLOR:
+	; parameters:
+	;  bl = text type
+
+	mov bh,0x00
+	mov bl,[TEXT_COLOR+bx]
+	ret
+
+
+SET_CURSOR_POSITION:
+	; parameters:
+	;  dh,dl = x,y cursor position
+
+	push ax
+	push bx
+
+	mov ah,0x02			; 02 = set cursor position
+	mov bh,0x00			; page 0
+	int 0x10
+
 	pop bx
 	pop ax
 	ret
