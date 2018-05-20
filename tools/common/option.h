@@ -14,6 +14,7 @@
 
 int get_option();
 BOOL is_numeric(const char *input, int size);
+int get_valid_option(const char *valid_chars);
 
 
 #endif

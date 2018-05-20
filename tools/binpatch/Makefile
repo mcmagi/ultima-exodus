@@ -1,7 +1,7 @@
 ROOT=../..
 include ${ROOT}/Makefile.include
 
-HEADERS=${COMMON}/File.h ${COMMON}/DirList.h ${COMMON}/gendefs.h patch.h
+HEADERS=${COMMON}/File.h ${COMMON}/DirList.h ${COMMON}/gendefs.h ${COMMON}/option.h ${COMMON}/IniCfg.h patch.h
 
 compile: ${UTILBIN}/bindiff ${UTILBIN}/binpat ${UTILBIN}/binunpat ${UTILBIN}/upgrade
 
@@ -53,8 +53,8 @@ ${UTILBIN}/bindiff: ${COMMON_LIB}/File.o ${BINPATCH_LIB}/bindiff.o ${BINPATCH_LI
 ${UTILBIN}/upgrade: ${COMMON_LIB}/File.o ${COMMON_LIB}/DirList.o ${BINPATCH_LIB}/upgrade.o \
 		${BINPATCH_LIB}/patch.o ${BINPATCH_LIB}/patchapply.o ${BINPATCH_LIB}/patchunapply.o | ${UTILBIN}
 	$(call link, ${UTILBIN}/upgrade, ${COMMON_LIB}/File.o ${COMMON_LIB}/DirList.o \
-		${BINPATCH_LIB}/upgrade.o ${BINPATCH_LIB}/patch.o ${BINPATCH_LIB}/patchapply.o \
-		${BINPATCH_LIB}/patchunapply.o)
+		${COMMON_LIB}/option.o ${COMMON_LIB}/IniCfg.o ${BINPATCH_LIB}/upgrade.o \
+		${BINPATCH_LIB}/patch.o ${BINPATCH_LIB}/patchapply.o ${BINPATCH_LIB}/patchunapply.o)
 
 # clean
 clean:

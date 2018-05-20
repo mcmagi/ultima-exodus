@@ -20,7 +20,6 @@ PatchData *examine_patches(const char *path);
 void free_patchdata(PatchData *data);
 void do_upgrade(PatchData data);
 void do_downgrade(PatchData data);
-char get_option(const char *validChars);
 BOOL get_yesno();
 
 

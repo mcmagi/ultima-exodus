@@ -12,6 +12,7 @@
 
 #include "File.h"
 #include "DirList.h"
+#include "option.h"
 #include "gendefs.h"
 #include "patch.h"
 #include "patchapply.h"
@@ -163,24 +164,7 @@ void do_downgrade(PatchData data)
 	unapply_patch(data.applied, data.dir);
 }
 
-char get_option(const char *validChars)
-{
-	char input[BUFSIZ];         /* unedited input */
-	BOOL valid = FALSE;         /* input valid flag */
-	int i = 0;
-
-	do
-	{
-		/* get input */
-		for (i = 0; (input[i] = toupper(getchar())) != '\n'; i++)
-			valid = (strchr(validChars, input[i]) != NULL);
-	}
-	while (! valid);
-
-	return input[0];
-}
-
 BOOL get_yesno()
 {
-	return get_option("YN") == 'Y';
+	return get_valid_option("YN") == 'Y';
 }
