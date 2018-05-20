@@ -100,6 +100,45 @@ void read_from_file(File *file, void *data, size_t size)
 	return;
 }
 
+char * read_line_from_file(File *file)
+{
+	char linebuf[BUFSIZ];
+	char c;
+	int i = 0;
+	char *line;
+
+	/* if already at end of file, return null */
+	if (end_of_file(file))
+		return NULL;
+
+	/* read first character */
+	c = getc(file->fp);
+
+	while (c != '\r' && c != '\n' && c != EOF && i < BUFSIZ-1)
+	{
+		linebuf[i++] = c;
+
+		/* read next character */
+		c = getc(file->fp);
+
+		/* skip CRLF */
+		if (linebuf[i-1] == '\r' && c == '\n')
+			c = getc(file->fp);
+	}
+
+	/* check for read error */
+	if (c == EOF && ferror(file->fp) > 0)
+		file_error(file, "Could not read from file");
+
+	/* null terminate line */
+	linebuf[i++] = '\0';
+
+	/* return copy of string */
+	line = (char *) malloc(i * sizeof(char));
+	strcpy(line, linebuf);
+	return line;
+}
+
 void write_to_file(File *file, const void *data, size_t size)
 {
 	if (fwrite(data, size, 1, file->fp) != 1)

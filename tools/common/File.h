@@ -26,6 +26,7 @@ void open_file(File *file, const char open_mode[]);
 void reopen_file(File *file, const char open_mode[]);
 void close_file(File *file);
 void read_from_file(File *file, void *data, size_t size);
+char * read_line_from_file(File *file);
 void write_to_file(File *file, const void *data, size_t size);
 void seek_through_file(File *file, long offset, int seek_type);
 BOOL end_of_file(File *file);
