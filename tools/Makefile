@@ -1,6 +1,6 @@
 # directories
 DIRS = common cfg patch reset tlk binpatch
-PACKAGE_DIRS = cfg reset binpatch
+PACKAGE_DIRS = cfg binpatch
 
 %: FORCE
 	# operate on both local and dos targets
