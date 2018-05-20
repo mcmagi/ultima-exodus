@@ -116,9 +116,6 @@ int diff(const char olddir[], const char oldfile[], const char newdir[], const c
 		diffcount++;
 	}
 
-	if (diffcount == 0)
-		printf("Files %s and %s are identical\n", old->filename, new->filename);
-
 	/* close files */
 	if (old != NULL)
 		close_file(old);
