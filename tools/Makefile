@@ -6,23 +6,21 @@ PACKAGE_DIRS = cfg binpatch
 	# operate on both local and dos targets
 	for i in ${DIRS}; do \
 		if [ -d "$$i" ]; then \
-			cd $$i; \
-			TARGET=local $(MAKE) $@ || (echo "tools/$$i $@ ${TARGET} failed"; exit 1); \
-			TARGET=dos $(MAKE) $@ || (echo "tools/$$i $@ ${TARGET} failed"; exit 1); \
-			TARGET=winnt $(MAKE) $@ || (echo "tools/$$i $@ ${TARGET} failed"; exit 1); \
-			TARGET=linux $(MAKE) $@ || (echo "tools/$$i $@ ${TARGET} failed"; exit 1); \
-			cd ..; \
+			TARGET=local make -C $$i $@ || exit 1; \
+			TARGET=dos make -C $$i $@ || exit 1; \
+			TARGET=winnt make -C $$i $@ || exit 1; \
+			TARGET=linux make -C $$i $@ || exit 1; \
 		fi \
-	done
+	done || exit 1
 
 package%: FORCE
 	# package only dos/win/linux targets
 	for i in ${PACKAGE_DIRS}; do \
 		if [ -d "$$i" ]; then \
 			cd $$i; \
-			TARGET=dos $(MAKE) $@ || (echo "tools/$$i $@ ${TARGET} failed"; exit 1); \
-			TARGET=winnt $(MAKE) $@ || (echo "tools/$$i $@ ${TARGET} failed"; exit 1); \
-			TARGET=linux $(MAKE) $@ || (echo "tools/$$i $@ ${TARGET} failed"; exit 1); \
+			TARGET=dos make -C $$i $@ || exit 1; \
+			TARGET=winnt make -C $$i $@ || exit 1; \
+			TARGET=linux make -C $$i $@ || exit 1; \
 			cd ..; \
 		fi \
 	done
@@ -30,7 +28,7 @@ package%: FORCE
 gen_config%: FORCE
 	# run local target to generate config file
 	cd cfg; \
-	TARGET=local $(MAKE) $@ || (echo "tools/cfg $@ ${TARGET} failed"; exit 1); \
+	TARGET=local make -C $$i $@ || exit 1; \
 	cd ..
 
 Makefile: ;
