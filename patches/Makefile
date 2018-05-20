@@ -2,11 +2,18 @@
 ROOT = ..
 include ${ROOT}/Makefile.include
 
-# patch filenames
-U2PATGOG = ${PATCHES}/u2-gog.pat
+# upgrade patch filenames
 U2PAT = ${PATCHES}/u2up-$(call stripdots,${U2VER}).pat
 U3PAT = ${PATCHES}/u3up-$(call stripdots,${U3VER}).pat
 U5PAT = ${PATCHES}/u5up-$(call stripdots,${U5VER}).pat
+
+# incremental patch filenames
+U2PAT_UC = ${PATCHES}/u2-uc.pat
+U2PAT_MAP = ${PATCHES}/u2-map.pat
+U2PAT_GOG = ${PATCHES}/u2-gog.pat
+
+# patch save dir
+U2_SAVE_DIR = SAVE.U2
 
 all: package
 
@@ -17,72 +24,77 @@ clean:
 
 patch: ${U2PAT} ${U3PAT} ${U5PAT}
 
-patch_u2: ${U2PATGOG} ${U2PAT}
+patch_u2: ${U2PAT_UC} ${U2PAT_MAP} ${U2PAT_GOG} ${U2PAT}
 
 patch_u3: ${U3PAT}
 
 patch_u5: ${U5PAT}
 
-${U2PATGOG}:
-	rm -f ${U2PATGOG}
-	${DIFF} -od ${U2ORIGINAL} -nd ${U2GOG} -o ULTIMAII.EXE -n ULTIMAII.EXE -p ${U2PATGOG}
+${U2PAT_UC}:
+	rm -f ${U2PAT_UC}
+	# UC just has speed fix
+	${DIFF} -od ${U2U16} -nd ${U2UC} -o ULTIMAII.EXE -n ULTIMAII.EXE -p ${U2PAT_UC}
+
+${U2PAT_MAP}:
+	rm -f ${U2PAT_MAP}
+	# patch binary with galactic map patch
+	${DIFF} -od ${U2UC} -nd ${U2MAP} -o ULTIMAII.EXE -n ULTIMAII.EXE -p ${U2PAT_MAP}
 	# patch greenland dungeon
-	${DIFF} -od ${U2ORIGINAL} -nd ${U2GOG} -o MAPX10 -n MAPX10 -p ${U2PATGOG}
-	${DIFF} -od ${U2ORIGINAL} -nd ${U2GOG} -o MAPX15 -n MAPX15 -p ${U2PATGOG}
-	# patch earth talk files
-	for i in 03 11 21 22 23 31 32 33 41; do \
-		${DIFF} -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o TLKX$${i} -n TLKX$${i} -p ${U2PATGOG}; \
-	done
-	# rename existing galaxy map & monster files
+	${DIFF} -od ${U2UC} -nd ${U2MAP} -o MAPX10 -n MAPX10 -p ${U2PAT_MAP}
+	${DIFF} -od ${U2UC} -nd ${U2MAP} -o MAPX15 -n MAPX15 -p ${U2PAT_MAP}
+	# rename existing galactic map & monster files
 	for i in 44 50 60 61 70 71 80 81 82 85 90 92 93; do \
-		${DIFF} -a rename -od ${U2ORIGINAL} -nd ${U2GOG} -o MAPX$${i} -n mapg$${i} -p ${U2PATGOG}; \
-		${DIFF} -a rename -od ${U2ORIGINAL} -nd ${U2GOG} -o MONX$${i} -n mong$${i} -p ${U2PATGOG}; \
+		${DIFF} -a rename -od ${U2UC} -nd ${U2MAP} -o MAPX$${i} -n MAPG$${i} -p ${U2PAT_MAP}; \
+		${DIFF} -a rename -od ${U2UC} -nd ${U2MAP} -o MONX$${i} -n MONG$${i} -p ${U2PAT_MAP}; \
 	done
-	# rename & patch existing galaxy talk files
+	# rename existing galactic talk files
 	for i in 61 71 81 82 92 93; do \
-		${DIFF} -a rename -od ${U2ORIGINAL} -nd ${U2GOG} -o TLKX$${i} -n TLKG$${i} -p ${U2PATGOG}; \
+		${DIFF} -a rename -od ${U2UC} -nd ${U2MAP} -o TLKX$${i} -n TLKG$${i} -p ${U2PAT_MAP}; \
 	done
-	# add missing galaxy map & monster files
-	for i in 10 15 30 40 45; do \
-		${DIFF} -a add -nd ${U2GOG} -n MAPG$${i} -p ${U2PATGOG}; \
-		${DIFF} -a add -nd ${U2GOG} -n mong$${i} -p ${U2PATGOG}; \
+	# add missing galactic map & monster files
+	for i in 10 15 20 30 32 40 41 45; do \
+		${DIFF} -a add -nd ${U2MAP} -n MAPG$${i} -p ${U2PAT_MAP}; \
+		${DIFF} -a add -nd ${U2MAP} -n MONG$${i} -p ${U2PAT_MAP}; \
 	done
-	for i in 20 32 41; do \
-		${DIFF} -a add -nd ${U2GOG} -n MAPG$${i} -p ${U2PATGOG}; \
-		${DIFF} -a add -nd ${U2GOG} -n MONG$${i} -p ${U2PATGOG}; \
-	done
-	# add missing galaxy talk files
+	# add missing galactic talk files
 	for i in 32 41; do \
-		${DIFF} -a add -nd ${U2GOG} -n TLKG$${i} -p ${U2PATGOG}; \
+		${DIFF} -a add -nd ${U2MAP} -n TLKG$${i} -p ${U2PAT_MAP}; \
+	done
+
+${U2PAT_GOG}:
+	rm -f ${U2PAT_GOG}
+	# GOG has renamed galactic map/mon files in lowercase
+	for i in 44 50 60 61 70 71 80 81 82 85 90 92 93; do \
+		${DIFF} -a rename -od ${U2MAP} -nd ${U2GOG} -o MAPG$${i} -n mapg$${i} -p ${U2PAT_GOG}; \
+		${DIFF} -a rename -od ${U2MAP} -nd ${U2GOG} -o MONG$${i} -n mong$${i} -p ${U2PAT_GOG}; \
+	done
+	# GOG has new galactic mon files in lowercase, and truncated to 256
+	for i in 10 15 30 40 45; do \
+		${DIFF} -a rename -od ${U2MAP} -nd ${U2GOG} -o MONG$${i} -n mong$${i} -p ${U2PAT_GOG}; \
+	done
+	# GOG has earth & galactic talk files with lowercase content
+	for i in X03 X11 X21 X22 X23 X31 X32 X33 X41 G32 G41 G61 G71 G81 G82 G92 G93; do \
+		${DIFF} -od ${U2MAP} -nd ${U2GOG} -o TLK$${i} -n TLK$${i} -p ${U2PAT_GOG}; \
 	done
 
 ${U2PAT}:
 	rm -f ${U2PAT}
-	${DIFF} -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o ULTIMAII.EXE -n ULTIMAII.EXE -p ${U2PAT}
-	# patch greenland dungeon
-	${DIFF} -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o MAPX10 -n MAPX10 -p ${U2PAT}
-	${DIFF} -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o MAPX15 -n MAPX15 -p ${U2PAT}
-	# patch earth talk files
-	for i in 03 11 21 22 23 31 32 33 41; do \
-		${DIFF} -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o TLKX$${i} -n TLKX$${i} -p ${U2PAT}; \
+	${DIFF} -od ${U2MAP} -nd ${U2UPGRADE} -o ULTIMAII.EXE -n ULTIMAII.EXE -p ${U2PAT}
+	# patch lower-case content to earth & galactic talk files
+	for i in X03 X11 X21 X22 X23 X31 X32 X33 X41 G32 G41 G61 G71 G81 G82 G92 G93; do \
+		${DIFF} -od ${U2MAP} -nd ${U2UPGRADE} -o TLK$${i} -n TLK$${i} -p ${U2PAT}; \
 	done
-	# rename existing galaxy map & monster files
-	for i in 44 50 60 61 70 71 80 81 82 85 90 92 93; do \
-		${DIFF} -a rename -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o MAPX$${i} -n MAPG$${i} -p ${U2PAT}; \
-		${DIFF} -a rename -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o MONX$${i} -n MONG$${i} -p ${U2PAT}; \
+	# move PLAYER and all overworld map/mon to SAVE.U2
+	${DIFF} -a rename -od ${U2MAP} -nd ${U2UPGRADE} -o PLAYER -n ${U2_SAVE_DIR}/PLAYER -p ${U2PAT}; \
+	for i in X00 X10 X20 X30 X40 G10 G20 G30 G40 G50 G60 G70 G80 G90; do \
+		${DIFF} -a rename -od ${U2MAP} -nd ${U2UPGRADE} -o MAP$${i} -n ${U2_SAVE_DIR}/MAP$${i} -p ${U2PAT}; \
+		${DIFF} -a rename -od ${U2MAP} -nd ${U2UPGRADE} -o MON$${i} -n ${U2_SAVE_DIR}/MON$${i} -p ${U2PAT}; \
 	done
-	# rename & patch existing galaxy talk files
-	for i in 61 71 81 82 92 93; do \
-		${DIFF} -a rename -od ${U2ORIGINAL} -nd ${U2UPGRADE} -o TLKX$${i} -n TLKG$${i} -p ${U2PAT}; \
-	done
-	# add missing galaxy map & monster files
-	for i in 10 15 20 30 32 40 41 45; do \
-		${DIFF} -a add -nd ${U2UPGRADE} -n MAPG$${i} -p ${U2PAT}; \
-		${DIFF} -a add -nd ${U2UPGRADE} -n MONG$${i} -p ${U2PAT}; \
-	done
-	# add missing galaxy talk files
-	for i in 32 41; do \
-		${DIFF} -a add -nd ${U2UPGRADE} -n TLKG$${i} -p ${U2PAT}; \
+	# add master PLAYER and all overworld map/mon
+	${DIFF} -a add -nd ${U2UPGRADE} -n PLAYER -p ${U2PAT}; \
+	for i in X00 X10 X20 X30 X40 G10 G20 G30 G40 G50 G60 G70 G80 G90; do \
+		${DIFF} -a add -nd ${U2UPGRADE} -n MAP$${i} -p ${U2PAT}; \
+		${DIFF} -a add -nd ${U2UPGRADE} -n MON$${i} -p ${U2PAT}; \
 	done
 
 ${U3PAT}:
@@ -109,7 +121,9 @@ package: package_u2 package_u3 package_u5
 
 package_u2: ${U2PAT}
 	echo "Packaging Patches for U2"
-	cp -f ${U2PATGOG} ${U2PKG}
+	cp -f ${U2PAT_UC} ${U2PKG}
+	cp -f ${U2PAT_MAP} ${U2PKG}
+	cp -f ${U2PAT_GOG} ${U2PKG}
 	cp -f ${U2PAT} ${U2PKG}
 
 package_u3: ${U3PAT}

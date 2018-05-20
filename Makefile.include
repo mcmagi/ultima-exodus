@@ -102,14 +102,19 @@ EXT=${ROOT}/ext
 DATA=${ROOT}/data
 DOC=${ROOT}/doc
 
+# U2 game locations
+U2U16=${ROOT}/game/u2orig.u16
+U2UC=${ROOT}/game/u2orig.uc
+U2MAP=${ROOT}/game/u2orig.map
+U2GOG=${ROOT}/game/u2orig.gog
+
 # game locations (for installation & patching)
-U2ORIGINAL=${ROOT}/game/u2orig
+U2ORIGINAL=${U2MAP}
 U3ORIGINAL=${ROOT}/game/u3orig
 U5ORIGINAL=${ROOT}/game/u5orig
 U2UPGRADE=${ROOT}/game/u2up
 U3UPGRADE=${ROOT}/game/u3up
 U5UPGRADE=${ROOT}/game/u5up
-U2GOG=${ROOT}/game/u2orig.gog
 
 # upgrade package versions
 U2VER=2.0
