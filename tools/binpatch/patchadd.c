@@ -13,7 +13,7 @@
 
 /* DIFF Functions */
 
-int diff(const char olddir[], const char oldfile[], const char newdir[], const char newfile[], File *patch, int action)
+int diff(const char olddir[], const char oldfile[], const char newdir[], const char newfile[], File *patch, int action, BOOL nodiff)
 {
 	unsigned char oldbyte, newbyte;		/* storage for old and new bytes */
 	int idx = 0;						/* index into file */
@@ -51,69 +51,67 @@ int diff(const char olddir[], const char oldfile[], const char newdir[], const c
 		diffcount++;
 	}
 
-	if (patch->fp != NULL)
+	if (! nodiff)
 	{
-		/* write file header to patch file if file exists */
-	}
-
-	if (old != NULL)
-	{
-		/* loop through lower of two sizes */
-		max_idx = (old->buf.st_size > new->buf.st_size) ? new->buf.st_size : old->buf.st_size;
-
-		/* loop through file until max_size is reached */
-		for (idx = 0; idx < max_idx; idx++)
+		if (old != NULL)
 		{
-			/* read a byte from both files */
-			read_from_file(old, &oldbyte, sizeof(unsigned char));
-			read_from_file(new, &newbyte, sizeof(unsigned char));
-
-			/* check if we have a difference */
-			if (oldbyte != newbyte)
+			/* loop through lower of two sizes */
+			max_idx = (old->buf.st_size > new->buf.st_size) ? new->buf.st_size : old->buf.st_size;
+	
+			/* loop through file until max_size is reached */
+			for (idx = 0; idx < max_idx; idx++)
 			{
-				//printf("\noffset %d: differ (%x, %x)\n", ftell(old->fp), oldbyte, newbyte);
-
-				/* found difference - must replace
-				 *  (and offset current index by patched data size) */
-
-				/* first diff found; write patch header and/or file header */
-				if (patch->fp == NULL)
-					create_patch_file(patch, fz);
-				else if (diffcount == 0)
-					write_to_file(patch, &fz, sizeof(fz));
-
-				idx += patch_add_replace(old, new, patch, idx) - 1;
-				diffcount++;
+				/* read a byte from both files */
+				read_from_file(old, &oldbyte, sizeof(unsigned char));
+				read_from_file(new, &newbyte, sizeof(unsigned char));
+	
+				/* check if we have a difference */
+				if (oldbyte != newbyte)
+				{
+					//printf("\noffset %d: differ (%x, %x)\n", ftell(old->fp), oldbyte, newbyte);
+	
+					/* found difference - must replace
+					 *  (and offset current index by patched data size) */
+	
+					/* first diff found; write patch header and/or file header */
+					if (patch->fp == NULL)
+						create_patch_file(patch, fz);
+					else if (diffcount == 0)
+						write_to_file(patch, &fz, sizeof(fz));
+	
+					idx += patch_add_replace(old, new, patch, idx) - 1;
+					diffcount++;
+				}
 			}
 		}
-	}
-
-	/* determine if the file sizes are not equal */
-	if (old != NULL && old->buf.st_size > new->buf.st_size)
-	{
-		/* old file greater than new file - must truncate */
-
-		/* first diff found; write patch header and/or file header */
-		if (patch->fp == NULL)
-			create_patch_file(patch, fz);
-		else if (diffcount == 0)
-			write_to_file(patch, &fz, sizeof(fz));
-
-		patch_add_truncate(old, patch, idx);
-		diffcount++;
-	}
-	else if (old == NULL || old->buf.st_size < new->buf.st_size)
-	{
-		/* new file greater than old file - must append */
-
-		/* first diff found; write patch header and/or file header */
-		if (patch->fp == NULL)
-			create_patch_file(patch, fz);
-		else if (diffcount == 0)
-			write_to_file(patch, &fz, sizeof(fz));
-
-		patch_add_append(new, patch, idx);
-		diffcount++;
+	
+		/* determine if the file sizes are not equal */
+		if (old != NULL && old->buf.st_size > new->buf.st_size)
+		{
+			/* old file greater than new file - must truncate */
+	
+			/* first diff found; write patch header and/or file header */
+			if (patch->fp == NULL)
+				create_patch_file(patch, fz);
+			else if (diffcount == 0)
+				write_to_file(patch, &fz, sizeof(fz));
+	
+			patch_add_truncate(old, patch, idx);
+			diffcount++;
+		}
+		else if (old == NULL || old->buf.st_size < new->buf.st_size)
+		{
+			/* new file greater than old file - must append */
+	
+			/* first diff found; write patch header and/or file header */
+			if (patch->fp == NULL)
+				create_patch_file(patch, fz);
+			else if (diffcount == 0)
+				write_to_file(patch, &fz, sizeof(fz));
+	
+			patch_add_append(new, patch, idx);
+			diffcount++;
+		}
 	}
 
 	/* close files */

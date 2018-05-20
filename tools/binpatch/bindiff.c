@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* copies diff data from old/new files to patch file */
-	num_diffs = diff(args.olddir, args.oldfile, args.newdir, args.newfile, patch, args.action);
+	num_diffs = diff(args.olddir, args.oldfile, args.newdir, args.newfile, patch, args.action, args.nodiff);
 
 	if (num_diffs > 0)
 	{
@@ -75,7 +75,7 @@ PatchArgs get_args(int argc, char *argv[])
 	args.newfile = NULL;
 	args.patchfile = NULL;
 	args.action = FA_NONE;
-	args.strip = 0; /* no longer used */
+	args.nodiff = FALSE;
 
 	for (i = 1; i < argc; i++)
 	{
@@ -85,12 +85,22 @@ PatchArgs get_args(int argc, char *argv[])
 		{
 			if (strcmp(argv[++i], ACTION_COPY) == MATCH)
 				args.action = FA_COPY;
-			else if (strcmp(argv[i], ACTION_RENAME) == MATCH)
+			else if (strcmp(argv[i], ACTION_COPY_ONLY) == MATCH)
+			{
+				args.action = FA_COPY;
+				args.nodiff = TRUE;
+			}
+			else if (strcmp(argv[i], ACTION_MOVE) == MATCH)
 				args.action = FA_RENAME;
+			else if (strcmp(argv[i], ACTION_MOVE_ONLY) == MATCH)
+			{
+				args.action = FA_RENAME;
+				args.nodiff = TRUE;
+			}
 			else if (strcmp(argv[i], ACTION_ADD) == MATCH)
 				args.action = FA_ADD;
 			else
-				print_help_message("allowed actions: copy, rename, add");
+				print_help_message("allowed actions: copy, copyonly, move, moveonly, add");
 		}
 		else /* (i != argc) */
 		{
@@ -129,10 +139,12 @@ void print_help_message(const char *error)
 {
 	if (error != NULL)
 		fprintf(stderr, "ERROR: %s\n\n", error);
-	fprintf(stderr, "bindiff [-a %s|%s] [-od <olddir>] -o <oldfile> [-nd <newdir>] -n <newfile> -p <patchfile>\n", ACTION_COPY, ACTION_RENAME);
+	fprintf(stderr, "bindiff [-a %s|%s|%s|%s] [-od <olddir>] -o <oldfile> [-nd <newdir>] -n <newfile> -p <patchfile>\n",
+			ACTION_COPY, ACTION_COPY_ONLY, ACTION_MOVE, ACTION_MOVE_ONLY);
 	fprintf(stderr, "bindiff -a %s [-nd <newdir>] -n <newfile> -p <patchfile>\n\n", ACTION_ADD);
 	fprintf(stderr, "Compares <oldfile> and <newfile>, applying difference to <patchfile>.\n");
-	fprintf(stderr, "\t-a\tAction to take when applying patch: %s, %s, %s\n", ACTION_COPY, ACTION_RENAME, ACTION_ADD);
+	fprintf(stderr, "\t-a\tAction to take when applying patch: %s, %s, %s, %s, %s\n",
+			ACTION_COPY, ACTION_COPY_ONLY, ACTION_MOVE, ACTION_MOVE_ONLY, ACTION_ADD);
 	fprintf(stderr, "\t-od\tPath to location of old (or source) file\n");
 	fprintf(stderr, "\t-o\tName of old (or source) file\n");
 	fprintf(stderr, "\t-nd\tPath to location of new (or target) file\n");

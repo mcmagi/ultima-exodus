@@ -6,9 +6,11 @@
 #include	"File.h"
 
 
-#define		ACTION_COPY		"copy"
-#define		ACTION_RENAME	"rename"
-#define		ACTION_ADD		"add"
+#define		ACTION_COPY			"copy"
+#define		ACTION_COPY_ONLY	"copyonly"
+#define		ACTION_MOVE			"move"
+#define		ACTION_MOVE_ONLY	"moveonly"
+#define		ACTION_ADD			"add"
 
 #define HELPMSG	1
 
@@ -20,8 +22,8 @@ typedef struct
 	char *newdir;
 	char *newfile;
 	char *patchfile;
+	BOOL nodiff;
 	int action;
-    int strip;
 } PatchArgs;
 
 
