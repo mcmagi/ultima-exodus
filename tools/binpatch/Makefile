@@ -53,7 +53,7 @@ ${UTILBIN}/bindiff: ${COMMON_LIB}/File.o ${BINPATCH_LIB}/bindiff.o ${BINPATCH_LI
 ${UTILBIN}/upgrade: ${COMMON_LIB}/File.o ${COMMON_LIB}/DirList.o ${BINPATCH_LIB}/upgrade.o \
 		${BINPATCH_LIB}/patch.o ${BINPATCH_LIB}/patchapply.o ${BINPATCH_LIB}/patchunapply.o | ${UTILBIN}
 	$(call link, ${UTILBIN}/upgrade, ${COMMON_LIB}/File.o ${COMMON_LIB}/DirList.o \
-		${COMMON_LIB}/option.o ${COMMON_LIB}/IniCfg.o ${BINPATCH_LIB}/upgrade.o \
+		${COMMON_LIB}/option.o ${COMMON_LIB}/IniCfg.o ${COMMON_LIB}/stringutil.o ${BINPATCH_LIB}/upgrade.o \
 		${BINPATCH_LIB}/patch.o ${BINPATCH_LIB}/patchapply.o ${BINPATCH_LIB}/patchunapply.o)
 
 # clean

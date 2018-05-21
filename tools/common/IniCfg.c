@@ -5,14 +5,11 @@
 #include <string.h>		/* strlen, strncpy, strcmp */
 
 #include "gendefs.h"
+#include "stringutil.h"
 #include "IniCfg.h"
 #include "File.h"
 
 #define ENTRY_SIZE_INC		10
-
-
-/* local (non-exported) prototypes */
-char * ini_load_string(const char *line, int start, int end);
 
 
 char * ini_get_value(const IniCfg *cfg, const char *key)
@@ -53,7 +50,7 @@ IniCfg * ini_load(File *f)
 				{
 					/* if we found a key, extract the value before breaking */
 					if (entry != NULL)
-						entry->value = ini_load_string(line, valuestart, i);
+						entry->value = substring_chomp(line, valuestart, i);
 
 					break;
 				}
@@ -61,7 +58,7 @@ IniCfg * ini_load(File *f)
 				{
 					/* end of key found, create entry */
 					entry = (IniCfgEntry *) malloc(sizeof(IniCfgEntry));
-					entry->key = ini_load_string(line, 0, i);
+					entry->key = substring_chomp(line, 0, i);
 					entry->value = NULL;
 
 					/* next character beyond '=' starts value */
@@ -90,31 +87,6 @@ IniCfg * ini_load(File *f)
 	cfg->entries = (IniCfgEntry **) realloc(cfg->entries, sizeof(IniCfgEntry **) * cfg->size);
 
 	return cfg;
-}
-
-char * ini_load_string(const char *line, int start, int end)
-{
-	int len;
-	char *str;
-
-	/* advance start to first non-space character */
-	while (line[start] == ' ')
-		start++;
-
-	/* rewind end to last non-space character */
-	while (line[end-1] == ' ')
-		end--;
-
-	/* end of key found */
-	len = end-start;
-
-	/* reserve extra byte for null terminus */
-	str = (char *) malloc((len+1) * sizeof(char));
-
-	/* copy & return string */
-	strncpy(str, &line[start], len);
-	str[len] = '\0';
-	return str;
 }
 
 void ini_free(IniCfg *cfg)

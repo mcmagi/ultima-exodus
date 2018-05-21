@@ -1,3 +1,8 @@
+/* 
+ * File:   stringutil.h
+ * Author: Michael C. Maggio
+ */
+
 #ifndef _INICFG_H
 #define _INICFG_H
 
@@ -20,4 +25,4 @@ char * ini_get_value(const IniCfg *cfg, const char *key);
 IniCfg * ini_load(File *f);
 void ini_free(IniCfg *cfg);
 
-#endif /* INICFG_H */
+#endif /* _INICFG_H */
