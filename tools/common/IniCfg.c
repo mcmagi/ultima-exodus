@@ -8,6 +8,7 @@
 #include "stringutil.h"
 #include "IniCfg.h"
 #include "File.h"
+#include "debug.h"
 
 #define ENTRY_SIZE_INC		10
 
@@ -50,6 +51,11 @@ IniCfg * ini_load(File *f)
 
 	do
 	{
+		/* loop initialization*/
+		valuestart = 0;
+		entry = NULL;
+
+		/* read line */
 		line = read_line_from_file(f);
 
 		if (line != NULL)
@@ -80,6 +86,9 @@ IniCfg * ini_load(File *f)
 			/* if we found a key, extract the value */
 			entry->value = substring_chomp(line, valuestart, i);
 
+			if (DEBUG)
+				printf("ini_load: adding entry: %s=%s\n", entry->key, entry->value);
+
 			/* if not enough space for another entry, grow pointer array */
 			if (cfg->size > entrysize)
 			{
@@ -89,7 +98,6 @@ IniCfg * ini_load(File *f)
 
 			/* add entry */
 			cfg->entries[cfg->size++] = entry;
-			entry = NULL;
 		}
 	}
 	while (line != NULL);

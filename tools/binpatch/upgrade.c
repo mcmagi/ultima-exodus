@@ -5,9 +5,9 @@
  * Created on May 6, 2017, 11:31 AM
  */
 
-#include <stdio.h>			/* printf */
+#include <stdio.h>			/* printf, NULL, BUFSIZ */
 #include <stdlib.h>			/* exit, malloc, free */
-#include <string.h>			/* strcmp */
+#include <string.h>			/* strcmp, strncmp, strlen, strcpy, strcat */
 #include <ctype.h>			/* toupper */
 
 #include "File.h"
@@ -31,20 +31,13 @@ int main(int argc, const char ** argv)
 {
 	PatchData *data;			/* upgrade patch data */
 	BOOL unapply = FALSE;		/* unapply mode flag */
-	File *iniFile = NULL;		/* upgrade ini file */
 	IniCfg *iniCfg = NULL;		/* upgrade ini cfg data */
 
 	UpgradeArgs args = parse_args(argc, argv);
 	DEBUG = args.debug;
 
 	/* load ini file */
-	iniFile = stat_file("upgrade.ini");
-	if (! iniFile->newfile)
-	{
-		open_file(iniFile, "r");
-		iniCfg = ini_load(iniFile);
-		close_file(iniFile);
-	}
+	iniCfg = load_upgrade_ini(args.upgrade_type);
 
 	data = create_patchdata(CURRENT_DIR);
 
@@ -280,6 +273,28 @@ void do_downgrade(PatchData data)
 BOOL get_yesno()
 {
 	return get_valid_option("YN") == 'Y';
+}
+
+IniCfg * load_upgrade_ini(const char *upgrade_type)
+{
+	File *iniFile = NULL;		/* upgrade ini file */
+	IniCfg *iniCfg = NULL;		/* upgrade ini cfg data */
+	char filename[BUFSIZ];		/* filename buffer */
+
+	strcpy(filename, upgrade_type);
+	strcat(filename, ".ini");
+
+	/* load ini file */
+	iniFile = stat_file(filename);
+	if (! iniFile->newfile)
+	{
+		if (DEBUG) printf("loading inifile: %s\n", filename);
+		open_file(iniFile, READONLY_MODE);
+		iniCfg = ini_load(iniFile);
+	}
+	close_file(iniFile);
+
+	return iniCfg;
 }
 
 char * get_patch_version(const IniCfg *iniCfg, const File *patch)

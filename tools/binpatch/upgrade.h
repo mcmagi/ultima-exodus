@@ -33,9 +33,10 @@ void free_patchdata(PatchData *data);
 void do_upgrade(PatchData data);
 void do_downgrade(PatchData data);
 BOOL get_yesno();
+IniCfg * load_upgrade_ini(const char *upgrade_type);
 char * get_patch_version(const IniCfg *iniCfg, const File *patch);
 UpgradeArgs parse_args(int argc, const char **argv);
-void print_help_message();
+void print_help_message(const char *name);
 
 
 #endif
