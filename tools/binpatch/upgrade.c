@@ -51,7 +51,7 @@ int main(int argc, const char ** argv)
 	}
 
 	/* if no upgrade patches applied, check release patches */
-	if (data->applied == NULL && iniCfg != NULL)
+	if (! data->has_upgrade && iniCfg != NULL)
 		examine_release_patches(data, iniCfg);
 
 	/* Print game versions */
@@ -172,7 +172,11 @@ void examine_release_patches(PatchData *r, const IniCfg *iniCfg)
 		r->num_below = baseLevel - appliedLevel;
 		r->below = malloc(sizeof(File**) * r->num_below);
 		for (i = appliedLevel+1, j = 0; i <= baseLevel; i++)
+		{
+			if (DEBUG)
+				printf("Under-applied release patch: %s\n", releases->entries[i]);
 			r->below[j++] = stat_file(releases->entries[i]);
+		}
 	}
 	else if (appliedLevel > baseLevel)
 	{
@@ -180,7 +184,11 @@ void examine_release_patches(PatchData *r, const IniCfg *iniCfg)
 		r->num_above = appliedLevel - baseLevel;
 		r->above = malloc(sizeof(File**) * r->num_above);
 		for (i = baseLevel+1, j = 0; i <= appliedLevel; i++)
+		{
+			if (DEBUG)
+				printf("Over-applied release patch: %s\n", releases->entries[i]);
 			r->above[j++] = stat_file(releases->entries[i]);
+		}
 	}
 
 	/* get new file instances before freeing strlist */
@@ -237,6 +245,16 @@ void do_upgrade(IniCfg *iniCfg, PatchData *data)
 {
 	int i;
 
+	if (data->has_upgrade)
+	{
+		/* unapply currently applied patch */
+		downgrade_patch(iniCfg, data->applied, data->dir);
+
+		/* determine release version after rolling back upgrade patch */
+		data->applied = NULL;
+		examine_release_patches(data, iniCfg);
+	}
+
 	if (data->num_below > 0)
 	{
 		/* apply any release patches below base */
@@ -248,11 +266,6 @@ void do_upgrade(IniCfg *iniCfg, PatchData *data)
 		/* unapply any release patches above base */
 		for (i = 0; i < data->num_above; i++)
 			downgrade_patch(iniCfg, data->above[i], data->dir);
-	}
-	else if (data->has_upgrade)
-	{
-		/* unapply currently applied patch */
-		downgrade_patch(iniCfg, data->applied, data->dir);
 	}
 
 	/* apply latest patch */
@@ -274,6 +287,7 @@ void upgrade_patch(IniCfg *iniCfg, File *patch, const char *dir)
 	{
 		seek_through_file(patch, sizeof(struct patch_header), SEEK_SET);
 		apply_patch(patch, dir);
+		close_file(patch);
 	}
 	else
 	{
@@ -288,6 +302,7 @@ void downgrade_patch(IniCfg *iniCfg, File *patch, const char *dir)
 	open_file(patch, READONLY_MODE);
 	verify_patch_header(patch);
 	unapply_patch(patch, dir);
+	close_file(patch);
 }
 
 BOOL get_yesno()

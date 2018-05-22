@@ -8,6 +8,7 @@
 #include	"File.h"
 #include	"filepath.h"
 #include	"gendefs.h"
+#include	"debug.h"
 #include	"patch.h"
 #include	"patchapply.h"
 
@@ -237,7 +238,8 @@ void apply_patch(File *patch, const char *dir)
 
 			if (! file_error)
 			{
-				patch_data_message(dz);
+				if (DEBUG)
+					patch_data_message(dz);
 
 				/* perform operation based on patch type */
 				switch (dz.type)
@@ -366,16 +368,16 @@ void patch_file_message(struct file_header fz)
 	switch (fz.action)
 	{
 		case FA_NONE:
-			printf("patching file %s\n", fz.name);
+			printf("  patching file %s\n", fz.name);
 			break;
 		case FA_COPY:
-			printf("copying file %s -> %s\n", fz.name, fz.newname);
+			printf("  copying file %s -> %s\n", fz.name, fz.newname);
 			break;
 		case FA_RENAME:
-			printf("renaming file %s -> %s\n", fz.name, fz.newname);
+			printf("  renaming file %s -> %s\n", fz.name, fz.newname);
 			break;
 		case FA_ADD:
-			printf("adding file %s\n", fz.newname);
+			printf("  adding file %s\n", fz.newname);
 			break;
 	}
 }
@@ -393,7 +395,7 @@ void patch_data_message(struct data_header dz)
 
 	if (typetext != NULL)
 	{
-		printf(" -> %s %d bytes", typetext, dz.size);
+		printf("   -> %s %d bytes", typetext, dz.size);
 		printf(" at offset %d\n", dz.offset); /* bug in openwatcom? second long param shows as 0; need second printf */
 	}
 

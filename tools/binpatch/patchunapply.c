@@ -8,6 +8,7 @@
 #include	"File.h"
 #include	"filepath.h"
 #include	"gendefs.h"
+#include	"debug.h"
 #include	"patch.h"
 #include	"patchunapply.h"
 
@@ -172,7 +173,8 @@ void unapply_patch(File *patch, const char *dir)
 
 			if (! file_error && fz.action != FA_COPY && fz.action != FA_ADD)
 			{
-				unpatch_data_message(dz);
+				if (DEBUG)
+					unpatch_data_message(dz);
 
 				/* perform operation based on patch type */
 				switch (dz.type)
@@ -307,16 +309,16 @@ void unpatch_file_message(struct file_header fz)
 	switch (fz.action)
 	{
 		case FA_NONE:
-			printf("unpatching file %s\n", fz.name);
+			printf("  unpatching file %s\n", fz.name);
 			break;
 		case FA_COPY:
-			printf("deleting copied file %s (from %s)\n", fz.newname, fz.name);
+			printf("  deleting copied file %s (from %s)\n", fz.newname, fz.name);
 			break;
 		case FA_RENAME:
-			printf("renaming file %s -> %s\n", fz.newname, fz.name);
+			printf("  renaming file %s -> %s\n", fz.newname, fz.name);
 			break;
 		case FA_ADD:
-			printf("deleting added file %s\n", fz.newname);
+			printf("  deleting added file %s\n", fz.newname);
 			break;
 	}
 }
@@ -334,7 +336,7 @@ void unpatch_data_message(struct data_header dz)
 
 	if (typetext != NULL)
 	{
-		printf(" -> %s %d bytes", typetext, dz.size);
+		printf("   -> %s %d bytes", typetext, dz.size);
 		printf(" at offset %d\n", dz.offset); /* bug in openwatcom? second long param shows as 0; need second printf */
 	}
 
