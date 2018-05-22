@@ -50,44 +50,31 @@ int main(int argc, const char ** argv)
 		exit(EXIT_NO_PATCH_FILES);
 	}
 
-	/* if no upgrade patches applied, check incremental patches */
+	/* if no upgrade patches applied, check release patches */
 	if (data->applied == NULL && iniCfg != NULL)
-		examine_incremental_patches(data, iniCfg);
+		examine_release_patches(data, iniCfg);
 
 	/* Print game versions */
 	printf("  Current Game Version:  %s\n", get_patch_version(iniCfg, data->applied));
 	printf("Latest Upgrade Version:  %s\n\n", get_patch_version(iniCfg, data->latest));
 
-	if (data->applied != NULL)
-	{
-		/* check if latest/applied filenames match */
-		if (strcmp(data->applied->filename, data->latest->filename) == MATCH)
-		{
-			printf("Latest patch is already applied.\n", get_patch_version(iniCfg, data->applied));
-			unapply = TRUE;
-		}
-		else
-		{
-			printf("Removing patch '%s' and applying patch '%s'\n", get_patch_version(iniCfg, data->applied), get_patch_version(iniCfg, data->latest));
-		}
-	}
-	else
-	{
-		printf("Applying patch '%s'\n", get_patch_version(iniCfg, data->latest));
-	}
+	/* check if latest/applied filenames match, switch to unapply mode */
+	unapply = data->applied != NULL && strcmp(data->applied->filename, data->latest->filename) == MATCH;
 
 	/* get confirmation & do the work */
 	if (unapply)
 	{
+		printf("Latest patch is already applied.\n");
 		printf("Unapply? (Y/N): ");
 		if (args.yes || get_yesno())
-			do_downgrade(*data);
+			do_downgrade(iniCfg, data);
 	}
 	else
 	{
+		printf("Upgrading to latest version.\n");
 		printf("Continue? (Y/N): ");
 		if (args.yes || get_yesno())
-			do_upgrade(*data);
+			do_upgrade(iniCfg, data);
 	}
 
 	free_patchdata(data);
@@ -139,32 +126,36 @@ void examine_upgrade_patches(PatchData *r, const char *upgrade_type)
 	if (r->applied != NULL)
 		r->applied = stat_file(r->applied->filename);
 
+	/* indicate that applied patch is an upgrade (as opposed to a release) */
+	if (r->applied != NULL)
+		r->has_upgrade = TRUE;
+
 	free_dirlist(dirList);
 }
 
-void examine_incremental_patches(PatchData *r, const IniCfg *iniCfg)
+void examine_release_patches(PatchData *r, const IniCfg *iniCfg)
 {
-	StrList *increments;		/* incremental patch filenames */
+	StrList *releases;		/* release patch filenames */
 	const char *base;			/* minimum base patch filename needed for upgrades */
 	File *patch = NULL;			/* patch file */
 	int i, j;					/* counter */
 	int appliedLevel = -1;
 	int baseLevel = -1;
 
-	increments = ini_get_value_list(iniCfg, "increments");
+	releases = ini_get_value_list(iniCfg, "releases");
 	base = ini_get_value(iniCfg, "base");
 
 	/* examine patch files */
-	for (i = increments->size - 1; i >= 0; i--)
+	for (i = releases->size - 1; i >= 0; i--)
 	{
-		patch = stat_file(increments->entries[i]);
+		patch = stat_file(releases->entries[i]);
 		open_file(patch, READONLY_MODE);
 
 		if (DEBUG)
 			printf("Found patch %s\n", patch->filename);
 		verify_patch_header(patch);
 
-		/* find latest applied incremental patch version */
+		/* find latest applied release patch version */
 		if (r->applied == NULL && is_patch_applied(patch, r->dir, FALSE))
 		{
 			r->applied = patch;
@@ -181,7 +172,7 @@ void examine_incremental_patches(PatchData *r, const IniCfg *iniCfg)
 		r->num_below = baseLevel - appliedLevel;
 		r->below = malloc(sizeof(File**) * r->num_below);
 		for (i = appliedLevel+1, j = 0; i <= baseLevel; i++)
-			r->below[j++] = stat_file(increments->entries[i]);
+			r->below[j++] = stat_file(releases->entries[i]);
 	}
 	else if (appliedLevel > baseLevel)
 	{
@@ -189,14 +180,14 @@ void examine_incremental_patches(PatchData *r, const IniCfg *iniCfg)
 		r->num_above = appliedLevel - baseLevel;
 		r->above = malloc(sizeof(File**) * r->num_above);
 		for (i = baseLevel+1, j = 0; i <= appliedLevel; i++)
-			r->above[j++] = stat_file(increments->entries[i]);
+			r->above[j++] = stat_file(releases->entries[i]);
 	}
 
 	/* get new file instances before freeing strlist */
 	if (r->applied != NULL)
 		r->applied = stat_file(r->applied->filename);
 
-	free_strlist(increments);
+	free_strlist(releases);
 }
 
 PatchData *create_patchdata(const char *path)
@@ -205,8 +196,9 @@ PatchData *create_patchdata(const char *path)
 
 	/* construct result structure */
 	r = (PatchData*) malloc(sizeof(PatchData));
-	r->latest = NULL;
+	r->has_upgrade = FALSE;
 	r->applied = NULL;
+	r->latest = NULL;
 	r->below = NULL;
 	r->num_below = 0;
 	r->above = NULL;
@@ -241,19 +233,47 @@ void free_patchdata(PatchData *data)
 	free(data);
 }
 
-void do_upgrade(PatchData data)
+void do_upgrade(IniCfg *iniCfg, PatchData *data)
 {
-	/* unapply currently applied patch */
-	if (data.applied != NULL)
-		do_downgrade(data);
+	int i;
+
+	if (data->num_below > 0)
+	{
+		/* apply any release patches below base */
+		for (i = 0; i < data->num_below; i++)
+			upgrade_patch(iniCfg, data->below[i], data->dir);
+	}
+	else if (data->num_above > 0)
+	{
+		/* unapply any release patches above base */
+		for (i = 0; i < data->num_above; i++)
+			downgrade_patch(iniCfg, data->above[i], data->dir);
+	}
+	else if (data->has_upgrade)
+	{
+		/* unapply currently applied patch */
+		downgrade_patch(iniCfg, data->applied, data->dir);
+	}
 
 	/* apply latest patch */
-	open_file(data.latest, READONLY_MODE);
-	verify_patch_header(data.latest);
-	if (is_patch_unapplied(data.latest, data.dir, TRUE))
+	upgrade_patch(iniCfg, data->latest, data->dir);
+}
+
+void do_downgrade(IniCfg *iniCfg, PatchData *data)
+{
+	/* unapply currently applied patch */
+	downgrade_patch(iniCfg, data->applied, data->dir);
+}
+
+void upgrade_patch(IniCfg *iniCfg, File *patch, const char *dir)
+{
+	printf("Applying patch: %s\n", get_patch_version(iniCfg, patch));
+	open_file(patch, READONLY_MODE);
+	verify_patch_header(patch);
+	if (is_patch_unapplied(patch, dir, TRUE))
 	{
-		seek_through_file(data.latest, sizeof(struct patch_header), SEEK_SET);
-		apply_patch(data.latest, data.dir);
+		seek_through_file(patch, sizeof(struct patch_header), SEEK_SET);
+		apply_patch(patch, dir);
 	}
 	else
 	{
@@ -262,12 +282,12 @@ void do_upgrade(PatchData data)
 	}
 }
 
-void do_downgrade(PatchData data)
+void downgrade_patch(IniCfg *iniCfg, File *patch, const char *dir)
 {
-	/* unapply currently applied patch */
-	open_file(data.applied, READONLY_MODE);
-	verify_patch_header(data.applied);
-	unapply_patch(data.applied, data.dir);
+	printf("Unapplying patch: %s\n", get_patch_version(iniCfg, patch));
+	open_file(patch, READONLY_MODE);
+	verify_patch_header(patch);
+	unapply_patch(patch, dir);
 }
 
 BOOL get_yesno()
