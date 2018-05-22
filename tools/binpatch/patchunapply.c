@@ -48,7 +48,7 @@ BOOL is_patch_applied(File *patch, const char *dir, BOOL showmsg)
 			if (file->newfile)
 			{
 				if (showmsg)
-					printf("is_patch_unapplied: missing file '%s'\n", file->filename);
+					printf("is_patch_applied: missing file '%s'\n", file->filename);
 				mismatch = TRUE;
 				break;
 			}
@@ -315,7 +315,7 @@ void unpatch_file_message(struct file_header fz)
 			printf("  deleting copied file %s (from %s)\n", fz.newname, fz.name);
 			break;
 		case FA_RENAME:
-			printf("  renaming file %s -> %s\n", fz.newname, fz.name);
+			printf("  moving file %s -> %s\n", fz.newname, fz.name);
 			break;
 		case FA_ADD:
 			printf("  deleting added file %s\n", fz.newname);

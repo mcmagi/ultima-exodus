@@ -251,6 +251,7 @@ void do_upgrade(IniCfg *iniCfg, PatchData *data)
 		downgrade_patch(iniCfg, data->applied, data->dir);
 
 		/* determine release version after rolling back upgrade patch */
+		close_file(data->applied);
 		data->applied = NULL;
 		examine_release_patches(data, iniCfg);
 	}
@@ -287,7 +288,6 @@ void upgrade_patch(IniCfg *iniCfg, File *patch, const char *dir)
 	{
 		seek_through_file(patch, sizeof(struct patch_header), SEEK_SET);
 		apply_patch(patch, dir);
-		close_file(patch);
 	}
 	else
 	{
@@ -302,7 +302,6 @@ void downgrade_patch(IniCfg *iniCfg, File *patch, const char *dir)
 	open_file(patch, READONLY_MODE);
 	verify_patch_header(patch);
 	unapply_patch(patch, dir);
-	close_file(patch);
 }
 
 BOOL get_yesno()

@@ -4,6 +4,7 @@
 #include	<stdio.h>				/* printf, BUFSIZ */
 #include	<stdlib.h> 				/* malloc, free, exit */
 #include	<string.h>				/* strcpy, strncmp, memcmp */
+#include	<sys/stat.h>			/* mkdir */
 
 #include	"File.h"
 #include	"filepath.h"
@@ -22,6 +23,7 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 	BOOL mismatch = FALSE;				/* indicates old data mismatch */
 	int datasize;						/* size of data to skip if no file */
 	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
+	FileParts *fp = NULL;				/* parts of new filename */
 
 
 	/* read first header */
@@ -64,15 +66,20 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 			{
 				/* ensure new file doesn't exist */
 				concat_path(filename, dir, fz.newname);
+				fp = split_filename(fz.newname);
+				if (fp->dir != NULL)
+					mkdir(fp->dir, 0775);
+				free(fp);
 				new = stat_file(filename);
 
-				if (! new->newfile)
+				// we're relaxing this requirement because of complexity of validting moving+replacing
+				/*if (! new->newfile)
 				{
 					if (showmsg)
 						printf("is_patch_unapplied: unexpected file '%s'\n", new->filename);
 					mismatch = TRUE;
 					break;
-				}
+				}*/
 			}
 		}
 		else if (strncmp(hdrtype, DATA_HEADER_ID, HDR_SZ) == MATCH)
@@ -374,7 +381,7 @@ void patch_file_message(struct file_header fz)
 			printf("  copying file %s -> %s\n", fz.name, fz.newname);
 			break;
 		case FA_RENAME:
-			printf("  renaming file %s -> %s\n", fz.name, fz.newname);
+			printf("  moving file %s -> %s\n", fz.name, fz.newname);
 			break;
 		case FA_ADD:
 			printf("  adding file %s\n", fz.newname);
