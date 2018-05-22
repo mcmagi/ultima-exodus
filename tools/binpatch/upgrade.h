@@ -5,6 +5,7 @@
 
 #define EXIT_NO_PATCH_FILES 1
 #define EXIT_UNEXPECTED_VERSION 1
+#define HELPMSG			1
 #define CURRENT_DIR	"."
 
 

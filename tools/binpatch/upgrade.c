@@ -382,7 +382,8 @@ UpgradeArgs parse_args(int argc, const char **argv)
 void print_help_message(const char *name)
 {
 	fprintf(stderr, "%s [-v] [-y]\n", name);
-	fprintf(stderr, "Determines an upgrade plan and applies patches to the current directory.");
+	fprintf(stderr, "Determines an upgrade plan and applies patches to the current directory.\n");
 	fprintf(stderr, "\t-v\tVerbose (debug)\n");
 	fprintf(stderr, "\t-y\tAutomatically say 'yes'\n");
+	exit(HELPMSG);
 }
