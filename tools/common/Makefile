@@ -2,7 +2,8 @@ ROOT=../..
 include ${ROOT}/Makefile.include
 
 compile: ${COMMON_LIB}/File.o ${COMMON_LIB}/DirList.o ${COMMON_LIB}/option.o \
-		${COMMON_LIB}/IniCfg.o ${COMMON_LIB}/stringutil.o
+		${COMMON_LIB}/IniCfg.o ${COMMON_LIB}/stringutil.o ${COMMON_LIB}/filepath.o \
+		${COMMON_LIB}/debug.o
 
 ${COMMON_LIB}:
 	mkdir -p ${COMMON_LIB}
@@ -22,6 +23,12 @@ ${COMMON_LIB}/IniCfg.o: IniCfg.c IniCfg.h File.h gendefs.h stringutil.h | ${COMM
 
 ${COMMON_LIB}/stringutil.o: stringutil.c stringutil.h | ${COMMON_LIB}
 	$(call compile, ${COMMON_LIB}/stringutil.o, stringutil.c)
+
+${COMMON_LIB}/filepath.o: filepath.c filepath.h stringutil.h | ${COMMON_LIB}
+	$(call compile, ${COMMON_LIB}/filepath.o, filepath.c)
+
+${COMMON_LIB}/debug.o: debug.c debug.h gendefs.h | ${COMMON_LIB}
+	$(call compile, ${COMMON_LIB}/debug.o, debug.c)
 
 # clean
 clean:

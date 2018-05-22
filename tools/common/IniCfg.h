@@ -7,6 +7,7 @@
 #define _INICFG_H
 
 #include "gendefs.h"
+#include "stringutil.h"
 #include "File.h"
 
 typedef struct
@@ -22,6 +23,7 @@ typedef struct
 } IniCfg;
 
 char * ini_get_value(const IniCfg *cfg, const char *key);
+StrList * ini_get_value_list(const IniCfg *cfg, const char *key);
 IniCfg * ini_load(File *f);
 void ini_free(IniCfg *cfg);
 

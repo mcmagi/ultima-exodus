@@ -75,6 +75,9 @@ void reopen_file(File *file, const char open_mode[])
 /* closes a File */
 void close_file(File *file)
 {
+	if (file == NULL)
+		return;
+
 	/* make sure we have actually opened it */
 	if (file->fp != NULL)
 	{
@@ -264,26 +267,4 @@ void file_error(const File *file, const char *text)
 
 	/* exit */
 	exit(FAILURE);
-}
-
-/* concatenates two path elements */
-void concat_path(char *fullpath, const char *path1, const char *path2)
-{
-    int i = 0;
-
-    if (path1 != NULL && strlen(path1) > 0)
-    {
-        strcpy(fullpath, path1);
-        i = strlen(path1);
-
-        /* insert directory separator if both paths are specified */
-        if (path2 != NULL && strlen(path2) > 0)
-        {
-            if (fullpath[i] != '/' || fullpath[i] != '\\')
-                fullpath[i++] = '/';
-        }
-    }
-
-    if (path2 != NULL && strlen(path2) > 0)
-        strcpy(&fullpath[i], path2);
 }

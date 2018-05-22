@@ -6,6 +6,7 @@
 #include	<string.h>				/* strcpy, strncmp, memcmp */
 
 #include	"File.h"
+#include	"filepath.h"
 #include	"gendefs.h"
 #include	"patch.h"
 #include	"patchapply.h"

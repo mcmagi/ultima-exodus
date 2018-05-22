@@ -24,6 +24,18 @@ char * ini_get_value(const IniCfg *cfg, const char *key)
 	return NULL;
 }
 
+StrList * ini_get_value_list(const IniCfg *cfg, const char *key)
+{
+	const char *value;
+
+	/* get increments value */
+	value = ini_get_value(cfg, key);
+
+	/* return increment as StrList */
+	return value == NULL ? NULL : split(value);
+
+}
+
 IniCfg * ini_load(File *f)
 {
 	IniCfg *cfg;
@@ -48,10 +60,6 @@ IniCfg * ini_load(File *f)
 				/* end at comments or EOL */
 				if (line[i] == '#' || line[i] == ';' || line[i] == '\0')
 				{
-					/* if we found a key, extract the value before breaking */
-					if (entry != NULL)
-						entry->value = substring_chomp(line, valuestart, i);
-
 					break;
 				}
 				else if (line[i] == '=')
@@ -69,6 +77,9 @@ IniCfg * ini_load(File *f)
 
 		if (entry != NULL)
 		{
+			/* if we found a key, extract the value */
+			entry->value = substring_chomp(line, valuestart, i);
+
 			/* if not enough space for another entry, grow pointer array */
 			if (cfg->size > entrysize)
 			{
@@ -77,8 +88,8 @@ IniCfg * ini_load(File *f)
 			}
 
 			/* add entry */
-			cfg->entries[cfg->size] = entry;
-			cfg->size++;
+			cfg->entries[cfg->size++] = entry;
+			entry = NULL;
 		}
 	}
 	while (line != NULL);
@@ -92,6 +103,9 @@ IniCfg * ini_load(File *f)
 void ini_free(IniCfg *cfg)
 {
 	int i = 0;
+
+	if (cfg == NULL)
+		return;
 
 	/* free all entries */
 	for (i = 0; i < cfg->size; i++)
