@@ -21,7 +21,7 @@ package%: FORCE
 			TARGET=winnt make -C $$i $@ || exit 1; \
 			TARGET=linux make -C $$i $@ || exit 1; \
 		fi \
-	done
+	done || exit 1
 
 gen_config%: FORCE
 	# run local target to generate config file
