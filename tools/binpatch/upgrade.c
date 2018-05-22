@@ -142,8 +142,8 @@ void examine_release_patches(PatchData *r, const IniCfg *iniCfg)
 	int appliedLevel = -1;
 	int baseLevel = -1;
 
-	releases = ini_get_value_list(iniCfg, "releases");
-	base = ini_get_value(iniCfg, "base");
+	releases = ini_get_value_list(iniCfg, INI_KEY_RELEASES);
+	base = ini_get_value(iniCfg, INI_KEY_BASE);
 
 	/* examine patch files */
 	for (i = releases->size - 1; i >= 0; i--)
@@ -334,7 +334,7 @@ IniCfg * load_upgrade_ini(const char *upgrade_type)
 
 char * get_patch_version(const IniCfg *iniCfg, const File *patch)
 {
-	char *iniKey = "none";
+	char *iniKey = INI_KEY_NONE;
 	char *versionStr = NULL;
 	
 	if (patch != NULL)

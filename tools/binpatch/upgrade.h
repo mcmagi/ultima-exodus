@@ -8,6 +8,10 @@
 #define HELPMSG			1
 #define CURRENT_DIR	"."
 
+#define INI_KEY_NONE		"none"
+#define INI_KEY_RELEASES	"releases"
+#define INI_KEY_BASE		"base"
+
 
 typedef struct {
 	BOOL yes;
