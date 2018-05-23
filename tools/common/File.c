@@ -109,7 +109,7 @@ void read_from_file(File *file, void *data, size_t size)
 char * read_line_from_file(File *file)
 {
 	char linebuf[BUFSIZ];
-	char c;
+	int c;
 	int i = 0;
 	char *line;
 
@@ -117,20 +117,22 @@ char * read_line_from_file(File *file)
 	if (end_of_file(file))
 		return NULL;
 
-	/* read first character */
-	c = getc(file->fp);
-
-	while (c != '\r' && c != '\n' && c != EOF && i < BUFSIZ-1)
+	do
 	{
-		linebuf[i++] = c;
-
 		/* read next character */
 		c = getc(file->fp);
 
-		/* skip CRLF */
-		if (linebuf[i-1] == '\r' && c == '\n')
+		/* skip CR */
+		if (c == '\r')
 			c = getc(file->fp);
+
+		/* break on LF or EOF */
+		if (c == '\n' || c == EOF)
+			break;
+
+		linebuf[i++] = c;
 	}
+	while (i < BUFSIZ-1);
 
 	/* check for read error */
 	if (c == EOF && ferror(file->fp) > 0)
