@@ -112,8 +112,10 @@ List * build_patch_index(File *patch)
 	struct file_header fz;				/* header for patched file */
 	struct data_header dz;				/* header for patch data */
 	int datasize;						/* size of data to skip if error or deleted file */
-	int pos = 0;						/* position in file */
+	long pos = 0;						/* position in file */
 	List *fzIndex;
+
+	printf("building patch index\n");
 
 	fzIndex = list_create();
 
@@ -166,17 +168,17 @@ List * build_patch_index(File *patch)
 	return fzIndex;
 }
 
-void patch_index_add(List *fzIndex, int value)
+void patch_index_add(List *fzIndex, long value)
 {
-	int *x;			/* pointer to value */
+	long *x;			/* pointer to value */
 
-	x = (int *) malloc(sizeof(int));
+	x = (long *) malloc(sizeof(long));
 	*x = value;
 	list_add(fzIndex, x);
 }
 
-int patch_index_get(List *fzIndex, int idx)
+long patch_index_get(List *fzIndex, int idx)
 {
-	int *value = (int *) fzIndex->entries[idx];
+	long *value = (long *) fzIndex->entries[idx];
 	return *value;
 }

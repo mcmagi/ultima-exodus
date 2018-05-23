@@ -68,8 +68,8 @@ struct data_header build_data_header(long offset, long size, short type);
 void set_filename(char *out, const char *in);
 void verify_patch_header(File *patch);
 List * build_patch_index(File *patch);
-void patch_index_add(List *fzIndex, int value);
-int patch_index_get(List *fzIndex, int idx);
+void patch_index_add(List *fzIndex, long value);
+long patch_index_get(List *fzIndex, int idx);
 
 
 #endif
