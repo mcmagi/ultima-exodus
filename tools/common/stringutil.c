@@ -3,6 +3,7 @@
 #include <stdio.h>		/* printf */
 #include <malloc.h>		/* malloc, realloc, free */
 #include <string.h>		/* strncpy, strcpy, strlen */
+#include <ctype.h>		/* toupper */
 
 #include "stringutil.h"
 
@@ -129,4 +130,13 @@ char * strclone(const char *str)
 	/* copy and return */
 	strcpy(newstr, str);
 	return newstr;
+}
+
+char * strtoupper(char *str)
+{
+	int len, i = 0;
+	len = strlen(str);
+	for (i = 0; i < len; i++)
+		str[i] = toupper(str[i]);
+	return str;
 }

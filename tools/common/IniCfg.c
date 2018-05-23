@@ -16,12 +16,18 @@
 char * ini_get_value(const IniCfg *cfg, const char *key)
 {
 	int i;
+	char *upperkey;
+
+	upperkey = strtoupper(strclone(key));
 
 	for (i = 0; i < cfg->size; i++)
 	{
-		if (strcmp(key, cfg->entries[i]->key) == MATCH)
+		if (strcmp(upperkey, cfg->entries[i]->key) == MATCH)
 			return cfg->entries[i]->value;
 	}
+
+	free(upperkey);
+
 	return NULL;
 }
 
@@ -72,7 +78,7 @@ IniCfg * ini_load(File *f)
 				{
 					/* end of key found, create entry */
 					entry = (IniCfgEntry *) malloc(sizeof(IniCfgEntry));
-					entry->key = substring_chomp(line, 0, i);
+					entry->key = strtoupper(substring_chomp(line, 0, i));
 					entry->value = NULL;
 
 					/* next character beyond '=' starts value */

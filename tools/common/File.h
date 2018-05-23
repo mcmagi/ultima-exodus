@@ -36,7 +36,9 @@ void rename_file(File *infile, File *outfile);
 void delete_file(File *file);
 void truncate_file(File *file, long offset);
 long file_size(File *file);
+void make_directory(const char *path);
 void file_error(const File *file, const char *text);
+void filename_error(const char *filename, const char *text);
 
 
 /* read mode defines */

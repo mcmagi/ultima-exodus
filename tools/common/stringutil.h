@@ -18,6 +18,7 @@ int strrpos(const char *line, char c);
 StrList * split(const char *line);
 void free_strlist(StrList *strlist);
 char * strclone(const char *str);
+char * strtoupper(char *str);
 
 #endif /* _STRINGUTIL_H */
 

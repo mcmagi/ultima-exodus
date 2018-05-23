@@ -283,7 +283,7 @@ BOOL compare_new_data(File *patch, File *file, struct data_header dz)
 	if (memcmp(newdata, cmpdata, dz.size) == MATCH)
 		match = TRUE;
 
-	/* free up old / cmp data areas */
+	/* free up new / cmp data areas */
 	free(cmpdata);
 	free(newdata);
 
@@ -302,6 +302,9 @@ void add_old_data(File *patch, File *file, struct data_header dz)
 	/* write replacement data to new file */
 	seek_through_file(file, dz.offset, SEEK_SET);
 	write_to_file(file, olddata, dz.size);
+
+	/* free up old data area */
+	free(olddata);
 }
 
 void unpatch_file_message(struct file_header fz)

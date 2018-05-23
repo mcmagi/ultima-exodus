@@ -5,9 +5,12 @@
 							 * freopen, rename */
 #include	<unistd.h>		/* ftruncate */
 #include	<stdlib.h>		/* exit */
-#include	<sys/stat.h>	/* stat */
+#include	<sys/stat.h>	/* stat, mkdir(gnu) */
 #include	<string.h>		/* strlen, strcpy */
 #include	<malloc.h>		/* malloc, free */
+#ifndef __GNUC__
+#include	<direct.h>		/* mkdir */
+#endif
 
 #include	"gendefs.h"		/* general use defs */
 #include	"File.h"		/* file handling */
@@ -256,14 +259,28 @@ void truncate_file(File *file, long offset)
 #endif
 }
 
+void make_directory(const char *path)
+{
+#ifdef __GNUC__
+	mkdir(path, 0775);
+#else
+	mkdir(path);
+#endif
+}
+
 /* error handling function */
 void file_error(const File *file, const char *text)
 {
+	filename_error(file->filename, text);
+}
+
+void filename_error(const char *filename, const char *text)
+{
 	/* write to stderr */
-	fprintf(stderr, "%s: %s\n", file->filename, text);
+	fprintf(stderr, "%s: %s\n", filename, text);
 
 	/* do a perror */
-	perror(file->filename);
+	perror(filename);
 
 	/* exit */
 	exit(FAILURE);

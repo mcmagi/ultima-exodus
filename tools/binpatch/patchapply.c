@@ -4,7 +4,6 @@
 #include	<stdio.h>				/* printf, BUFSIZ */
 #include	<stdlib.h> 				/* malloc, free, exit */
 #include	<string.h>				/* strcpy, strncmp, memcmp */
-#include	<sys/stat.h>			/* mkdir */
 
 #include	"File.h"
 #include	"filepath.h"
@@ -68,7 +67,7 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 				concat_path(filename, dir, fz.newname);
 				fp = split_filename(fz.newname);
 				if (fp->dir != NULL)
-					mkdir(fp->dir, 0775);
+					make_directory(fp->dir);
 				free(fp);
 				new = stat_file(filename);
 
@@ -368,6 +367,9 @@ void add_new_data(File *patch, File *new, struct data_header dz)
 	/* write replacement data to new file */
 	seek_through_file(new, dz.offset, SEEK_SET);
 	write_to_file(new, newdata, dz.size);
+
+	/* free up new data area */
+	free(newdata);
 }
 
 void patch_file_message(struct file_header fz)
