@@ -11,6 +11,7 @@
 #include	"debug.h"
 #include	"patch.h"
 #include	"patchunapply.h"
+#include	"List.h"
 
 
 BOOL is_patch_applied(File *patch, const char *dir, BOOL showmsg)
@@ -110,115 +111,127 @@ void unapply_patch(File *patch, const char *dir)
 	BOOL data_error;					/* indicates error during patching */
 	int datasize;						/* size of data to skip if error or deleted file */
 	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
+	List *index;
+	int i;
 
 
-	/* read first header */
-	read_from_file(patch, &hdrtype, HDR_SZ);
+	/* use a patch index to unapply so we can step in reverse */
+	index = build_patch_index(patch);
 
-	while (! end_of_file(patch))
+	for (i = index->size-1; i >= 0; i--)
 	{
-		/* reset position */
-		seek_through_file(patch, -HDR_SZ, SEEK_CUR);
+		/* move to next file header */
+		seek_through_file(patch, patch_index_get(index, i), SEEK_SET);
 
-		if (strncmp(hdrtype, FILE_HEADER_ID, HDR_SZ) == MATCH)
+		/* read next file header */
+		read_from_file(patch, &fz, sizeof(struct file_header));
+		unpatch_file_message(fz);
+
+		/* locate file */
+		concat_path(filename, dir, fz.action > FA_NONE ? fz.newname : fz.name);
+		file = stat_file(filename);
+
+		if (file->newfile)
 		{
-			file_error = FALSE;
-
-			/* close last file's file references (if any) */
-			if (file != NULL)
-				close_file(file);
-			file = NULL;
-
-			/* read next file header */
-			read_from_file(patch, &fz, sizeof(struct file_header));
-			unpatch_file_message(fz);
-
-			/* locate file */
-			concat_path(filename, dir, fz.action > FA_NONE ? fz.newname : fz.name);
-			file = stat_file(filename);
-
-			if (file->newfile)
-			{
-				printf("File not found '%s'", file->filename);
-				file_error = TRUE;
-			}
-			else if (fz.action == FA_RENAME)
-			{
-				/* rename file back to original */
-				concat_path(filename, dir, fz.name);
-				origfile = stat_file(filename);
-				rename_file(file, origfile);
-				close_file(origfile);
-				origfile = NULL;
-
-				/* open file */
-				file = stat_file(filename);
-				open_file(file, READWRITE_MODE);
-			}
-			else if (fz.action == FA_COPY || fz.action == FA_ADD)
-			{
-				/* remove patch-created or copied file */
-				delete_file(file);
-			}
-			else
-			{
-				/* open file */
-				open_file(file, READWRITE_MODE);
-			}
+			printf("File not found '%s'\n", file->filename);
+			file_error = TRUE;
 		}
-		else if (strncmp(hdrtype, DATA_HEADER_ID, HDR_SZ) == MATCH)
+		else if (fz.action == FA_RENAME)
 		{
-			/* read next data header */
-			read_from_file(patch, &dz, sizeof(struct data_header));
+			/* rename file back to original */
+			concat_path(filename, dir, fz.name);
+			origfile = stat_file(filename);
+			rename_file(file, origfile);
+			close_file(origfile);
+			origfile = NULL;
 
-			if (! file_error && fz.action != FA_COPY && fz.action != FA_ADD)
-			{
-				if (DEBUG)
-					unpatch_data_message(dz);
-
-				/* perform operation based on patch type */
-				switch (dz.type)
-				{
-					case DT_APPEND:
-						data_error = patch_unappend(patch, file, dz);
-						break;
-					case DT_TRUNCATE:
-						data_error = patch_untruncate(patch, file, dz);
-						break;
-					case DT_REPLACE:
-						data_error = patch_unreplace(patch, file, dz);
-						break;
-				}
-
-				if (data_error)
-				{
-					printf("patched data did not match in file %s at offset %d\n",
-							file->filename, dz.offset);
-				}
-			}
-			else
-			{
-				/* skip over data */
-				datasize = dz.size;
-				if (dz.type == DT_REPLACE)
-					datasize *= 2;
-
-				seek_through_file(patch, datasize, SEEK_CUR);
-			}
+			/* open file */
+			file = stat_file(filename);
+			open_file(file, READWRITE_MODE);
+		}
+		else if (fz.action == FA_COPY || fz.action == FA_ADD)
+		{
+			/* remove patch-created or copied file */
+			delete_file(file);
 		}
 		else
 		{
-			printf("Unrecognized header information reading patchfile %s\n", patch->filename);
-			exit(FATAL_ERROR);
+			/* open file */
+			open_file(file, READWRITE_MODE);
 		}
 
-		/* read next header */
+		/* read first header */
 		read_from_file(patch, &hdrtype, HDR_SZ);
+
+		while (! end_of_file(patch))
+		{
+			/* reset position */
+			seek_through_file(patch, -HDR_SZ, SEEK_CUR);
+
+			if (strncmp(hdrtype, FILE_HEADER_ID, HDR_SZ) == MATCH)
+			{
+				break;
+			}
+			else if (strncmp(hdrtype, DATA_HEADER_ID, HDR_SZ) == MATCH)
+			{
+				/* read next data header */
+				read_from_file(patch, &dz, sizeof(struct data_header));
+
+				if (! file_error && fz.action != FA_COPY && fz.action != FA_ADD)
+				{
+					if (DEBUG)
+						unpatch_data_message(dz);
+
+					/* perform operation based on patch type */
+					switch (dz.type)
+					{
+						case DT_APPEND:
+							data_error = patch_unappend(patch, file, dz);
+							break;
+						case DT_TRUNCATE:
+							data_error = patch_untruncate(patch, file, dz);
+							break;
+						case DT_REPLACE:
+							data_error = patch_unreplace(patch, file, dz);
+							break;
+					}
+
+					if (data_error)
+					{
+						printf("patched data did not match in file %s at offset %d\n",
+								file->filename, dz.offset);
+					}
+				}
+				else
+				{
+					/* skip over data */
+					datasize = dz.size;
+					if (dz.type == DT_REPLACE)
+						datasize *= 2;
+
+					seek_through_file(patch, datasize, SEEK_CUR);
+				}
+			}
+			else
+			{
+				printf("Unrecognized header information reading patchfile %s\n", patch->filename);
+				exit(FATAL_ERROR);
+			}
+
+			/* read next header */
+			read_from_file(patch, &hdrtype, HDR_SZ);
+		}
+
+		/* post-file actions */
+		file_error = FALSE;
+
+		/* close last file's file references (if any) */
+		if (file != NULL)
+			close_file(file);
+		file = NULL;
 	}
 
-	/* close file references (if any) */
-	if (file != NULL)
-		close_file(file);
+	list_free(index);
 }
 
 BOOL patch_unreplace(File *patch, File *file, struct data_header dz)

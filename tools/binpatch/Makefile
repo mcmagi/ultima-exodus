@@ -3,8 +3,9 @@ include ${ROOT}/Makefile.include
 
 HEADERS=${COMMON}/File.h ${COMMON}/DirList.h ${COMMON}/gendefs.h ${COMMON}/option.h \
 		${COMMON}/IniCfg.h ${COMMON}/filepath.h ${COMMON}/stringutil.h ${COMMON}/debug.h \
-		patch.h
-LIBS=${COMMON_LIB}/File.o ${COMMON_LIB}/filepath.o ${COMMON_LIB}/stringutil.o ${COMMON_LIB}/debug.o
+		${COMMON}/List.h patch.h
+LIBS=${COMMON_LIB}/File.o ${COMMON_LIB}/filepath.o ${COMMON_LIB}/stringutil.o \
+		${COMMON_LIB}/List.o ${COMMON_LIB}/debug.o
 
 compile: ${UTILBIN}/bindiff ${UTILBIN}/binpat ${UTILBIN}/binunpat ${UTILBIN}/upgrade
 
