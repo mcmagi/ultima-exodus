@@ -65,14 +65,14 @@ int main(int argc, const char ** argv)
 	if (unapply)
 	{
 		printf("Latest patch is already applied.\n");
-		printf("Unapply? (Y/N): ");
+		printf("Unapply? (Y/N): %s", args.yes ? "Y\n" : "");
 		if (args.yes || get_yesno())
 			do_downgrade(iniCfg, data);
 	}
 	else
 	{
 		printf("Upgrading to latest version.\n");
-		printf("Continue? (Y/N): ");
+		printf("Continue? (Y/N): %s", args.yes ? "Y\n" : "");
 		if (args.yes || get_yesno())
 			do_upgrade(iniCfg, data);
 	}
@@ -200,7 +200,7 @@ void examine_release_patches(PatchData *r, const IniCfg *iniCfg)
 
 PatchData *create_patchdata(const char *path)
 {
-	PatchData *r = NULL;
+	PatchData *r = NULL;			/* result structure */
 
 	/* construct result structure */
 	r = (PatchData*) malloc(sizeof(PatchData));
@@ -218,7 +218,7 @@ PatchData *create_patchdata(const char *path)
 
 void free_patchdata(PatchData *data)
 {
-	int i = 0;
+	int i = 0;				/* loop counter */
 
 	/* close files */
 	if (data->applied)
@@ -243,7 +243,7 @@ void free_patchdata(PatchData *data)
 
 void do_upgrade(IniCfg *iniCfg, PatchData *data)
 {
-	int i;
+	int i;			/* loop counter */
 
 	if (data->has_upgrade)
 	{
@@ -271,17 +271,19 @@ void do_upgrade(IniCfg *iniCfg, PatchData *data)
 
 	/* apply latest patch */
 	upgrade_patch(iniCfg, data->latest, data->dir);
+	printf("Upgrade complete!\n");
 }
 
 void do_downgrade(IniCfg *iniCfg, PatchData *data)
 {
 	/* unapply currently applied patch */
 	downgrade_patch(iniCfg, data->applied, data->dir);
+	printf("Removal complete!\n");
 }
 
 void upgrade_patch(IniCfg *iniCfg, File *patch, const char *dir)
 {
-	printf("Applying patch: %s\n", get_patch_version(iniCfg, patch));
+	printf("\nApplying patch: %s\n", get_patch_version(iniCfg, patch));
 	open_file(patch, READONLY_MODE);
 	verify_patch_header(patch);
 	if (is_patch_unapplied(patch, dir, TRUE))
@@ -298,7 +300,7 @@ void upgrade_patch(IniCfg *iniCfg, File *patch, const char *dir)
 
 void downgrade_patch(IniCfg *iniCfg, File *patch, const char *dir)
 {
-	printf("Unapplying patch: %s\n", get_patch_version(iniCfg, patch));
+	printf("\nUnapplying patch: %s\n", get_patch_version(iniCfg, patch));
 	open_file(patch, READONLY_MODE);
 	verify_patch_header(patch);
 	unapply_patch(patch, dir);
@@ -333,8 +335,8 @@ IniCfg * load_upgrade_ini(const char *upgrade_type)
 
 char * get_patch_version(const IniCfg *iniCfg, const File *patch)
 {
-	char *iniKey = INI_KEY_NONE;
-	char *versionStr = NULL;
+	char *iniKey = INI_KEY_NONE;			/* key to ini cfg option */
+	char *versionStr = NULL;				/* derived patch version string */
 	
 	if (patch != NULL)
 		iniKey = patch->filename;
@@ -342,14 +344,15 @@ char * get_patch_version(const IniCfg *iniCfg, const File *patch)
 	if (iniCfg != NULL)
 		versionStr = ini_get_value(iniCfg, iniKey);
 
+	/* if can't find version string, default to iniKey value */
 	return versionStr == NULL ? iniKey : versionStr;
 }
 
 UpgradeArgs parse_args(int argc, const char **argv)
 {
-	UpgradeArgs args;
-	FileParts *fp;
-	int i;
+	UpgradeArgs args;		/* arguments strcture */
+	FileParts *fp;			/* parts of current filename */
+	int i;					/* loop counter */
 
 	/* initialize struct */
 	args.upgrade_type = NULL;
