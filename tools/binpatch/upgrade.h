@@ -11,6 +11,9 @@
 #define INI_KEY_NONE		"none"
 #define INI_KEY_RELEASES	"releases"
 #define INI_KEY_BASE		"base"
+#define INI_KEY_README		"readme"
+
+#define README_PAGE_BREAK	"---"
 
 
 typedef struct {
@@ -43,6 +46,8 @@ void downgrade_patch(IniCfg *iniCfg, File *patch, const char *dir);
 BOOL get_yesno();
 IniCfg * load_upgrade_ini(const char *upgrade_type);
 char * get_patch_version(const IniCfg *iniCfg, const File *patch);
+void print_readme(char *filename);
+void press_enter();
 UpgradeArgs parse_args(int argc, const char **argv);
 void print_help_message(const char *name);
 

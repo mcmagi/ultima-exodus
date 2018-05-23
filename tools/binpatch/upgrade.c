@@ -32,12 +32,17 @@ int main(int argc, const char ** argv)
 	PatchData *data;			/* upgrade patch data */
 	BOOL unapply = FALSE;		/* unapply mode flag */
 	IniCfg *iniCfg = NULL;		/* upgrade ini cfg data */
+	char *readme;				/* readme filename */
 
 	UpgradeArgs args = parse_args(argc, argv);
 	DEBUG = args.debug;
 
 	/* load ini file */
 	iniCfg = load_upgrade_ini(args.upgrade_type);
+
+	readme = ini_get_value(iniCfg, INI_KEY_README);
+	if (! args.yes && readme != NULL)
+		print_readme(readme);
 
 	data = create_patchdata(CURRENT_DIR);
 
@@ -67,17 +72,26 @@ int main(int argc, const char ** argv)
 		printf("Latest patch is already applied.\n");
 		printf("Unapply? (Y/N): %s", args.yes ? "Y\n" : "");
 		if (args.yes || get_yesno())
+		{
 			do_downgrade(iniCfg, data);
+			if (! args.yes)
+				press_enter();
+		}
 	}
 	else
 	{
 		printf("Upgrading to latest version.\n");
 		printf("Continue? (Y/N): %s", args.yes ? "Y\n" : "");
 		if (args.yes || get_yesno())
+		{
 			do_upgrade(iniCfg, data);
+			if (! args.yes)
+				press_enter();
+		}
 	}
 
 	free_patchdata(data);
+	free(readme);
 	ini_free(iniCfg);
 	free(args.upgrade_type);
 
@@ -346,6 +360,39 @@ char * get_patch_version(const IniCfg *iniCfg, const File *patch)
 
 	/* if can't find version string, default to iniKey value */
 	return versionStr == NULL ? iniKey : versionStr;
+}
+
+void print_readme(char *filename)
+{
+	File *file = NULL;		/* readme file */
+	char *line = NULL;		/* line buffer area */
+	int i = 0;				/* loop counter */
+
+	if (DEBUG)
+		printf("searching for readme file: %s\n", filename);
+	file = stat_file(filename);
+	if (! file->newfile)
+	{
+		open_file(file, READONLY_MODE);
+		for (i = 0; ! end_of_file(file); i++)
+		{
+			line = read_line_from_file(file);
+
+			/* pause on page break */
+			if (strcmp(line, README_PAGE_BREAK) == MATCH)
+				press_enter();
+
+			printf("%s\n", line);
+			free(line);
+		}
+	}
+	close_file(file);
+}
+
+void press_enter()
+{
+	printf("(Press ENTER to continue)");
+	get_option();
 }
 
 UpgradeArgs parse_args(int argc, const char **argv)
