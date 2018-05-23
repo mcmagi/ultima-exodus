@@ -307,7 +307,9 @@ void upgrade_patch(IniCfg *iniCfg, File *patch, const char *dir)
 	}
 	else
 	{
-		printf("Cannot apply patch! Missing or unexpected version of binaries found.");
+		printf("Cannot apply patch! Missing or unexpected version of binaries found.\n");
+		printf("You will need to reinstall the game before re-applying the patch.\n");
+		press_enter();
 		exit(EXIT_UNEXPECTED_VERSION);
 	}
 }
