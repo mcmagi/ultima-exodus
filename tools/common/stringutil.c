@@ -75,7 +75,7 @@ StrList * split(const char *line)
 	/* create strlist for return */
 	list = malloc(sizeof(StrList));
 	list->size = 0;
-	list->entries = malloc(sizeof(char **) * currentSize);
+	list->entries = malloc(sizeof(char *) * currentSize);
 
 	do
 	{
@@ -125,7 +125,7 @@ char * strclone(const char *str)
 
 	/* reserve space for new string */
 	len = strlen(str);
-	newstr = malloc(sizeof(char *) * (len+1));
+	newstr = malloc(sizeof(char) * (len+1));
 
 	/* copy and return */
 	strcpy(newstr, str);

@@ -30,7 +30,7 @@ File *stat_file(const char *filename)
 	file = (File *) malloc(sizeof(File));
 
 	/* allocate space & copy filename */
-	file->filename = (char *) malloc(strlen(filename) + 1);
+	file->filename = (char *) malloc(sizeof(char) * (strlen(filename) + 1));
 	strcpy(file->filename, filename);
 
 	/* initialize fp to null */

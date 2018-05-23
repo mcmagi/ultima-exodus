@@ -170,7 +170,7 @@ void examine_release_patches(PatchData *r, const IniCfg *iniCfg)
 	{
 		/* we are under base level needed for upgrade patch */
 		r->num_below = baseLevel - appliedLevel;
-		r->below = malloc(sizeof(File**) * r->num_below);
+		r->below = malloc(sizeof(File*) * r->num_below);
 		for (i = appliedLevel+1, j = 0; i <= baseLevel; i++)
 		{
 			if (DEBUG)
@@ -182,7 +182,7 @@ void examine_release_patches(PatchData *r, const IniCfg *iniCfg)
 	{
 		/* we are over base level needed for upgrade patch and need to rollback */
 		r->num_above = appliedLevel - baseLevel;
-		r->above = malloc(sizeof(File**) * r->num_above);
+		r->above = malloc(sizeof(File*) * r->num_above);
 		for (i = baseLevel+1, j = 0; i <= appliedLevel; i++)
 		{
 			if (DEBUG)

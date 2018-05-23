@@ -53,7 +53,7 @@ IniCfg * ini_load(File *f)
 
 	cfg = malloc(sizeof(IniCfg));
 	cfg->size = 0;
-	cfg->entries = (IniCfgEntry **) malloc(sizeof(IniCfgEntry **) * entrysize);
+	cfg->entries = (IniCfgEntry **) malloc(sizeof(IniCfgEntry *) * entrysize);
 
 	do
 	{
@@ -99,7 +99,7 @@ IniCfg * ini_load(File *f)
 			if (cfg->size > entrysize)
 			{
 				entrysize += ENTRY_SIZE_INC;
-				cfg->entries = (IniCfgEntry **) realloc(cfg->entries, sizeof(IniCfgEntry **) * entrysize);
+				cfg->entries = (IniCfgEntry **) realloc(cfg->entries, sizeof(IniCfgEntry *) * entrysize);
 			}
 
 			/* add entry */
@@ -109,7 +109,7 @@ IniCfg * ini_load(File *f)
 	while (line != NULL);
 
 	/* resize pointer array to actual size */
-	cfg->entries = (IniCfgEntry **) realloc(cfg->entries, sizeof(IniCfgEntry **) * cfg->size);
+	cfg->entries = (IniCfgEntry **) realloc(cfg->entries, sizeof(IniCfgEntry *) * cfg->size);
 
 	return cfg;
 }
