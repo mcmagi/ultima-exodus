@@ -107,8 +107,8 @@ void unapply_patch(File *patch, const char *dir)
 	struct data_header dz;				/* header for patch data */
 	File *file = NULL;					/* file handle */
 	File *origfile = NULL;				/* file handle for original file */
-	BOOL file_error;					/* indicates error during patching */
-	BOOL data_error;					/* indicates error during patching */
+	BOOL file_error = FALSE;			/* indicates error during patching */
+	BOOL data_error = FALSE;			/* indicates error during patching */
 	int datasize;						/* size of data to skip if error or deleted file */
 	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
 	List *index;
