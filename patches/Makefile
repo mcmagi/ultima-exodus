@@ -63,16 +63,11 @@ ${U2PAT_MAP}:
 
 ${U2PAT_GOG}:
 	rm -f ${U2PAT_GOG}
-	# GOG has renamed galactic map/mon files in lowercase
-	for i in 44 50 60 61 70 71 80 81 82 85 90 92 93; do \
-		${DIFF} -a move -od ${U2MAP} -nd ${U2GOG} -o MAPG$${i} -n mapg$${i} -p ${U2PAT_GOG}; \
-		${DIFF} -a move -od ${U2MAP} -nd ${U2GOG} -o MONG$${i} -n mong$${i} -p ${U2PAT_GOG}; \
-	done
-	# GOG has new galactic mon files in lowercase, and truncated to 256
+	# GOG has galactic mon files truncated to 256
 	for i in 10 15 30 40 45; do \
-		${DIFF} -a move -od ${U2MAP} -nd ${U2GOG} -o MONG$${i} -n mong$${i} -p ${U2PAT_GOG}; \
+		${DIFF} -od ${U2MAP} -nd ${U2GOG} -o MONG$${i} -n MONG$${i} -p ${U2PAT_GOG}; \
 	done
-	# GOG has earth & galactic talk files with lowercase content
+	# GOG has the upgrade's earth & galactic talk files with lowercase content
 	for i in X03 X11 X21 X22 X23 X31 X32 X33 X41 G32 G41 G61 G71 G81 G82 G92 G93; do \
 		${DIFF} -od ${U2MAP} -nd ${U2GOG} -o TLK$${i} -n TLK$${i} -p ${U2PAT_GOG}; \
 	done
@@ -84,17 +79,11 @@ ${U2PAT}:
 	for i in X03 X11 X21 X22 X23 X31 X32 X33 X41 G32 G41 G61 G71 G81 G82 G92 G93; do \
 		${DIFF} -od ${U2MAP} -nd ${U2UPGRADE} -o TLK$${i} -n TLK$${i} -p ${U2PAT}; \
 	done
-	# move PLAYER and all overworld map/mon to SAVE.U2 (no diff)
-	${DIFF} -a moveonly -od ${U2MAP} -nd ${U2UPGRADE} -o PLAYER -n ${U2_SAVE_DIR}/PLAYER -p ${U2PAT}; \
+	# replace PLAYER and all overworld map/mon with master copies, backing up saves to SAVE.U2
+	${DIFF} -a replace -od ${U2MAP} -nd ${U2UPGRADE} -o PLAYER -n ${U2_SAVE_DIR}/PLAYER -p ${U2PAT}; \
 	for i in X00 X10 X20 X30 X40 G10 G20 G30 G40 G50 G60 G70 G80 G90; do \
-		${DIFF} -a moveonly -od ${U2MAP} -nd ${U2UPGRADE} -o MAP$${i} -n ${U2_SAVE_DIR}/MAP$${i} -p ${U2PAT}; \
-		${DIFF} -a moveonly -od ${U2MAP} -nd ${U2UPGRADE} -o MON$${i} -n ${U2_SAVE_DIR}/MON$${i} -p ${U2PAT}; \
-	done
-	# add master PLAYER and all overworld map/mon
-	${DIFF} -a add -nd ${U2UPGRADE} -n PLAYER -p ${U2PAT}; \
-	for i in X00 X10 X20 X30 X40 G10 G20 G30 G40 G50 G60 G70 G80 G90; do \
-		${DIFF} -a add -nd ${U2UPGRADE} -n MAP$${i} -p ${U2PAT}; \
-		${DIFF} -a add -nd ${U2UPGRADE} -n MON$${i} -p ${U2PAT}; \
+		${DIFF} -a replace -od ${U2MAP} -nd ${U2UPGRADE} -o MAP$${i} -n ${U2_SAVE_DIR}/MAP$${i} -p ${U2PAT}; \
+		${DIFF} -a replace -od ${U2MAP} -nd ${U2UPGRADE} -o MON$${i} -n ${U2_SAVE_DIR}/MON$${i} -p ${U2PAT}; \
 	done
 
 ${U3PAT}:
