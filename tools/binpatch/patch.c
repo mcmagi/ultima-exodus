@@ -115,8 +115,6 @@ List * build_patch_index(File *patch)
 	long pos = 0;						/* position in file */
 	List *fzIndex;
 
-	printf("building patch index\n");
-
 	fzIndex = list_create();
 
 	pos += sizeof(struct patch_header);

@@ -22,7 +22,6 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 	BOOL mismatch = FALSE;				/* indicates old data mismatch */
 	int datasize;						/* size of data to skip if no file */
 	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
-	FileParts *fp = NULL;				/* parts of new filename */
 
 
 	/* read first header */
@@ -49,7 +48,7 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 				concat_path(filename, dir, fz.name);
 				old = stat_file(filename);
 
-				if (fz.size != old->buf.st_size)
+				if (fz.action != FA_REPLACE && fz.size != old->buf.st_size)
 				{
 					if (showmsg)
 						printf("is_patch_unapplied: file '%s' size %d expected %d\n", old->filename, old->buf.st_size, fz.size);
@@ -61,17 +60,13 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 				open_file(old, READONLY_MODE);
 			}
 
-			if (fz.action == FA_RENAME || fz.action == FA_COPY || fz.action == FA_ADD)
+			if (fz.action > FA_NONE)
 			{
 				/* ensure new file doesn't exist for move/copy/add */
 				concat_path(filename, dir, fz.newname);
-				fp = split_filename(fz.newname);
-				if (fp->dir != NULL)
-					make_directory(fp->dir);
-				free(fp);
 				new = stat_file(filename);
 
-				if (! new->newfile)
+				if (fz.action != FA_REPLACE && ! new->newfile)
 				{
 					if (showmsg)
 						printf("is_patch_unapplied: unexpected file '%s'\n", new->filename);
@@ -146,6 +141,7 @@ void apply_patch(File *patch, const char *dir)
 	BOOL data_error;					/* indicates error during patching */
 	int datasize;						/* size of data to skip if error */
 	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
+	FileParts *fp = NULL;				/* parts of new filename */
 
 
 	/* read first header */
@@ -178,7 +174,7 @@ void apply_patch(File *patch, const char *dir)
 				concat_path(filename, dir, fz.name);
 				old = stat_file(filename);
 
-				if (fz.size != old->buf.st_size)
+				if (fz.action != FA_REPLACE && fz.size != old->buf.st_size)
 				{
 					printf("File not found or size mismatch on file '%s';"
 							"found %d expected %d\n", old->filename,
@@ -193,7 +189,13 @@ void apply_patch(File *patch, const char *dir)
 				concat_path(filename, dir, fz.newname);
 				new = stat_file(filename);
 
-				if (! new->newfile)
+				/* ensure target directory exists */
+				fp = split_filename(fz.newname);
+				if (fp->dir != NULL)
+					make_directory(fp->dir);
+				free(fp);
+
+				if (fz.action != FA_REPLACE && ! new->newfile)
 				{
 					printf("File '%s' already exists\n", new->filename);
 					file_error = TRUE;
@@ -230,11 +232,15 @@ void apply_patch(File *patch, const char *dir)
 					if (! old->newfile && new->newfile)
 					{
 						/* if oldfile exists and newfile doesn't, create backup */
+						printf("   backing up %s -> %s\n", fz.name, fz.newname);
 						rename_file(old, new);
 						close_file(new);
 					}
 					/* replace old file */
 					open_file(old, OVERWRITE_MODE);
+
+					/* the newfile is the oldfile */
+					new = old;
 					break;
 
 				case FA_NONE:
@@ -399,7 +405,7 @@ void patch_file_message(struct file_header fz)
 			printf("  adding file %s\n", fz.newname);
 			break;
 		case FA_REPLACE:
-			printf("  replacing file %s, with backup -> %s\n", fz.name, fz.newname);
+			printf("  replacing file %s\n", fz.name);
 			break;
 	}
 }

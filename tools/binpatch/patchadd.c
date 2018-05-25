@@ -38,8 +38,8 @@ int diff(const char olddir[], const char oldfile[], const char newdir[], const c
 	if (action == FA_REPLACE)
 	{
 		/* for replacement, look at old filename in new path */
-		concat_path(oldfilepath, olddir, newfile);
-		new = stat_file(oldfilepath);
+		concat_path(newfilepath, newdir, oldfile);
+		new = stat_file(newfilepath);
 		open_file(new, READONLY_MODE);
 	}
 	else
