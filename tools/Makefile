@@ -9,7 +9,6 @@ PACKAGE_DIRS = cfg binpatch
 			TARGET=local make -C $$i $@ || exit 1; \
 			TARGET=dos make -C $$i $@ || exit 1; \
 			TARGET=winnt make -C $$i $@ || exit 1; \
-			TARGET=linux make -C $$i $@ || exit 1; \
 		fi \
 	done || exit 1
 
@@ -19,7 +18,6 @@ package%: FORCE
 		if [ -d "$$i" ]; then \
 			TARGET=dos make -C $$i $@ || exit 1; \
 			TARGET=winnt make -C $$i $@ || exit 1; \
-			TARGET=linux make -C $$i $@ || exit 1; \
 		fi \
 	done || exit 1
 

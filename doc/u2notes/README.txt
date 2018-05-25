@@ -1,13 +1,12 @@
 
-                **** The Exodus Project:  ***
-                *     Ultima II Upgrade     *
-                *****************************
+                        **** The Exodus Project:  ***
+                        *     Ultima II Upgrade     *
+                        *****************************
 
 Installation:
 
     1) Run the following program to patch the game, depending on your O/S:
         * Windows: u2upw   (Can be launched directly from explorer)
-        * Linux: ./u2upl
         * DOS: u2up
     2) Edit dosbox.conf (dosboxULTIMA2.conf for GOG) and change these values:
         * cycles=3000   (or greater)
@@ -20,7 +19,6 @@ Optional Steps:
 
     *) Run the following program to change the default configuration:
         * Windows: u2cfgw   (Can be launched directly from explorer)
-        * Linux: ./u2cfgl
         * DOS: u2cfg
 
 ---
