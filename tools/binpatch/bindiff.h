@@ -11,6 +11,7 @@
 #define		ACTION_MOVE			"move"
 #define		ACTION_MOVE_ONLY	"moveonly"
 #define		ACTION_ADD			"add"
+#define		ACTION_REPLACE		"replace"
 
 #define HELPMSG	1
 

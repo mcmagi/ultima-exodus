@@ -99,8 +99,10 @@ PatchArgs get_args(int argc, char *argv[])
 			}
 			else if (strcmp(argv[i], ACTION_ADD) == MATCH)
 				args.action = FA_ADD;
+			else if (strcmp(argv[i], ACTION_REPLACE) == MATCH)
+				args.action = FA_REPLACE;
 			else
-				print_help_message("allowed actions: copy, copyonly, move, moveonly, add");
+				print_help_message("allowed actions: copy, copyonly, move, moveonly, add, replace");
 		}
 		else /* (i != argc) */
 		{
@@ -139,12 +141,18 @@ void print_help_message(const char *error)
 {
 	if (error != NULL)
 		fprintf(stderr, "ERROR: %s\n\n", error);
-	fprintf(stderr, "bindiff [-a %s|%s|%s|%s] [-od <olddir>] -o <oldfile> [-nd <newdir>] -n <newfile> -p <patchfile>\n",
-			ACTION_COPY, ACTION_COPY_ONLY, ACTION_MOVE, ACTION_MOVE_ONLY);
+	fprintf(stderr, "bindiff [-a %s|%s|%s|%s|%s] [-od <olddir>] -o <oldfile> [-nd <newdir>] -n <newfile> -p <patchfile>\n",
+			ACTION_COPY, ACTION_COPY_ONLY, ACTION_MOVE, ACTION_MOVE_ONLY, ACTION_REPLACE);
 	fprintf(stderr, "bindiff -a %s [-nd <newdir>] -n <newfile> -p <patchfile>\n\n", ACTION_ADD);
 	fprintf(stderr, "Compares <oldfile> and <newfile>, applying difference to <patchfile>.\n");
 	fprintf(stderr, "\t-a\tAction to take when applying patch: %s, %s, %s, %s, %s\n",
 			ACTION_COPY, ACTION_COPY_ONLY, ACTION_MOVE, ACTION_MOVE_ONLY, ACTION_ADD);
+	fprintf(stderr, "\t\t\t%s - copies oldfile to newfile, applying diff\n", ACTION_COPY);
+	fprintf(stderr, "\t\t\t%s - copies oldfile to newfile, no diff\n", ACTION_COPY_ONLY);
+	fprintf(stderr, "\t\t\t%s - moves oldfile to newfile, applying diff\n", ACTION_MOVE);
+	fprintf(stderr, "\t\t\t%s - moves oldfile to newfile, no diff\n", ACTION_MOVE_ONLY);
+	fprintf(stderr, "\t\t\t%s - replaces oldfile, backing up to newfile (does not unapply)\n", ACTION_REPLACE);
+	fprintf(stderr, "\t\t\t%s - adds newfile\n", ACTION_ADD);
 	fprintf(stderr, "\t-od\tPath to location of old (or source) file\n");
 	fprintf(stderr, "\t-o\tName of old (or source) file\n");
 	fprintf(stderr, "\t-nd\tPath to location of new (or target) file\n");

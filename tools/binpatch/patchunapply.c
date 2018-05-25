@@ -42,8 +42,9 @@ BOOL is_patch_applied(File *patch, const char *dir, BOOL showmsg)
 			/* read next file header */
 			read_from_file(patch, &fz, sizeof(struct file_header));
 
-			/* locate file */
-			concat_path(filename, dir, fz.action > FA_NONE ? fz.newname : fz.name);
+			/* locate file: check old file on change & replace, otherwise check newfile */
+			concat_path(filename, dir, fz.action == FA_NONE || fz.action == FA_REPLACE
+					? fz.name : fz.newname);
 			file = stat_file(filename);
 
 			if (file->newfile)
@@ -153,6 +154,10 @@ void unapply_patch(File *patch, const char *dir)
 		{
 			/* remove patch-created or copied file */
 			delete_file(file);
+		}
+		else if (fz.action == FA_REPLACE)
+		{
+			/* there's no going back for file replacements */
 		}
 		else
 		{
@@ -335,6 +340,9 @@ void unpatch_file_message(struct file_header fz)
 			break;
 		case FA_ADD:
 			printf("  deleting added file %s\n", fz.newname);
+			break;
+		case FA_REPLACE:
+			printf("  no change to replaced file %s\n", fz.name);
 			break;
 	}
 }

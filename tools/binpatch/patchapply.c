@@ -61,9 +61,9 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 				open_file(old, READONLY_MODE);
 			}
 
-			if (fz.action > FA_NONE)
+			if (fz.action == FA_RENAME || fz.action == FA_COPY || fz.action == FA_ADD)
 			{
-				/* ensure new file doesn't exist */
+				/* ensure new file doesn't exist for move/copy/add */
 				concat_path(filename, dir, fz.newname);
 				fp = split_filename(fz.newname);
 				if (fp->dir != NULL)
@@ -71,14 +71,13 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 				free(fp);
 				new = stat_file(filename);
 
-				// we're relaxing this requirement because of complexity of validting moving+replacing
-				/*if (! new->newfile)
+				if (! new->newfile)
 				{
 					if (showmsg)
 						printf("is_patch_unapplied: unexpected file '%s'\n", new->filename);
 					mismatch = TRUE;
 					break;
-				}*/
+				}
 			}
 		}
 		else if (strncmp(hdrtype, DATA_HEADER_ID, HDR_SZ) == MATCH)
@@ -225,6 +224,17 @@ void apply_patch(File *patch, const char *dir)
 				case FA_ADD:
 					/* open only new file */
 					open_file(new, OVERWRITE_MODE);
+					break;
+
+				case FA_REPLACE:
+					if (! old->newfile && new->newfile)
+					{
+						/* if oldfile exists and newfile doesn't, create backup */
+						rename_file(old, new);
+						close_file(new);
+					}
+					/* replace old file */
+					open_file(old, OVERWRITE_MODE);
 					break;
 
 				case FA_NONE:
@@ -387,6 +397,9 @@ void patch_file_message(struct file_header fz)
 			break;
 		case FA_ADD:
 			printf("  adding file %s\n", fz.newname);
+			break;
+		case FA_REPLACE:
+			printf("  replacing file %s, with backup -> %s\n", fz.name, fz.newname);
 			break;
 	}
 }
