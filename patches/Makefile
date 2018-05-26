@@ -13,7 +13,7 @@ U2PAT_MAP = ${PATCHES}/u2-map.pat
 U2PAT_GOG = ${PATCHES}/u2-gog.pat
 
 # patch save dir
-U2_SAVE_DIR = SAVE.U2
+U2_SAVE_DIR = PLAYER.U2
 
 all: package
 
@@ -79,7 +79,7 @@ ${U2PAT}:
 	for i in X03 X11 X21 X22 X23 X31 X32 X33 X41 G32 G41 G61 G71 G81 G82 G92 G93; do \
 		${DIFF} -od ${U2MAP} -nd ${U2UPGRADE} -o TLK$${i} -n TLK$${i} -p ${U2PAT}; \
 	done
-	# replace PLAYER and all overworld map/mon with master copies, backing up saves to SAVE.U2
+	# replace PLAYER and all overworld map/mon with master copies, backing up saves to PLAYER.U2
 	${DIFF} -a replace -od ${U2MAP} -nd ${U2UPGRADE} -o PLAYER -n ${U2_SAVE_DIR}/PLAYER -p ${U2PAT}; \
 	for i in X00 X10 X20 X30 X40 G10 G20 G30 G40 G50 G60 G70 G80 G90; do \
 		${DIFF} -a replace -od ${U2MAP} -nd ${U2UPGRADE} -o MAP$${i} -n ${U2_SAVE_DIR}/MAP$${i} -p ${U2PAT}; \
