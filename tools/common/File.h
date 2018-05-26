@@ -13,7 +13,7 @@
 /* file data structure */
 typedef struct
 {
-	char *filename;					/* filename */
+	char *filename;						/* filename */
 	FILE *fp;							/* file pointer */
 	BOOL newfile;						/* newfile flag */
 	struct stat buf;					/* status buffer */
@@ -47,6 +47,10 @@ void filename_error(const char *filename, const char *text);
 #define READWRITE_MODE		"r+b"
 #define OVERWRITE_MODE		"w+b"
 #define APPEND_MODE			"a+b"
+
+
+/* temporary filename */
+#define TEMP_FILE			"upgrade.tmp"
 
 
 #endif

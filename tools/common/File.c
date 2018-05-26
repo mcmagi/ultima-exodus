@@ -180,22 +180,29 @@ void copy_file(File *infile, File *outfile)
 
 void copy_file_n(File *infile, File *outfile, off_t start, size_t size)
 {
-	unsigned char *data;
+	unsigned char data[BUFSIZ];		/* data */
+	int datasize = 0;				/* amount of data to transfer */
+	int total = 0;					/* number of bytes transfered */
 
-
-	/* allocate space for file data */
-	data = malloc(size);
 
 	/* seek to starting offset of infile, beginning of both outfile */
     seek_through_file(infile, start, SEEK_SET);
-	rewind(outfile->fp);
+    seek_through_file(outfile, 0, SEEK_SET);
 
-	/* read data from infile into memory and write to outfile */
-	read_from_file(infile, data, size);
-	write_to_file(outfile, data, size);
+	while (total < size)
+	{
+		/* determine data size increment to transfer */
+		datasize = BUFSIZ;
+		if (total + datasize > size)
+			datasize = size - total;
 
-	/* free space used by data */
-	free(data);
+		/* read data from infile into memory and write to outfile */
+		read_from_file(infile, data, datasize);
+		write_to_file(outfile, data, datasize);
+
+		/* add to total */
+		total += datasize;
+	}
 }
 
 void rename_file(File *infile, File *outfile)
@@ -236,25 +243,34 @@ void truncate_file(File *file, long offset)
 		file_error(file, "Could not truncate file");
 #else
     /* ftruncate is not defined in OpenWatcom,
-     * so the strategy is to read the data into memory, reopen the file, and rewrite */
+     * so the strategy is to read the data into temp file, overwrite back, and cleanup */
 
     unsigned char *data;
+	long current_offset;
+	File *temp;
 
 
     /* ftruncate() preserves the seek cursor */
-    int current_offset = ftell(file->fp);
+    current_offset = ftell(file->fp);
 
-    /* read the file data up to offset */
-    rewind(file->fp);
-    data = malloc(offset);
-    read_from_file(file, data, offset);
+	/* open temp file */
+	temp = stat_file(TEMP_FILE);
+	open_file(temp, OVERWRITE_MODE);
+
+	/* copy data to tempfile up to offset */
+	copy_file_n(file, temp, 0, offset);
 
 	/* reopen the file */
     reopen_file(file, OVERWRITE_MODE);
 
-    /* rewrite the truncated file data */
-    write_to_file(file, data, offset);
-    free(data);
+	/* copy truncated data back to file */
+	copy_file_n(temp, file, 0, offset);
+
+	/* close and delete temp file */
+	close_file(temp);
+	temp = stat_file(TEMP_FILE);
+	delete_file(temp);
+	close_file(temp);
 
     /* restore seek cursor; constrain by new file size */
     seek_through_file(file, current_offset > offset ? offset : current_offset, SEEK_SET);
