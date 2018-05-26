@@ -20,7 +20,7 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 	struct data_header dz;				/* header for patch data */
 	File *old = NULL, *new = NULL;		/* input/output file handles */
 	BOOL mismatch = FALSE;				/* indicates old data mismatch */
-	int datasize;						/* size of data to skip if no file */
+	long datasize;						/* size of data to skip if no file */
 	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
 
 
@@ -51,7 +51,7 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 				if (fz.action != FA_REPLACE && fz.size != old->buf.st_size)
 				{
 					if (showmsg)
-						printf("is_patch_unapplied: file '%s' size %d expected %d\n", old->filename, old->buf.st_size, fz.size);
+						printf("is_patch_unapplied: file '%s' size %u expected %u\n", old->filename, old->buf.st_size, fz.size);
 					mismatch = TRUE;
 					break;
 				}
@@ -100,7 +100,7 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 				if (mismatch)
 				{
 					if (showmsg)
-						printf("is_patch_unapplied: file '%s' unexpected data at offset %d\n", old->filename, dz.offset);
+						printf("is_patch_unapplied: file '%s' unexpected data at offset %u\n", old->filename, dz.offset);
 					break;
 				}
 			}
@@ -139,7 +139,7 @@ void apply_patch(File *patch, const char *dir)
 	File *old = NULL, *new = NULL;		/* input/output file handles */
 	BOOL file_error;					/* indicates error during patching */
 	BOOL data_error;					/* indicates error during patching */
-	int datasize;						/* size of data to skip if error */
+	long datasize;						/* size of data to skip if error */
 	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
 	FileParts *fp = NULL;				/* parts of new filename */
 
@@ -177,7 +177,7 @@ void apply_patch(File *patch, const char *dir)
 				if (fz.action != FA_REPLACE && fz.size != old->buf.st_size)
 				{
 					printf("File not found or size mismatch on file '%s';"
-							"found %d expected %d\n", old->filename,
+							"found %u expected %u\n", old->filename,
 							old->buf.st_size, fz.size);
 					file_error = TRUE;
 				}
@@ -279,7 +279,7 @@ void apply_patch(File *patch, const char *dir)
 
 				if (data_error)
 				{
-					printf("original data did not match in file %s at offset %d\n",
+					printf("original data did not match in file %s at offset %u\n",
 							old->filename, dz.offset);
 				}
 			}
@@ -423,8 +423,8 @@ void patch_data_message(struct data_header dz)
 
 	if (typetext != NULL)
 	{
-		printf("   -> %s %d bytes", typetext, dz.size);
-		printf(" at offset %d\n", dz.offset); /* bug in openwatcom? second long param shows as 0; need second printf */
+		printf("   -> %s %ld bytes", typetext, dz.size);
+		printf(" at offset %ld\n", dz.offset); /* bug in openwatcom? second long param shows as 0; need second printf */
 	}
 
 	return;

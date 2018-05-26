@@ -1,5 +1,5 @@
 # directories
-DIRS = common cfg patch reset tlk binpatch
+DIRS = common cfg tlk binpatch
 PACKAGE_DIRS = cfg binpatch
 
 %: FORCE

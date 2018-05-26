@@ -49,7 +49,7 @@ BOOL is_patch_applied(File *patch, const char *dir, BOOL showmsg)
 
 			if (file->newfile)
 			{
-				if (showmsg)
+				if (showmsg || DEBUG)
 					printf("is_patch_applied: missing file '%s'\n", file->filename);
 				mismatch = TRUE;
 				break;
@@ -80,7 +80,7 @@ BOOL is_patch_applied(File *patch, const char *dir, BOOL showmsg)
 			if (mismatch)
 			{
 				if (showmsg)
-					printf("is_patch_applied: file '%s' unexpected data at offset %d\n", file->filename, dz.offset);
+					printf("is_patch_applied: file '%s' unexpected data at offset %u\n", file->filename, dz.offset);
 				break;
 			}
 		}
@@ -110,10 +110,11 @@ void unapply_patch(File *patch, const char *dir)
 	File *origfile = NULL;				/* file handle for original file */
 	BOOL file_error = FALSE;			/* indicates error during patching */
 	BOOL data_error = FALSE;			/* indicates error during patching */
-	int datasize;						/* size of data to skip if error or deleted file */
+	long datasize;						/* size of data to skip if error or deleted file */
 	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
-	List *index;
-	int i;
+	List *index;						/* patch index to file headers */
+	int i;								/* index loop counter */
+	BOOL skip_data;						/* whether to skip the data sections */
 
 
 	/* use a patch index to unapply so we can step in reverse */
@@ -121,6 +122,8 @@ void unapply_patch(File *patch, const char *dir)
 
 	for (i = index->size-1; i >= 0; i--)
 	{
+		skip_data = FALSE;
+
 		/* move to next file header */
 		seek_through_file(patch, patch_index_get(index, i), SEEK_SET);
 
@@ -154,10 +157,12 @@ void unapply_patch(File *patch, const char *dir)
 		{
 			/* remove patch-created or copied file */
 			delete_file(file);
+			skip_data = TRUE;
 		}
 		else if (fz.action == FA_REPLACE)
 		{
-			/* there's no going back for file replacements */
+			/* there's no going back for file replacements - leave as-is */
+			skip_data = TRUE;
 		}
 		else
 		{
@@ -182,7 +187,7 @@ void unapply_patch(File *patch, const char *dir)
 				/* read next data header */
 				read_from_file(patch, &dz, sizeof(struct data_header));
 
-				if (! file_error && fz.action != FA_COPY && fz.action != FA_ADD)
+				if (! file_error && ! skip_data)
 				{
 					if (DEBUG)
 						unpatch_data_message(dz);
@@ -203,7 +208,7 @@ void unapply_patch(File *patch, const char *dir)
 
 					if (data_error)
 					{
-						printf("patched data did not match in file %s at offset %d\n",
+						printf("patched data did not match in file %s at offset %u\n",
 								file->filename, dz.offset);
 					}
 				}
@@ -360,8 +365,8 @@ void unpatch_data_message(struct data_header dz)
 
 	if (typetext != NULL)
 	{
-		printf("   -> %s %d bytes", typetext, dz.size);
-		printf(" at offset %d\n", dz.offset); /* bug in openwatcom? second long param shows as 0; need second printf */
+		printf("   -> %s %u bytes", typetext, dz.size);
+		printf(" at offset %u\n", dz.offset); /* bug in openwatcom? second long param shows as 0; need second printf */
 	}
 
 	return;
