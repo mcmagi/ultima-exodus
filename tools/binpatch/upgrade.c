@@ -235,16 +235,19 @@ void free_patchdata(PatchData *data)
 	int i = 0;				/* loop counter */
 
 	/* close files */
-	if (data->applied)
+	if (data->applied != NULL)
 		close_file(data->applied);
-	if (data->latest != data->applied)
+
+	if (data->latest != NULL && data->latest != data->applied)
 		close_file(data->latest);
+
 	if (data->below)
 	{
 		for (i = 0; i < data->num_below; i++)
 			close_file(data->below[i]);
 		free(data->below);
 	}
+
 	if (data->above)
 	{
 		for (i = 0; i < data->num_above; i++)
