@@ -11,7 +11,7 @@ ifeq (${TARGET},local)
     TARGET_ARCH := ${TARGET_ARCH_LOCAL}
 
     # compilation programs
-    CC=gcc -c -I. -I${COMMON}
+    CC=gcc -c -I. -I${COMMON} -d TARGET_ID=0
     AR=ar
     LD=gcc -Wl,-s
     ASM=C:/Development/fasm/fasm
@@ -37,7 +37,7 @@ else
     	TARGET_ARCH := ${TARGET_ARCH_WINNT}
 
     	# compilation programs
-    	CC=${WATCOM}/binnt/wcc386 -q -i=$(call dospath,${WATCOM}/h) -i=. -i=$(call dospath,${COMMON}) -bt=nt -5
+    	CC=${WATCOM}/binnt/wcc386 -q -i=$(call dospath,${WATCOM}/h) -i=. -i=$(call dospath,${COMMON}) -bt=nt -5 -dTARGET_ID=2
     	AR=ar
     	LD=${WATCOM}/binnt/wlink system nt
 
@@ -46,7 +46,7 @@ else
     	TARGET_ARCH := ${TARGET_ARCH_LINUX}
 
     	# compilation programs
-    	CC=${WATCOM}/binnt/wcc386 -q -i=$(call dospath,${WATCOM}/h) -i=. -i=$(call dospath,${COMMON}) -bt=linux -5
+    	CC=${WATCOM}/binnt/wcc386 -q -i=$(call dospath,${WATCOM}/h) -i=. -i=$(call dospath,${COMMON}) -bt=linux -5 -dTARGET_ID=3
     	AR=ar
     	LD=${WATCOM}/binnt/wlink system linux option noextension
 
@@ -56,7 +56,7 @@ else
     	TARGET_ARCH := ${TARGET_ARCH_DOS}
 	
     	# compilation programs
-    	CC=${WATCOM}/binnt/wcc -q -i=$(call dospath,${WATCOM}/h) -i=. -i=$(call dospath,${COMMON}) -bt=DOS -3
+    	CC=${WATCOM}/binnt/wcc -q -i=$(call dospath,${WATCOM}/h) -i=. -i=$(call dospath,${COMMON}) -bt=DOS -3 -dTARGET_ID=1
     	AR=ar
     	LD=${WATCOM}/binnt/wlink system dos
 	

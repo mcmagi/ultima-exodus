@@ -12,6 +12,7 @@
 #define INI_KEY_RELEASES	"releases"
 #define INI_KEY_BASE		"base"
 #define INI_KEY_README		"readme"
+#define INI_KEY_CONFIG		"config"
 
 #define README_PAGE_BREAK	"---"
 
@@ -48,8 +49,25 @@ IniCfg * load_upgrade_ini(const char *upgrade_type);
 char * get_patch_version(const IniCfg *iniCfg, const File *patch);
 void print_readme(char *filename);
 void press_enter();
+void invoke_config(IniCfg *iniCfg);
 UpgradeArgs parse_args(int argc, const char **argv);
 void print_help_message(const char *name);
+
+#ifndef TARGET_ID
+#define TARGET_ID 0
+#endif
+
+#if TARGET_ID == 0
+#define TARGET "local"
+#elif TARGET_ID == 1
+#define TARGET "dos"
+#elif TARGET_ID == 2
+#define TARGET "win"
+#elif TARGET_ID == 3
+#define TARGET "linux"
+#else
+#define TARGET "unknown"
+#endif
 
 
 #endif

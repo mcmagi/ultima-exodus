@@ -6,7 +6,7 @@
  */
 
 #include <stdio.h>			/* printf, NULL, BUFSIZ */
-#include <stdlib.h>			/* exit, malloc, free */
+#include <stdlib.h>			/* exit, malloc, free, system */
 #include <string.h>			/* strcmp, strncmp, strlen, strcpy, strcat */
 #include <ctype.h>			/* toupper */
 
@@ -86,7 +86,10 @@ int main(int argc, const char ** argv)
 		{
 			do_upgrade(iniCfg, data);
 			if (! args.yes)
+			{
 				press_enter();
+				invoke_config(iniCfg);
+			}
 		}
 	}
 
@@ -400,6 +403,17 @@ void press_enter()
 	get_option();
 }
 
+void invoke_config(IniCfg *iniCfg)
+{
+	char config_key[20];
+	char *config;
+
+	sprintf(config_key, "%s.%s", INI_KEY_CONFIG, TARGET);
+	config = ini_get_value(iniCfg, config_key);
+	if (config != NULL)
+		system(config);
+}
+
 UpgradeArgs parse_args(int argc, const char **argv)
 {
 	UpgradeArgs args;		/* arguments strcture */
@@ -438,6 +452,6 @@ void print_help_message(const char *name)
 	fprintf(stderr, "%s [-v] [-y]\n", name);
 	fprintf(stderr, "Determines an upgrade plan and applies patches to the current directory.\n");
 	fprintf(stderr, "\t-v\tVerbose (debug)\n");
-	fprintf(stderr, "\t-y\tAutomatically say 'yes'\n");
+	fprintf(stderr, "\t-y\tAutomatically say 'yes' (scripted install)\n");
 	exit(HELPMSG);
 }
