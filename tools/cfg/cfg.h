@@ -18,7 +18,7 @@ void save_cfg_data(File *file, const unsigned char *data);
 #define OPT_GEN_DEFAULTS		"--gen-defaults"
 
 /* file size */
-#define	CFG_SZ                  8
+#define	CFG_SZ                  9
 
 /* data indexes */
 #define	MUSIC_INDEX             0
@@ -31,6 +31,7 @@ void save_cfg_data(File *file, const unsigned char *data);
 #define	GAMEPLAY_FIXES_INDEX    5
 #define	SFX_INDEX               6
 #define	MOD_INDEX               7
+#define	TILESET_INDEX           8
 
 /* status strings */
 #define	DISABLED_STR            "Disabled"
