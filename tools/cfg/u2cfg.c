@@ -60,7 +60,10 @@ int main(int argc, const char *argv[])
 				while (sub_option != VIDEO_CGA_OPT && sub_option != VIDEO_EGA_OPT && sub_option != MAIN_MENU_OPT);
 
 				if (sub_option != MAIN_MENU_OPT)
+				{
 					cfg.video = sub_option - 1;
+					cfg.tileset = 0;
+				}
 				break;
 
 			case TILESET_OPT:
@@ -277,7 +280,7 @@ void save_u2cfg(File *file, struct u2cfg cfg)
 	set_status_bool(data, U2_ENHANCED_INDEX, FALSE);
 	set_status(data, GAMEPLAY_FIXES_INDEX, OFF);
 	set_status(data, MOD_INDEX, OFF);
-	set_status(data, TILESET_INDEX, OFF);
+	set_status(data, TILESET_INDEX, cfg.tileset);
 
 	/* overwrite file data */
 	save_cfg_data(file, data);
