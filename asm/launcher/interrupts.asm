@@ -44,9 +44,9 @@ CONFIG_INT:
     cmp ah,0x05
     jz CONFIG_INT_MOD
 
-    ; fcn 06 = unused
+    ; fcn 06 = tileset id
     cmp ah,0x06
-    jz CONFIG_INT_RETURN
+    jz CONFIG_INT_TILESET
 
 	; fcn 07 = gameplay fixes check
 	cmp ah,0x07
@@ -93,6 +93,11 @@ CONFIG_INT:
     mov ax,[cs:bp]
     mov dx,[cs:bp+02]
     jmp CONFIG_INT_RETURN
+
+  CONFIG_INT_TILESET:
+    ; returns al=tileset id
+    mov al,[cs:bx+0x08]
+	jmp CONFIG_INT_RETURN
 
   CONFIG_INT_FIXES:
     ; returns al=01 if gameplay fixes enabled
