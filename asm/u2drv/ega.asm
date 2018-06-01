@@ -14,13 +14,14 @@ include 'vidjmp.asm'
 ; ===== data here =====
 
 GRAPHIC_IMAGES	dw		INTRO_FILE,DEMO1_FILE,DEMO2_FILE,DEMO3_FILE,DEMO4_FILE,DEMO5_FILE,DEMO6_FILE
-INTRO_FILE      db      "PICDRA-E",0
-DEMO1_FILE      db      "PICOUT-E",0
-DEMO2_FILE      db      "PICTWN-E",0
-DEMO3_FILE      db      "PICCAS-E",0
-DEMO4_FILE      db      "PICDNG-E",0
-DEMO5_FILE      db      "PICSPA-E",0
-DEMO6_FILE      db      "PICMIN-E",0
+GRAPHIC_INDEX 	db		0,1,1,1,0,0,1
+INTRO_FILE      db      "PICDRA.EGA",0
+DEMO1_FILE      db      "PICOUT.IDX",0
+DEMO2_FILE      db      "PICTWN.IDX",0
+DEMO3_FILE      db      "PICCAS.IDX",0
+DEMO4_FILE      db      "PICDNG.EGA",0
+DEMO5_FILE      db      "PICSPA.EGA",0
+DEMO6_FILE      db      "PICMIN.IDX",0
 TILESET_FILE    db      "EGATILES",0,0,0
 MONSTERS_FILE   db      "MONSTERS",0
 VIDEO_SEGMENT   dw      0xa000
@@ -116,7 +117,7 @@ DRAW_TILE:
 	; parameters:
 	;  ax = pixel x coordinate of tile
 	;  bx = pixel y coordinate of tile
-	;  cx = tile number (multiple of 4)
+	;  cx = tile number (multiple of 2)
 
 	pushf
 	push ax
@@ -164,7 +165,7 @@ DRAW_TILE:
 
 ROTATE_TILE:
 	; parameters:
-	;  cx = tile number (multiple of 4)
+	;  cx = tile number (multiple of 2)
 
 	pushf
 	push ax
@@ -383,7 +384,7 @@ INVERT_TILE:
 	; parameters:
 	;  ax = pixel x coordinate of tile
 	;  bx = pixel y coordinate of tile
-	;  cx = tile number (multiple of 4)
+	;  cx = tile number (multiple of 2)
 
 	pushf
 	push ax
@@ -794,9 +795,10 @@ DISPLAY_GRAPHIC_IMAGE:
 	push di
 	push es
 
-	; ds:dx = image filename
+	; ah = image index type, ds:dx = image filename
 	mov bl,al
 	mov bh,0x00
+	mov ah,[GRAPHIC_INDEX+bx]
 	shl bx,1
 	mov dx,[GRAPHIC_IMAGES+bx]
 
@@ -807,13 +809,18 @@ DISPLAY_GRAPHIC_IMAGE:
 	call LOAD_GRAPHIC_FILE
 	jc DISPLAY_GRAPHIC_IMAGE_DONE
 
+	cmp ah,01
+	jz DISPLAY_GRAPHIC_IMAGE_INDEXED
+
+	; non-indexed: copy to video buffer
+
 	push ds
 
 	; set es:di => start of video segment
 	mov es,[VIDEO_SEGMENT]
 	mov di,0x0000
 
-	; set ds:si => start of video segment
+	; set ds:si => start of graphic file
 	mov si,[bx]
 	mov ax,[bx+0x02]
 	mov ds,ax
@@ -823,7 +830,50 @@ DISPLAY_GRAPHIC_IMAGE:
 	rep movsb
 
 	pop ds
+	jmp DISPLAY_GRAPHIC_IMAGE_FREE
 
+  DISPLAY_GRAPHIC_IMAGE_INDEXED:
+	; indexed: draw each tile
+
+	; set es:si => start of graphic file
+	mov si,[bx]
+	mov ax,[bx+0x02]
+	mov es,ax
+
+  DISPLAY_GRAPHIC_IMAGE_INDEXED_LOOP:
+	mov ch,[es:si]			; ch = tile number
+
+	; bx = ax / 20 tiles = tile y position
+	mov ax,si
+	mov bl,0x14
+	div bl
+	mov bl,al
+	mov bh,0x00
+
+	; ax = remainder = tile x position
+	mov al,ah
+	mov ah,0x00
+
+	mov cl,0x04
+	
+	; adjust tile positions to pixel positions
+	mov cl,0x04
+	shl ax,cl			; ax *= 16
+	shl bx,cl			; bx *= 16
+
+	; cx = tile number (multiple of 2 instead of 4)
+	mov cl,ch
+	mov ch,0x00
+	shr cx,1
+
+	call DRAW_TILE
+
+	; inc si, quit out after 200 bytes (20x10)
+	inc si
+	cmp si,0x00c8
+	jnz DISPLAY_GRAPHIC_IMAGE_INDEXED_LOOP
+
+  DISPLAY_GRAPHIC_IMAGE_FREE:
 	; free image
 	lea bx,[GRAPHIC_ADDR]
 	call FREE_GRAPHIC_FILE
@@ -981,7 +1031,7 @@ SET_CURSOR_POSITION:
 
 GET_TILE_ADDRESS:
 	; parameters:
-	;  cx = tile number (multiple of 4)
+	;  cx = tile number (multiple of 2)
 	; returns:
 	;  ds:si => tile address in shapes file
 
@@ -998,7 +1048,7 @@ GET_TILE_ADDRESS:
 
 	; si = compute offset to EGA tile in shapes file
 	mov al,0x40
-	mul cl				; ax = tile num * 256 bytes/tile (4 * 64)
+	mul cl				; ax = tile num * 128 bytes/tile (2 * 64)
 	add si,ax
 
 	pop cx
