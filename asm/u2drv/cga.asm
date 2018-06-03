@@ -22,6 +22,7 @@ DEMO5_FILE      db      "PICSPA",0
 DEMO6_FILE      db      "PICMIN",0
 TILESET_FILE    db      "CGATILES",0,0,0
 MONSTERS_FILE   db      "MONSTERS",0
+THEME_PREFIX	db		"CGATHEME.",0
 VIDEO_SEGMENT   dw      0xb800
 DRIVER_INIT		db		0
 TILESET_ADDR	dd		0
@@ -41,41 +42,6 @@ INIT_DRIVER:
 	cmp [DRIVER_INIT],0x01
 	jz INIT_DRIVER_DONE
 
-	; get tileset id
-	mov ah,0x06
-	int 0x65
-
-	; if 0, jump to load
-	and al,al
-	jz INIT_DRIVER_LOAD
-
-	push bx
-	push cx
-	push di
-	push es
-
-	; set bl = tileset
-	mov bl,al
-
-	; get length of tileset filename
-	push ds
-	pop es
-	lea di,[TILESET_FILE]
-	call STRLEN
-
-	; append .<id> to tileset filename
-	add di,cx
-	mov al,0x2e		; '.'
-	stosb
-	mov al,bl		; tileset id
-	stosb
-
-	pop es
-	pop di
-	pop cx
-	pop bx
-
-  INIT_DRIVER_LOAD:
 	call LOAD_TILESET_FILE
 	call LOAD_MONSTERS_FILE
 
@@ -864,7 +830,7 @@ DISPLAY_GRAPHIC_IMAGE:
 	lea bx,[GRAPHIC_ADDR]
 
 	; load image, save address to ds:bx
-	call LOAD_GRAPHIC_FILE
+	call LOAD_THEME_FILE
 	jc DISPLAY_GRAPHIC_IMAGE_DONE
 
 	push ds
@@ -1077,8 +1043,17 @@ LOAD_MONSTERS_FILE:
     ret
 
 
+LOAD_THEME_FILE:
+	push ax
+
+	lea ax,[THEME_PREFIX]
+	call LOAD_GRAPHIC_FILE_THEME
+
+	pop ax
+	ret
+
+
 include '../common/vidfile.asm'
-include '../common/strcpy.asm'
 
 
 ; ===== far functions here (jumped to from above) =====
