@@ -20,6 +20,18 @@ int get_status(const unsigned char data[], int index)
 	return (int) data[index];
 }
 
+void get_status_str(const unsigned char data[], int index, char *str, int len)
+{
+	int i = 0;
+
+	/* check if we are in our bounds */
+	if (index < 0 || index+len > CFG_SZ)
+		printf("Index out of bounds\n");
+
+	for (i = 0; i < len; i++)
+		str[i] = data[index+i];
+}
+
 BOOL get_status_bool(const unsigned char data[], int index)
 {
 	BOOL status;			/* status flag */
@@ -64,6 +76,20 @@ void set_status_bool(unsigned char data[], int index, BOOL status)
 		int_status = OFF;
 
     set_status(data, index, int_status);
+
+	return;
+}
+
+void set_status_str(unsigned char data[], int index, char *status, int len)
+{
+	int i = 0;
+
+	/* check if we are in our bounds */
+	if (index < 0 || index+len > CFG_SZ)
+		printf("Index out of bounds\n");
+
+	for (i = 0; i < len; i++)
+    	data[index+i] = status[i];
 
 	return;
 }

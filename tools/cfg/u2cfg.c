@@ -13,7 +13,8 @@
 #include	"DirList.h"				/* directory handling */
 #include	"List.h"				/* List */
 #include	"IniCfg.h"				/* IniCfg */
-#include	"stringutil.h"			/* strclone */
+#include	"stringutil.h"
+#include "filepath.h"			/* strclone */
 
 
 int main(int argc, const char *argv[])
@@ -25,6 +26,7 @@ int main(int argc, const char *argv[])
 	File *file;						/* File pointer */
 	File *iniFile;
 	IniCfg *iniCfg;					/* Ini option data */
+	List *themeList;				/* theme list */
 
 	if (argc >= 2 && strcmp(argv[1], OPT_GEN_DEFAULTS) == MATCH)
 		gen_defaults = TRUE;
@@ -42,11 +44,13 @@ int main(int argc, const char *argv[])
 	file = stat_file(CFG);
 	cfg = get_u2cfg(file, gen_defaults);
 
+	themeList = get_theme_options(iniCfg, cfg.video);
+
 	do
 	{
 		if (! gen_defaults)
 			/* get user selection */
-			option = menu(iniCfg, cfg);
+			option = menu(themeList, cfg);
 		else
 			option = SAVE_QUIT_OPT;
 
@@ -62,12 +66,14 @@ int main(int argc, const char *argv[])
 				if (sub_option != MAIN_MENU_OPT)
 				{
 					cfg.video = sub_option - 1;
-					cfg.tileset = 0;
+					cfg.theme[0] = 0;
+					list_free(themeList);
+					themeList = get_theme_options(iniCfg, cfg.video);
 				}
 				break;
 
-			case TILESET_OPT:
-				cfg.tileset = tileset_menu(iniCfg, cfg.video, cfg.tileset, 9);
+			case THEME_OPT:
+				strcpy(cfg.theme, theme_menu(themeList, cfg.theme));
 				break;
 
 			case AUTOSAVE_OPT:
@@ -89,12 +95,16 @@ int main(int argc, const char *argv[])
 	/* close the file */
 	close_file(file);
 
+	list_free(themeList);
+
 	return SUCCESS;
 }
 
 
-int menu(IniCfg *iniCfg, struct u2cfg cfg)
+int menu(List *themeList, struct u2cfg cfg)
 {
+	Option *o;				/* selected theme option (reference) */
+
 	/* print the menu */
 	printf("\nU2 Upgrade Configuration\n\n");
 
@@ -105,7 +115,12 @@ int menu(IniCfg *iniCfg, struct u2cfg cfg)
 		 cfg.video == VIDEO_VGA ? VIDEO_VGA_STR :
 			 EMPTY_STR);
 
-	printf("%d - Tileset:        %s\n", TILESET_OPT, get_tileset_name(iniCfg, get_tileset_filename(cfg.video, cfg.tileset)));
+	o = get_selected_option(themeList, cfg.theme);
+	if (themeList->size >= 2)
+		printf("%d - Theme:          %s\n", THEME_OPT, o == NULL ? cfg.theme : o->name);
+	else
+		printf("    Theme:          %s\n", o == NULL ? cfg.theme : o->name);
+
 	printf("%d - Autosave:       %s\n", AUTOSAVE_OPT, cfg.autosave ? ENABLED_STR : DISABLED_STR);
 	printf("%d - Frame Limiter:  %s\n", FRAMELIMITER_OPT, cfg.framelimiter ? ENABLED_STR : DISABLED_STR);
 	printf("%c - Save & Quit\n", SAVE_QUIT_OPT);
@@ -128,62 +143,45 @@ int video_menu(int video)
 	return get_option();
 }
 
-int tileset_menu(IniCfg *iniCfg, int video, char tilesetId, int tilesetIdIdx)
+char * theme_menu(List *list, char *themeId)
 {
-	List *list;						/* tileset list */
 	int i;							/* loop counter */
 	int option;						/* inputted option */
 	BOOL option_valid = FALSE;		/* option validation result */
-	char *filename;
+	Option *o;						/* option entry (reference) */
 
-	/* get list of */
-	list = filter_dirlist(get_tileset_prefix(video));
-
-	if (list->size > 0)
+	do
 	{
-		do
+		printf("\nU2 Upgrade Configuration - Theme\n\n");
+
+		/* print all entries */
+		for (i = 0; i < list->size && i < 10; i++)
 		{
-			printf("\nU2 Upgrade Configuration - Tileset\n\n");
+			o = (Option *) list->entries[i];
 
-			/* print all entries */
-			for (i = 0; i < list->size && i < 9; i++)
-			{
-				filename = (char *) list->entries[i];
-
-				printf("%d - %s %s\n", i+1, get_tileset_name(iniCfg, filename),
-						get_tileset_id(filename, tilesetIdIdx) == tilesetId ? SELECTED_STR : EMPTY_STR);
-			}
-			printf("%c - Return to Main Menu\n", MAIN_MENU_OPT);
-			printf("\noption: ");
-
-			option = get_option();
-			option_valid = (option > 0 && option <= list->size) || option == MAIN_MENU_OPT;
-			if (! option_valid)
-				printf("\nInvalid option!\n");
+			printf("%d - %s %s\n", i, o->name,
+					strcmp(o->value, themeId) == MATCH ? SELECTED_STR : EMPTY_STR);
 		}
-		while (! option_valid);
+		printf("%c - Return to Main Menu\n", MAIN_MENU_OPT);
+		printf("\noption: ");
 
-		/* resolve selection to tileset id */
-		if (option != MAIN_MENU_OPT)
-			tilesetId = get_tileset_id(list->entries[option-1], tilesetIdIdx);
+		option = get_option();
+		option_valid = (option >= 0 && option <= list->size && option < 10) || option == MAIN_MENU_OPT;
+		if (! option_valid)
+			printf("\nInvalid option!\n");
 	}
+	while (! option_valid);
 
-	list_free(list);
+	/* resolve selection to theme id */
+	if (option != MAIN_MENU_OPT)
+		themeId = ((Option *) list->entries[option])->value;
 
-	return tilesetId;
+	return themeId;
 }
 
-int get_tileset_id(char *filename, int tilesetIdIdx)
+char * get_theme_name(IniCfg *iniCfg, char *filename)
 {
-	int tilesetId = 0;
-	if (strlen(filename) > tilesetIdIdx)
-		tilesetId = filename[tilesetIdIdx];
-	return tilesetId;
-}
-
-char * get_tileset_name(IniCfg *iniCfg, char *filename)
-{
-	char *name;
+	char *name;			/* theme name (reference) */
 
 	if (iniCfg != NULL)
 		name = ini_get_value(iniCfg, filename);
@@ -191,29 +189,18 @@ char * get_tileset_name(IniCfg *iniCfg, char *filename)
 	return name != NULL ? name : filename;
 }
 
-char * get_tileset_filename(int video, int tilesetId)
+char * get_theme_prefix(int video)
 {
-	char filename[BUFSIZ];
-
-	if (tilesetId > 0)
-		sprintf(filename, "%s.%c", get_tileset_prefix(video), tilesetId);
-	else
-		strcpy(filename, get_tileset_prefix(video));
-
-	return filename;
-}
-
-char * get_tileset_prefix(int video)
-{
-	return video == VIDEO_EGA ? "EGATILES" : "CGATILES";
+	return video == VIDEO_VGA ? "VGATHEME" :
+		video == VIDEO_EGA ? "EGATHEME" : "CGATHEME";
 }
 
 List * filter_dirlist(const char *prefix)
 {
-	File *dir;				/* dir file */
-	DirList *dirlist;		/* dir listing */
-	List *list;				/* filtered filename list */
-	char *filename;			/* filename */
+	File *dir;				/* dir file (owned & free) */
+	DirList *dirlist;		/* dir listing (owned & free) */
+	List *list;				/* filtered filename list (owned & returned) */
+	char *filename;			/* filename (reference) */
 	int i;					/* loop counter */
 	int len;				/* prefix length */
 
@@ -231,8 +218,68 @@ List * filter_dirlist(const char *prefix)
 	}
 
 	free_dirlist(dirlist);
+	close_file(dir);
 
 	return list;
+}
+
+List * get_theme_options(IniCfg *iniCfg, int video)
+{
+	List *fileList;							/* theme list (owned & free) */
+	List *optionList;						/* option list (owned & returned) */
+	Option *o = NULL;						/* option (owned & returned) */
+	char *themePrefix;						/* theme filename prefix (reference) */
+	char *themeFilename;					/* theme filename (reference) */
+	FileParts *fileparts;					/* theme filename parts (owned & free) */
+	int i;									/* loop counter */
+
+	/* get list of matching filenames */
+	themePrefix = get_theme_prefix(video);
+	fileList = filter_dirlist(themePrefix);
+	optionList = list_create();
+
+	/* create default option entry */
+	o = (Option *) malloc(sizeof(Option));
+	o->value = "";
+	o->name = get_theme_name(iniCfg, themePrefix);
+	list_add(optionList, o);
+
+	for (i = 0; i < fileList->size; i++)
+	{
+		themeFilename = (char *) fileList->entries[i];
+		fileparts = split_filename(themeFilename);
+
+		if (fileparts->ext[0] != 0)
+		{
+			/* create option entry */
+			o = (Option *) malloc(sizeof(Option));
+			o->value = strclone(fileparts->ext);  /* NOTE: this isn't getting free'd */
+			o->name = get_theme_name(iniCfg, themeFilename);
+			list_add(optionList, o);
+		}
+
+		free_fileparts(fileparts);
+	}
+
+	list_free(fileList);
+
+	return optionList;
+}
+
+Option * get_selected_option(List *themeList, char *selected)
+{
+	int i;			/* loop counter */
+	Option *o;		/* option (owned & returned) */
+
+	for (i = 0; i < themeList->size; i++)
+	{
+		o = (Option *) themeList->entries[i];
+
+		if (strcmp(o->value, selected) == MATCH)
+			return o;
+	}
+
+	return NULL;
 }
 
 void set_defaults(unsigned char data[])
@@ -244,7 +291,7 @@ void set_defaults(unsigned char data[])
 	data[U2_ENHANCED_INDEX] = OFF;
 	data[GAMEPLAY_FIXES_INDEX] = OFF;
 	data[MOD_INDEX] = OFF;
-	data[TILESET_INDEX] = OFF;
+	data[THEME_INDEX] = '\0';
 }
 
 struct u2cfg get_u2cfg(File *file, BOOL gen_defaults)
@@ -261,7 +308,8 @@ struct u2cfg get_u2cfg(File *file, BOOL gen_defaults)
 
 	/* populate struct */
 	cfg.video = get_status(data, VIDEO_INDEX);
-	cfg.tileset = get_status(data, TILESET_INDEX);
+	get_status_str(data, THEME_INDEX, cfg.theme, THEME_SZ);
+	cfg.theme[THEME_SZ] = '\0';
 	cfg.autosave = get_status_bool(data, AUTOSAVE_INDEX);
 	cfg.framelimiter = get_status_bool(data, FRAMELIMITER_INDEX);
 
@@ -280,7 +328,7 @@ void save_u2cfg(File *file, struct u2cfg cfg)
 	set_status_bool(data, U2_ENHANCED_INDEX, FALSE);
 	set_status(data, GAMEPLAY_FIXES_INDEX, OFF);
 	set_status(data, MOD_INDEX, OFF);
-	set_status(data, TILESET_INDEX, cfg.tileset);
+	set_status_str(data, THEME_INDEX, cfg.theme, THEME_SZ);
 
 	/* overwrite file data */
 	save_cfg_data(file, data);
