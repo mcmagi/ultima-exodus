@@ -67,7 +67,7 @@ int main(int argc, const char *argv[])
 				{
 					cfg.video = sub_option - 1;
 					cfg.theme[0] = 0;
-					list_free(themeList);
+					free_options(themeList);
 					themeList = get_theme_options(iniCfg, cfg.video);
 				}
 				break;
@@ -95,7 +95,7 @@ int main(int argc, const char *argv[])
 	/* close the file */
 	close_file(file);
 
-	list_free(themeList);
+	free_options(themeList);
 
 	return SUCCESS;
 }
@@ -240,8 +240,8 @@ List * get_theme_options(IniCfg *iniCfg, int video)
 
 	/* create default option entry */
 	o = (Option *) malloc(sizeof(Option));
-	o->value = "";
-	o->name = get_theme_name(iniCfg, themePrefix);
+	o->value = strclone("");
+	o->name = strclone(get_theme_name(iniCfg, themePrefix));
 	list_add(optionList, o);
 
 	for (i = 0; i < fileList->size; i++)
@@ -253,8 +253,8 @@ List * get_theme_options(IniCfg *iniCfg, int video)
 		{
 			/* create option entry */
 			o = (Option *) malloc(sizeof(Option));
-			o->value = strclone(fileparts->ext);  /* NOTE: this isn't getting free'd */
-			o->name = get_theme_name(iniCfg, themeFilename);
+			o->value = strclone(fileparts->ext);
+			o->name = strclone(get_theme_name(iniCfg, themeFilename));
 			list_add(optionList, o);
 		}
 
@@ -280,6 +280,22 @@ Option * get_selected_option(List *themeList, char *selected)
 	}
 
 	return NULL;
+}
+
+free_options(List *list)
+{
+	int i;			/* loop counter */
+	Option *o;		/* option (owned & returned) */
+
+	/* free data within in each option entry */
+	for (i = 0; i < list->size; i++)
+	{
+		o = (Option *) list->entries[i];
+		free(o->name);
+		free(o->value);
+	}
+
+	list_free(list);
 }
 
 void set_defaults(unsigned char data[])
