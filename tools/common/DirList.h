@@ -14,7 +14,7 @@ typedef struct {
 
 DirList *list_dir(const File *file, const char *suffix);
 BOOL has_suffix(const char *filename, const char *suffix);
-void str_to_upper(char *dest, const char *src);
+void str_to_upper(char *dest, const char *src); /* duplicated in stringutil */
 void free_dirlist(DirList *list);
 
 

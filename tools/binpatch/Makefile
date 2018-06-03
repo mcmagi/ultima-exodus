@@ -1,7 +1,11 @@
 ROOT=../..
 include ${ROOT}/Makefile.include
 
-HEADERS=${COMMON}/File.h ${COMMON}/DirList.h ${COMMON}/gendefs.h patch.h
+HEADERS=${COMMON}/File.h ${COMMON}/DirList.h ${COMMON}/gendefs.h ${COMMON}/option.h \
+		${COMMON}/IniCfg.h ${COMMON}/filepath.h ${COMMON}/stringutil.h ${COMMON}/debug.h \
+		${COMMON}/List.h patch.h
+LIBS=${COMMON_LIB}/File.o ${COMMON_LIB}/filepath.o ${COMMON_LIB}/stringutil.o \
+		${COMMON_LIB}/List.o ${COMMON_LIB}/debug.o
 
 compile: ${UTILBIN}/bindiff ${UTILBIN}/binpat ${UTILBIN}/binunpat ${UTILBIN}/upgrade
 
@@ -35,26 +39,26 @@ ${BINPATCH_LIB}/upgrade.o: upgrade.c upgrade.h patch.h patchapply.h patchunapply
 
 # binary files
 # NOTE: Windows 7 requires Admin rights to 'binpatch.exe'. But 'binpat.exe' is okay.  (WTF?!)
-${UTILBIN}/binpat: ${COMMON_LIB}/File.o ${BINPATCH_LIB}/binpatch.o ${BINPATCH_LIB}/patch.o \
+${UTILBIN}/binpat: ${LIBS} ${BINPATCH_LIB}/binpatch.o ${BINPATCH_LIB}/patch.o \
 		${BINPATCH_LIB}/patchapply.o | ${UTILBIN}
-	$(call link, ${UTILBIN}/binpat, ${COMMON_LIB}/File.o ${BINPATCH_LIB}/binpatch.o \
+	$(call link, ${UTILBIN}/binpat, ${LIBS} ${BINPATCH_LIB}/binpatch.o \
 		${BINPATCH_LIB}/patch.o ${BINPATCH_LIB}/patchapply.o)
 
-${UTILBIN}/binunpat: ${COMMON_LIB}/File.o ${BINPATCH_LIB}/binunpatch.o ${BINPATCH_LIB}/patch.o \
+${UTILBIN}/binunpat: ${LIBS} ${BINPATCH_LIB}/binunpatch.o ${BINPATCH_LIB}/patch.o \
 		${BINPATCH_LIB}/patchunapply.o | ${UTILBIN}
-	$(call link, ${UTILBIN}/binunpat, ${COMMON_LIB}/File.o ${BINPATCH_LIB}/binunpatch.o \
+	$(call link, ${UTILBIN}/binunpat, ${LIBS} ${BINPATCH_LIB}/binunpatch.o \
 		${BINPATCH_LIB}/patch.o ${BINPATCH_LIB}/patchunapply.o)
 
-${UTILBIN}/bindiff: ${COMMON_LIB}/File.o ${BINPATCH_LIB}/bindiff.o ${BINPATCH_LIB}/patch.o \
+${UTILBIN}/bindiff: ${LIBS} ${BINPATCH_LIB}/bindiff.o ${BINPATCH_LIB}/patch.o \
 		${BINPATCH_LIB}/patchadd.o | ${UTILBIN}
-	$(call link, ${UTILBIN}/bindiff, ${COMMON_LIB}/File.o ${BINPATCH_LIB}/bindiff.o \
+	$(call link, ${UTILBIN}/bindiff, ${LIBS} ${BINPATCH_LIB}/bindiff.o \
 		${BINPATCH_LIB}/patch.o ${BINPATCH_LIB}/patchadd.o)
 
-${UTILBIN}/upgrade: ${COMMON_LIB}/File.o ${COMMON_LIB}/DirList.o ${BINPATCH_LIB}/upgrade.o \
-		${BINPATCH_LIB}/patch.o ${BINPATCH_LIB}/patchapply.o ${BINPATCH_LIB}/patchunapply.o | ${UTILBIN}
-	$(call link, ${UTILBIN}/upgrade, ${COMMON_LIB}/File.o ${COMMON_LIB}/DirList.o \
-		${BINPATCH_LIB}/upgrade.o ${BINPATCH_LIB}/patch.o ${BINPATCH_LIB}/patchapply.o \
-		${BINPATCH_LIB}/patchunapply.o)
+${UTILBIN}/upgrade: ${LIBS} ${COMMON_LIB}/DirList.o ${BINPATCH_LIB}/upgrade.o \
+		${BINPATCH_LIB}/patch.o ${BINPATCH_LIB}/patchapply.o ${BINPATCH_LIB}/patchunapply.o ${COMMON_LIB}/IniCfg.o | ${UTILBIN}
+	$(call link, ${UTILBIN}/upgrade, ${LIBS} ${COMMON_LIB}/DirList.o \
+		${COMMON_LIB}/option.o ${COMMON_LIB}/IniCfg.o ${BINPATCH_LIB}/upgrade.o \
+		${BINPATCH_LIB}/patch.o ${BINPATCH_LIB}/patchapply.o ${BINPATCH_LIB}/patchunapply.o)
 
 # clean
 clean:

@@ -14,11 +14,4 @@
 /* typedef to bool for non-c++ */
 typedef unsigned char	BOOL;
 
-/* general-use list */
-typedef struct
-{
-	void *list;
-	int num;
-} List;
-
 #endif

@@ -24,7 +24,6 @@ int main(int argc, char *argv[])
 	patch = stat_file(args.patch);
 	open_file(patch, READONLY_MODE);
 
-	printf("Found patch file - verifying\n");
 	verify_patch_header(patch);
 
 	/* copies diff data from patch file to old/new files */

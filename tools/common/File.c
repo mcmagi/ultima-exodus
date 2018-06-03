@@ -5,9 +5,12 @@
 							 * freopen, rename */
 #include	<unistd.h>		/* ftruncate */
 #include	<stdlib.h>		/* exit */
-#include	<sys/stat.h>	/* stat */
+#include	<sys/stat.h>	/* stat, mkdir(gnu) */
 #include	<string.h>		/* strlen, strcpy */
 #include	<malloc.h>		/* malloc, free */
+#ifndef __GNUC__
+#include	<direct.h>		/* mkdir */
+#endif
 
 #include	"gendefs.h"		/* general use defs */
 #include	"File.h"		/* file handling */
@@ -27,7 +30,7 @@ File *stat_file(const char *filename)
 	file = (File *) malloc(sizeof(File));
 
 	/* allocate space & copy filename */
-	file->filename = (char *) malloc(strlen(filename) + 1);
+	file->filename = (char *) malloc(sizeof(char) * (strlen(filename) + 1));
 	strcpy(file->filename, filename);
 
 	/* initialize fp to null */
@@ -75,6 +78,9 @@ void reopen_file(File *file, const char open_mode[])
 /* closes a File */
 void close_file(File *file)
 {
+	if (file == NULL)
+		return;
+
 	/* make sure we have actually opened it */
 	if (file->fp != NULL)
 	{
@@ -98,6 +104,47 @@ void read_from_file(File *file, void *data, size_t size)
 		file_error(file, "Could not read from file");
 
 	return;
+}
+
+char * read_line_from_file(File *file)
+{
+	char linebuf[BUFSIZ];
+	int c;
+	int i = 0;
+	char *line;
+
+	/* if already at end of file, return null */
+	if (end_of_file(file))
+		return NULL;
+
+	do
+	{
+		/* read next character */
+		c = getc(file->fp);
+
+		/* skip CR */
+		if (c == '\r')
+			c = getc(file->fp);
+
+		/* break on LF or EOF */
+		if (c == '\n' || c == EOF)
+			break;
+
+		linebuf[i++] = c;
+	}
+	while (i < BUFSIZ-1);
+
+	/* check for read error */
+	if (c == EOF && ferror(file->fp) > 0)
+		file_error(file, "Could not read from file");
+
+	/* null terminate line */
+	linebuf[i++] = '\0';
+
+	/* return copy of string */
+	line = (char *) malloc(i * sizeof(char));
+	strcpy(line, linebuf);
+	return line;
 }
 
 void write_to_file(File *file, const void *data, size_t size)
@@ -133,22 +180,29 @@ void copy_file(File *infile, File *outfile)
 
 void copy_file_n(File *infile, File *outfile, off_t start, size_t size)
 {
-	unsigned char *data;
+	unsigned char data[BUFSIZ];		/* data */
+	int datasize = 0;				/* amount of data to transfer */
+	int total = 0;					/* number of bytes transfered */
 
-
-	/* allocate space for file data */
-	data = malloc(size);
 
 	/* seek to starting offset of infile, beginning of both outfile */
     seek_through_file(infile, start, SEEK_SET);
-	rewind(outfile->fp);
+    seek_through_file(outfile, 0, SEEK_SET);
 
-	/* read data from infile into memory and write to outfile */
-	read_from_file(infile, data, size);
-	write_to_file(outfile, data, size);
+	while (total < size)
+	{
+		/* determine data size increment to transfer */
+		datasize = BUFSIZ;
+		if (total + datasize > size)
+			datasize = size - total;
 
-	/* free space used by data */
-	free(data);
+		/* read data from infile into memory and write to outfile */
+		read_from_file(infile, data, datasize);
+		write_to_file(outfile, data, datasize);
+
+		/* add to total */
+		total += datasize;
+	}
 }
 
 void rename_file(File *infile, File *outfile)
@@ -189,62 +243,63 @@ void truncate_file(File *file, long offset)
 		file_error(file, "Could not truncate file");
 #else
     /* ftruncate is not defined in OpenWatcom,
-     * so the strategy is to read the data into memory, reopen the file, and rewrite */
+     * so the strategy is to read the data into temp file, overwrite back, and cleanup */
 
     unsigned char *data;
+	long current_offset;
+	File *temp;
 
 
     /* ftruncate() preserves the seek cursor */
-    int current_offset = ftell(file->fp);
+    current_offset = ftell(file->fp);
 
-    /* read the file data up to offset */
-    rewind(file->fp);
-    data = malloc(offset);
-    read_from_file(file, data, offset);
+	/* open temp file */
+	temp = stat_file(TEMP_FILE);
+	open_file(temp, OVERWRITE_MODE);
+
+	/* copy data to tempfile up to offset */
+	copy_file_n(file, temp, 0, offset);
 
 	/* reopen the file */
     reopen_file(file, OVERWRITE_MODE);
 
-    /* rewrite the truncated file data */
-    write_to_file(file, data, offset);
-    free(data);
+	/* copy truncated data back to file */
+	copy_file_n(temp, file, 0, offset);
+
+	/* close and delete temp file */
+	close_file(temp);
+	temp = stat_file(TEMP_FILE);
+	delete_file(temp);
+	close_file(temp);
 
     /* restore seek cursor; constrain by new file size */
     seek_through_file(file, current_offset > offset ? offset : current_offset, SEEK_SET);
 #endif
 }
 
+void make_directory(const char *path)
+{
+#ifdef __GNUC__
+	mkdir(path, 0775);
+#else
+	mkdir(path);
+#endif
+}
+
 /* error handling function */
 void file_error(const File *file, const char *text)
 {
+	filename_error(file->filename, text);
+}
+
+void filename_error(const char *filename, const char *text)
+{
 	/* write to stderr */
-	fprintf(stderr, "%s: %s\n", file->filename, text);
+	fprintf(stderr, "%s: %s\n", filename, text);
 
 	/* do a perror */
-	perror(file->filename);
+	perror(filename);
 
 	/* exit */
 	exit(FAILURE);
-}
-
-/* concatenates two path elements */
-void concat_path(char *fullpath, const char *path1, const char *path2)
-{
-    int i = 0;
-
-    if (path1 != NULL && strlen(path1) > 0)
-    {
-        strcpy(fullpath, path1);
-        i = strlen(path1);
-
-        /* insert directory separator if both paths are specified */
-        if (path2 != NULL && strlen(path2) > 0)
-        {
-            if (fullpath[i] != '/' || fullpath[i] != '\\')
-                fullpath[i++] = '/';
-        }
-    }
-
-    if (path2 != NULL && strlen(path2) > 0)
-        strcpy(&fullpath[i], path2);
 }

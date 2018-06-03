@@ -4,7 +4,11 @@
 
 #include	"gendefs.h"
 #include	"File.h"
+#include	"List.h"
 
+
+/* error codes */
+#define FATAL_ERROR		1
 
 /* definitions */
 #define	DT_REPLACE	0
@@ -15,6 +19,7 @@
 #define	FA_COPY		1
 #define	FA_RENAME	2
 #define	FA_ADD		3
+#define	FA_REPLACE	4
 
 #define PATCH_HEADER_ID	"PZ"
 #define FILE_HEADER_ID	"FZ"
@@ -63,6 +68,9 @@ struct file_header build_file_header(const char filename[], const char newname[]
 struct data_header build_data_header(long offset, long size, short type);
 void set_filename(char *out, const char *in);
 void verify_patch_header(File *patch);
+List * build_patch_index(File *patch);
+void patch_index_add(List *fzIndex, long value);
+long patch_index_get(List *fzIndex, int idx);
 
 
 #endif

@@ -6,6 +6,7 @@
 #include	<libgen.h>				/* basename */
 
 #include	"File.h"
+#include	"filepath.h"
 #include	"gendefs.h"
 #include	"patch.h"
 #include	"patchadd.h"
@@ -13,7 +14,7 @@
 
 /* DIFF Functions */
 
-int diff(const char olddir[], const char oldfile[], const char newdir[], const char newfile[], File *patch, int action)
+int diff(const char olddir[], const char oldfile[], const char newdir[], const char newfile[], File *patch, int action, BOOL nodiff)
 {
 	unsigned char oldbyte, newbyte;		/* storage for old and new bytes */
 	int idx = 0;						/* index into file */
@@ -27,16 +28,26 @@ int diff(const char olddir[], const char oldfile[], const char newdir[], const c
 
 
 	/* open files */
-	if (oldfile != NULL)
+	if (oldfile != NULL && action != FA_REPLACE)
 	{
 		concat_path(oldfilepath, olddir, oldfile);
 		old = stat_file(oldfilepath);
 		open_file(old, READONLY_MODE);
 	}
 
-	concat_path(newfilepath, newdir, newfile);
-	new = stat_file(newfilepath);
-	open_file(new, READONLY_MODE);
+	if (action == FA_REPLACE)
+	{
+		/* for replacement, look at old filename in new path */
+		concat_path(newfilepath, newdir, oldfile);
+		new = stat_file(newfilepath);
+		open_file(new, READONLY_MODE);
+	}
+	else
+	{
+		concat_path(newfilepath, newdir, newfile);
+		new = stat_file(newfilepath);
+		open_file(new, READONLY_MODE);
+	}
 
 	/* create file header; wait to write it until we find our first difference */
 	fz = build_file_header(oldfile, newfile, action, old == NULL ? 0 : old->buf.st_size);
@@ -51,73 +62,68 @@ int diff(const char olddir[], const char oldfile[], const char newdir[], const c
 		diffcount++;
 	}
 
-	if (patch->fp != NULL)
+	if (! nodiff)
 	{
-		/* write file header to patch file if file exists */
-	}
-
-	if (old != NULL)
-	{
-		/* loop through lower of two sizes */
-		max_idx = (old->buf.st_size > new->buf.st_size) ? new->buf.st_size : old->buf.st_size;
-
-		/* loop through file until max_size is reached */
-		for (idx = 0; idx < max_idx; idx++)
+		if (old != NULL)
 		{
-			/* read a byte from both files */
-			read_from_file(old, &oldbyte, sizeof(unsigned char));
-			read_from_file(new, &newbyte, sizeof(unsigned char));
-
-			/* check if we have a difference */
-			if (oldbyte != newbyte)
+			/* loop through lower of two sizes */
+			max_idx = (old->buf.st_size > new->buf.st_size) ? new->buf.st_size : old->buf.st_size;
+	
+			/* loop through file until max_size is reached */
+			for (idx = 0; idx < max_idx; idx++)
 			{
-				//printf("\noffset %d: differ (%x, %x)\n", ftell(old->fp), oldbyte, newbyte);
-
-				/* found difference - must replace
-				 *  (and offset current index by patched data size) */
-
-				/* first diff found; write patch header and/or file header */
-				if (patch->fp == NULL)
-					create_patch_file(patch, fz);
-				else if (diffcount == 0)
-					write_to_file(patch, &fz, sizeof(fz));
-
-				idx += patch_add_replace(old, new, patch, idx) - 1;
-				diffcount++;
+				/* read a byte from both files */
+				read_from_file(old, &oldbyte, sizeof(unsigned char));
+				read_from_file(new, &newbyte, sizeof(unsigned char));
+	
+				/* check if we have a difference */
+				if (oldbyte != newbyte)
+				{
+					//printf("\noffset %d: differ (%x, %x)\n", ftell(old->fp), oldbyte, newbyte);
+	
+					/* found difference - must replace
+					 *  (and offset current index by patched data size) */
+	
+					/* first diff found; write patch header and/or file header */
+					if (patch->fp == NULL)
+						create_patch_file(patch, fz);
+					else if (diffcount == 0)
+						write_to_file(patch, &fz, sizeof(fz));
+	
+					idx += patch_add_replace(old, new, patch, idx) - 1;
+					diffcount++;
+				}
 			}
 		}
+	
+		/* determine if the file sizes are not equal */
+		if (old != NULL && old->buf.st_size > new->buf.st_size)
+		{
+			/* old file greater than new file - must truncate */
+	
+			/* first diff found; write patch header and/or file header */
+			if (patch->fp == NULL)
+				create_patch_file(patch, fz);
+			else if (diffcount == 0)
+				write_to_file(patch, &fz, sizeof(fz));
+	
+			patch_add_truncate(old, patch, idx);
+			diffcount++;
+		}
+		else if (old == NULL || old->buf.st_size < new->buf.st_size)
+		{
+			/* new file greater than old file - must append */
+	
+			/* first diff found; write patch header and/or file header */
+			if (patch->fp == NULL)
+				create_patch_file(patch, fz);
+			else if (diffcount == 0)
+				write_to_file(patch, &fz, sizeof(fz));
+	
+			patch_add_append(new, patch, idx);
+			diffcount++;
+		}
 	}
-
-	/* determine if the file sizes are not equal */
-	if (old != NULL && old->buf.st_size > new->buf.st_size)
-	{
-		/* old file greater than new file - must truncate */
-
-		/* first diff found; write patch header and/or file header */
-		if (patch->fp == NULL)
-			create_patch_file(patch, fz);
-		else if (diffcount == 0)
-			write_to_file(patch, &fz, sizeof(fz));
-
-		patch_add_truncate(old, patch, idx);
-		diffcount++;
-	}
-	else if (old == NULL || old->buf.st_size < new->buf.st_size)
-	{
-		/* new file greater than old file - must append */
-
-		/* first diff found; write patch header and/or file header */
-		if (patch->fp == NULL)
-			create_patch_file(patch, fz);
-		else if (diffcount == 0)
-			write_to_file(patch, &fz, sizeof(fz));
-
-		patch_add_append(new, patch, idx);
-		diffcount++;
-	}
-
-	if (diffcount == 0)
-		printf("Files %s and %s are identical\n", old->filename, new->filename);
 
 	/* close files */
 	if (old != NULL)

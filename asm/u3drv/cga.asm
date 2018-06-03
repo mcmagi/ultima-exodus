@@ -164,7 +164,7 @@ GET_CGA_OFFSET:
 
 ; ===== supporting libraries =====
 
-include 'vidfile.asm'
+include '../common/vidfile.asm'
 
 include '../common/xchgs.asm'
 

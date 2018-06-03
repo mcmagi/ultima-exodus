@@ -6,7 +6,9 @@
 #include	<string.h>				/* strcpy, strncmp, memcmp */
 
 #include	"File.h"
+#include	"filepath.h"
 #include	"gendefs.h"
+#include	"debug.h"
 #include	"patch.h"
 #include	"patchapply.h"
 
@@ -18,7 +20,7 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 	struct data_header dz;				/* header for patch data */
 	File *old = NULL, *new = NULL;		/* input/output file handles */
 	BOOL mismatch = FALSE;				/* indicates old data mismatch */
-	int datasize;						/* size of data to skip if no file */
+	long datasize;						/* size of data to skip if no file */
 	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
 
 
@@ -46,10 +48,10 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 				concat_path(filename, dir, fz.name);
 				old = stat_file(filename);
 
-				if (fz.size != old->buf.st_size)
+				if (fz.action != FA_REPLACE && fz.size != old->buf.st_size)
 				{
 					if (showmsg)
-						printf("is_patch_unapplied: file '%s' size %d expected %d\n", old->filename, old->buf.st_size, fz.size);
+						printf("is_patch_unapplied: file '%s' size %u expected %u\n", old->filename, old->buf.st_size, fz.size);
 					mismatch = TRUE;
 					break;
 				}
@@ -60,11 +62,11 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 
 			if (fz.action > FA_NONE)
 			{
-				/* ensure new file doesn't exist */
+				/* ensure new file doesn't exist for move/copy/add */
 				concat_path(filename, dir, fz.newname);
 				new = stat_file(filename);
 
-				if (! new->newfile)
+				if (fz.action != FA_REPLACE && ! new->newfile)
 				{
 					if (showmsg)
 						printf("is_patch_unapplied: unexpected file '%s'\n", new->filename);
@@ -98,7 +100,7 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 				if (mismatch)
 				{
 					if (showmsg)
-						printf("is_patch_unapplied: file '%s' unexpected data at offset %d\n", old->filename, dz.offset);
+						printf("is_patch_unapplied: file '%s' unexpected data at offset %u\n", old->filename, dz.offset);
 					break;
 				}
 			}
@@ -137,8 +139,9 @@ void apply_patch(File *patch, const char *dir)
 	File *old = NULL, *new = NULL;		/* input/output file handles */
 	BOOL file_error;					/* indicates error during patching */
 	BOOL data_error;					/* indicates error during patching */
-	int datasize;						/* size of data to skip if error */
+	long datasize;						/* size of data to skip if error */
 	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
+	FileParts *fp = NULL;				/* parts of new filename */
 
 
 	/* read first header */
@@ -171,10 +174,10 @@ void apply_patch(File *patch, const char *dir)
 				concat_path(filename, dir, fz.name);
 				old = stat_file(filename);
 
-				if (fz.size != old->buf.st_size)
+				if (fz.action != FA_REPLACE && fz.size != old->buf.st_size)
 				{
 					printf("File not found or size mismatch on file '%s';"
-							"found %d expected %d\n", old->filename,
+							"found %u expected %u\n", old->filename,
 							old->buf.st_size, fz.size);
 					file_error = TRUE;
 				}
@@ -186,7 +189,13 @@ void apply_patch(File *patch, const char *dir)
 				concat_path(filename, dir, fz.newname);
 				new = stat_file(filename);
 
-				if (! new->newfile)
+				/* ensure target directory exists */
+				fp = split_filename(fz.newname);
+				if (fp->dir != NULL)
+					make_directory(fp->dir);
+				free(fp);
+
+				if (fz.action != FA_REPLACE && ! new->newfile)
 				{
 					printf("File '%s' already exists\n", new->filename);
 					file_error = TRUE;
@@ -219,6 +228,21 @@ void apply_patch(File *patch, const char *dir)
 					open_file(new, OVERWRITE_MODE);
 					break;
 
+				case FA_REPLACE:
+					if (! old->newfile && new->newfile)
+					{
+						/* if oldfile exists and newfile doesn't, create backup */
+						printf("   backing up %s -> %s\n", fz.name, fz.newname);
+						rename_file(old, new);
+						close_file(new);
+					}
+					/* replace old file */
+					open_file(old, OVERWRITE_MODE);
+
+					/* the newfile is the oldfile */
+					new = old;
+					break;
+
 				case FA_NONE:
 					/* open only old file */
 					open_file(old, READWRITE_MODE);
@@ -236,7 +260,8 @@ void apply_patch(File *patch, const char *dir)
 
 			if (! file_error)
 			{
-				patch_data_message(dz);
+				if (DEBUG)
+					patch_data_message(dz);
 
 				/* perform operation based on patch type */
 				switch (dz.type)
@@ -254,7 +279,7 @@ void apply_patch(File *patch, const char *dir)
 
 				if (data_error)
 				{
-					printf("original data did not match in file %s at offset %d\n",
+					printf("original data did not match in file %s at offset %u\n",
 							old->filename, dz.offset);
 				}
 			}
@@ -358,6 +383,9 @@ void add_new_data(File *patch, File *new, struct data_header dz)
 	/* write replacement data to new file */
 	seek_through_file(new, dz.offset, SEEK_SET);
 	write_to_file(new, newdata, dz.size);
+
+	/* free up new data area */
+	free(newdata);
 }
 
 void patch_file_message(struct file_header fz)
@@ -365,16 +393,19 @@ void patch_file_message(struct file_header fz)
 	switch (fz.action)
 	{
 		case FA_NONE:
-			printf("patching file %s\n", fz.name);
+			printf("  patching file %s\n", fz.name);
 			break;
 		case FA_COPY:
-			printf("copying file %s -> %s\n", fz.name, fz.newname);
+			printf("  copying file %s -> %s\n", fz.name, fz.newname);
 			break;
 		case FA_RENAME:
-			printf("renaming file %s -> %s\n", fz.name, fz.newname);
+			printf("  moving file %s -> %s\n", fz.name, fz.newname);
 			break;
 		case FA_ADD:
-			printf("adding file %s\n", fz.newname);
+			printf("  adding file %s\n", fz.newname);
+			break;
+		case FA_REPLACE:
+			printf("  replacing file %s\n", fz.name);
 			break;
 	}
 }
@@ -392,8 +423,8 @@ void patch_data_message(struct data_header dz)
 
 	if (typetext != NULL)
 	{
-		printf(" -> %s %d bytes", typetext, dz.size);
-		printf(" at offset %d\n", dz.offset); /* bug in openwatcom? second long param shows as 0; need second printf */
+		printf("   -> %s %ld bytes", typetext, dz.size);
+		printf(" at offset %ld\n", dz.offset); /* bug in openwatcom? second long param shows as 0; need second printf */
 	}
 
 	return;

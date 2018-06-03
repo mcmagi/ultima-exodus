@@ -9,8 +9,10 @@
 /* function prototypes */
 int get_status(const unsigned char data[], int index);
 BOOL get_status_bool(const unsigned char data[], int index);
+void get_status_str(const unsigned char data[], int index, char *str, int len);
 void set_status(unsigned char data[], int index, int status);
 void set_status_bool(unsigned char data[], int index, BOOL status);
+void set_status_str(unsigned char data[], int index, char *status, int len);
 void get_cfg_data(File *file, unsigned char *data);
 void save_cfg_data(File *file, const unsigned char *data);
 
@@ -18,7 +20,7 @@ void save_cfg_data(File *file, const unsigned char *data);
 #define OPT_GEN_DEFAULTS		"--gen-defaults"
 
 /* file size */
-#define	CFG_SZ                  8
+#define	CFG_SZ                  11
 
 /* data indexes */
 #define	MUSIC_INDEX             0
@@ -31,6 +33,7 @@ void save_cfg_data(File *file, const unsigned char *data);
 #define	GAMEPLAY_FIXES_INDEX    5
 #define	SFX_INDEX               6
 #define	MOD_INDEX               7
+#define	THEME_INDEX             8
 
 /* status strings */
 #define	DISABLED_STR            "Disabled"

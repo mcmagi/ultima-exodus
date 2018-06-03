@@ -4,7 +4,7 @@ include ${ROOT}/Makefile.include
 compile: ${U3BIN}/cga.drv ${U3BIN}/cgacomp.drv ${U3BIN}/ega.drv ${U3BIN}/vga.drv \
         ${U3BIN}/midpak.drv ${U3BIN}/nomidi.drv ${U3BIN}/sfx.drv ${U3BIN}/sfxtimed.drv ${U3BIN}/sfxtest.com
 
-VIDDEPS=vidjmp.asm vidfile.asm vidfar.asm ../common/loadfile.asm \
+VIDDEPS=vidjmp.asm ../common/vidfile.asm vidfar.asm ../common/loadfile.asm \
     ../common/xchgs.asm ../common/memory.asm
 
 ${U3BIN}/cga.drv: cga.asm cgacore.asm ${VIDDEPS} | ${U3BIN}

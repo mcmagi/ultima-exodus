@@ -5,6 +5,7 @@
 #include    <stdlib.h>          /* printf, fprintf */
 
 #include	"File.h"
+#include	"List.h"
 #include	"gendefs.h"
 #include	"patch.h"
 
@@ -103,4 +104,79 @@ void verify_patch_header(File *patch)
 		fprintf(stderr, "File size does not match size in header! (expected=%d, actual=%d) Verify failed!\n", pz.size, patch->buf.st_size);
 		exit(FAILURE);
 	}
+}
+
+List * build_patch_index(File *patch)
+{
+	char hdrtype[HDR_SZ];				/* holds header type */
+	struct file_header fz;				/* header for patched file */
+	struct data_header dz;				/* header for patch data */
+	int datasize;						/* size of data to skip if error or deleted file */
+	long pos = 0;						/* position in file */
+	List *fzIndex;
+
+	fzIndex = list_create();
+
+	pos += sizeof(struct patch_header);
+
+	/* read first header */
+	read_from_file(patch, &hdrtype, HDR_SZ);
+
+	while (! end_of_file(patch))
+	{
+		/* reset position */
+		seek_through_file(patch, -HDR_SZ, SEEK_CUR);
+
+		if (strncmp(hdrtype, FILE_HEADER_ID, HDR_SZ) == MATCH)
+		{
+			patch_index_add(fzIndex, pos);
+
+			/* read next file header */
+			read_from_file(patch, &fz, sizeof(struct file_header));
+			pos += sizeof(struct file_header);
+		}
+		else if (strncmp(hdrtype, DATA_HEADER_ID, HDR_SZ) == MATCH)
+		{
+			/* read next data header */
+			read_from_file(patch, &dz, sizeof(struct data_header));
+			pos += sizeof(struct data_header);
+
+			datasize = dz.size;
+			if (dz.type == DT_REPLACE)
+				datasize *= 2;
+
+			seek_through_file(patch, datasize, SEEK_CUR);
+			pos += datasize;
+		}
+		else
+		{
+			printf("Unrecognized header information reading patchfile %s\n", patch->filename);
+			exit(FATAL_ERROR);
+		}
+
+		/* read next header */
+		read_from_file(patch, &hdrtype, HDR_SZ);
+
+	}
+
+	/* return to first file header */
+	if (fzIndex->size > 0)
+		seek_through_file(patch, patch_index_get(fzIndex, 0), SEEK_SET);
+
+	return fzIndex;
+}
+
+void patch_index_add(List *fzIndex, long value)
+{
+	long *x;			/* pointer to value */
+
+	x = (long *) malloc(sizeof(long));
+	*x = value;
+	list_add(fzIndex, x);
+}
+
+long patch_index_get(List *fzIndex, int idx)
+{
+	long *value = (long *) fzIndex->entries[idx];
+	return *value;
 }

@@ -13,7 +13,7 @@
 /* file data structure */
 typedef struct
 {
-	char *filename;					/* filename */
+	char *filename;						/* filename */
 	FILE *fp;							/* file pointer */
 	BOOL newfile;						/* newfile flag */
 	struct stat buf;					/* status buffer */
@@ -26,6 +26,7 @@ void open_file(File *file, const char open_mode[]);
 void reopen_file(File *file, const char open_mode[]);
 void close_file(File *file);
 void read_from_file(File *file, void *data, size_t size);
+char * read_line_from_file(File *file);
 void write_to_file(File *file, const void *data, size_t size);
 void seek_through_file(File *file, long offset, int seek_type);
 BOOL end_of_file(File *file);
@@ -35,8 +36,9 @@ void rename_file(File *infile, File *outfile);
 void delete_file(File *file);
 void truncate_file(File *file, long offset);
 long file_size(File *file);
+void make_directory(const char *path);
 void file_error(const File *file, const char *text);
-void concat_path(char *fullpath, const char *path1, const char *path2);
+void filename_error(const char *filename, const char *text);
 
 
 /* read mode defines */
@@ -45,6 +47,10 @@ void concat_path(char *fullpath, const char *path1, const char *path2);
 #define READWRITE_MODE		"r+b"
 #define OVERWRITE_MODE		"w+b"
 #define APPEND_MODE			"a+b"
+
+
+/* temporary filename */
+#define TEMP_FILE			"upgrade.tmp"
 
 
 #endif

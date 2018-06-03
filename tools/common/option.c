@@ -8,6 +8,7 @@
 #include	<stdio.h>				/* getchar, BUFSIZ */
 #include	<stdlib.h>				/* atoi */
 #include	<ctype.h>				/* toupper */
+#include	<string.h>				/* strchr */
 
 #include	"gendefs.h"
 #include	"option.h"
@@ -41,4 +42,17 @@ BOOL is_numeric(const char *input, int size)
 			return FALSE;
 	}
 	return TRUE;
+}
+
+int get_valid_option(const char *valid_chars)
+{
+	int option;
+
+	do
+	{
+		option = get_option();
+	}
+	while (! strchr(valid_chars, option));
+
+	return option;
 }

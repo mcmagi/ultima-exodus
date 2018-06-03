@@ -736,7 +736,7 @@ BUILD_COMPOSITE_LOOKUP_TABLE:
 
 include 'palette.asm'
 
-include 'vidfile.asm'
+include '../common/vidfile.asm'
 
 include '../common/xchgs.asm'
 

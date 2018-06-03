@@ -1,16 +1,17 @@
 # directories
-DIRS = color launcher u3drv u5drv u3mod test
+DIRS = color launcher u2drv u3drv u5drv u3mod test
 
 
 %: FORCE
 	for i in ${DIRS}; do \
-		cd $$i; \
-		echo "asm/$$i $@:"; $(MAKE) $@ || exit 1; \
-		cd ..; \
-	done
+		if [ -d "$$i" ]; then \
+			make -C $$i $@ || exit 1; \
+		fi \
+	done || exit 1
 
 package_u2: FORCE
 	make -C launcher $@
+	make -C u2drv $@
 
 package_u3: FORCE
 	make -C launcher $@

@@ -7,8 +7,6 @@
 #include	"patch.h"
 
 
-#define FATAL_ERROR		1
-
 #define REPLACE_TEXT    "replacing"
 #define TRUNCATE_TEXT   "truncating"
 #define APPEND_TEXT     "appending"
