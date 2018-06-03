@@ -25,7 +25,8 @@ DEMO6_FILE      db      "PICMIN.IDX",0
 TILESET_FILE    db      "EGATILES",0,0,0
 MONSTERS_FILE   db      "MONSTERS",0
 THEME_PREFIX	db		"EGATHEME.",0
-THEME_FILENAME	db		0 dup 0x20
+THEME_ID		db		0x04 dup 0
+THEME_FILENAME	db		0x20 dup 0
 VIDEO_SEGMENT   dw      0xa000
 DRIVER_INIT		db		0
 TILESET_ADDR	dd		0
@@ -46,41 +47,6 @@ INIT_DRIVER:
 	cmp [DRIVER_INIT],0x01
 	jz INIT_DRIVER_DONE
 
-	; get tileset id
-	mov ah,0x06
-	int 0x65
-
-	; if 0, jump to load
-	and al,al
-	jz INIT_DRIVER_LOAD
-
-	push bx
-	push cx
-	push di
-	push es
-
-	; set bl = tileset
-	mov bl,al
-
-	; get length of tileset filename
-	push ds
-	pop es
-	lea di,[TILESET_FILE]
-	call STRLEN
-
-	; append .<id> to tileset filename
-	add di,cx
-	mov al,0x2e		; '.'
-	stosb
-	mov al,bl		; tileset id
-	stosb
-
-	pop es
-	pop di
-	pop cx
-	pop bx
-
-  INIT_DRIVER_LOAD:
 	call LOAD_TILESET_FILE
 	call LOAD_MONSTERS_FILE
 
@@ -1180,26 +1146,21 @@ LOAD_THEME_FILE:
 	push ax
 	push dx
 	push si
-	push di
 
 	; si = original filename
 	mov si,dx
-	; di = file address
-	mov di,bx
 
-	; get theme id (al,bl,bh)
-	mov ah,0x06
-	int 0x65
+	; load theme id into memory
+	call GET_THEME_ID
 
 	; if 0, jump to load default
-	and al,al
+	cmp byte [THEME_ID],0x00
 	jz LOAD_THEME_FILE_LOAD_DEFAULT
 
 	; dx = theme filename
 	call BUILD_THEME_FILENAME
 
 	; load theme file
-	mov bx,di				; bx = file address
 	call LOAD_GRAPHIC_FILE
 
 	; if no errors, return
@@ -1210,11 +1171,9 @@ LOAD_THEME_FILE:
 
 LOAD_THEME_FILE_LOAD_DEFAULT:
 	; load original file
-	mov bx,di				; bx = file address
 	call LOAD_GRAPHIC_FILE
 
 LOAD_THEME_FILE_DONE:
-	pop di
 	pop si
 	pop dx
 	pop ax
@@ -1222,16 +1181,53 @@ LOAD_THEME_FILE_DONE:
 	ret
 
 
+GET_THEME_ID:
+	; returns:
+	;  THEME_ID = theme id
+
+	pushf
+	push ax
+	push dx
+	push di
+	push es
+
+	; get theme id (al,dl,dh)
+	mov ah,0x06
+	int 0x65
+
+	; es:di => theme id memory location
+	push ds
+	pop es
+	lea di,[THEME_ID]
+
+	; store theme id in memory
+	stosb
+	mov al,dl
+	stosb
+	mov al,dh
+	stosb
+
+	; null-terminate
+	mov al,0x00
+	stosb
+
+	pop es
+	pop di
+	pop dx
+	pop ax
+	popf
+	ret
+	
+
 BUILD_THEME_FILENAME:
 	; parameters:
-	;  al,bl,bh = 3-byte theme id
+	;  THEME_ID = theme id
 	;  dx => graphic filename
 	; returns:
 	;  dx => theme filename
 
 	pushf
 	push ax
-	push bx
 	push cx
 	push si
 	push di
@@ -1245,17 +1241,21 @@ BUILD_THEME_FILENAME:
 	lea di,[THEME_PREFIX]
 	call STRLEN
 
-	; copy theme dir prefix to filepath area
+	; copy theme dir prefix to theme filename
 	lea si,[THEME_PREFIX]
 	lea di,[THEME_FILENAME]
 	rep movsb
 
-	; append 3-byte theme id al,bl,bh and path separator '\'
-	stosb
-	mov al,bl
-	stosb
-	mov al,bh
-	stosb
+	push di
+	lea di,[THEME_ID]
+	call STRLEN
+	pop di
+
+	; append theme id to theme prefix
+	lea si,[THEME_ID]
+	rep movsb
+
+	; append path separator
 	mov al,0x5c ; '\'
 	stosb
 
@@ -1280,7 +1280,6 @@ BUILD_THEME_FILENAME:
 	pop di
 	pop si
 	pop cx
-	pop bx
 	pop ax
 	popf
 	ret

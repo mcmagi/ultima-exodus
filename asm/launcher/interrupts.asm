@@ -14,6 +14,7 @@ MIDPAK_INT:
 ; The configuration interrupt (INT 0x65)
 CONFIG_INT:
     pushf
+	push bx
     push bp
 
     ; set bx as offset to config data
@@ -96,8 +97,8 @@ CONFIG_INT:
   CONFIG_INT_THEME:
     ; returns al,dl,dh=theme id
     mov al,[cs:bx+0x08]
-    mov bl,[cs:bx+0x09]
-    mov bh,[cs:bx+0x0a]
+    mov dl,[cs:bx+0x09]
+    mov dh,[cs:bx+0x0a]
 	jmp CONFIG_INT_RETURN
 
   CONFIG_INT_FIXES:
@@ -113,6 +114,7 @@ CONFIG_INT:
 
   CONFIG_INT_RETURN:
     pop bp
+	pop bx
     popf
     iret
 
