@@ -24,6 +24,8 @@ DEMO5_FILE      db      "PICSPA.EGA",0
 DEMO6_FILE      db      "PICMIN.IDX",0
 TILESET_FILE    db      "EGATILES",0,0,0
 MONSTERS_FILE   db      "MONSTERS",0
+THEME_PREFIX	db		"EGATHEME.",0
+THEME_FILENAME	db		0 dup 0x20
 VIDEO_SEGMENT   dw      0xa000
 DRIVER_INIT		db		0
 TILESET_ADDR	dd		0
@@ -806,7 +808,7 @@ DISPLAY_GRAPHIC_IMAGE:
 	lea bx,[GRAPHIC_ADDR]
 
 	; load image, save address to ds:bx
-	call LOAD_GRAPHIC_FILE
+	call LOAD_THEME_FILE
 	jc DISPLAY_GRAPHIC_IMAGE_DONE
 
 	cmp ah,01
@@ -1149,7 +1151,7 @@ LOAD_TILESET_FILE:
 
     lea dx,[TILESET_FILE]
     lea bx,[TILESET_ADDR]
-    call LOAD_GRAPHIC_FILE
+    call LOAD_THEME_FILE
 
     pop dx
     pop bx
@@ -1162,11 +1164,126 @@ LOAD_MONSTERS_FILE:
 
     lea dx,[MONSTERS_FILE]
     lea bx,[MONSTERS_ADDR]
-    call LOAD_GRAPHIC_FILE
+    call LOAD_THEME_FILE
 
     pop dx
     pop bx
     ret
+
+
+LOAD_THEME_FILE:
+	; parameters:
+	;  bx => file address
+	;  dx => graphic file name
+
+	pushf
+	push ax
+	push dx
+	push si
+	push di
+
+	; si = original filename
+	mov si,dx
+	; di = file address
+	mov di,bx
+
+	; get theme id (al,bl,bh)
+	mov ah,0x06
+	int 0x65
+
+	; if 0, jump to load default
+	and al,al
+	jz LOAD_THEME_FILE_LOAD_DEFAULT
+
+	; dx = theme filename
+	call BUILD_THEME_FILENAME
+
+	; load theme file
+	mov bx,di				; bx = file address
+	call LOAD_GRAPHIC_FILE
+
+	; if no errors, return
+	jnc LOAD_THEME_FILE_DONE
+
+	; can't load theme file, fallback to default
+	mov dx,si
+
+LOAD_THEME_FILE_LOAD_DEFAULT:
+	; load original file
+	mov bx,di				; bx = file address
+	call LOAD_GRAPHIC_FILE
+
+LOAD_THEME_FILE_DONE:
+	pop di
+	pop si
+	pop dx
+	pop ax
+	popf
+	ret
+
+
+BUILD_THEME_FILENAME:
+	; parameters:
+	;  al,bl,bh = 3-byte theme id
+	;  dx => graphic filename
+	; returns:
+	;  dx => theme filename
+
+	pushf
+	push ax
+	push bx
+	push cx
+	push si
+	push di
+	push es
+
+	; set es=ds
+	push ds
+	pop es
+
+	; cx = length of theme path
+	lea di,[THEME_PREFIX]
+	call STRLEN
+
+	; copy theme dir prefix to filepath area
+	lea si,[THEME_PREFIX]
+	lea di,[THEME_FILENAME]
+	rep movsb
+
+	; append 3-byte theme id al,bl,bh and path separator '\'
+	stosb
+	mov al,bl
+	stosb
+	mov al,bh
+	stosb
+	mov al,0x5c ; '\'
+	stosb
+
+	; cx = length of graphic filename
+	push di
+	mov di,dx
+	call STRLEN
+	pop di
+
+	; append filename to theme dir
+	mov si,dx
+	rep movsb
+
+	; null-terminate
+	mov al,0x00
+	stosb
+
+	; set dx = theme filename
+	lea dx,[THEME_FILENAME]
+
+	pop es
+	pop di
+	pop si
+	pop cx
+	pop bx
+	pop ax
+	popf
+	ret
 
 
 include '../common/vidfile.asm'

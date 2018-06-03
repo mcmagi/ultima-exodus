@@ -35,8 +35,8 @@ FREE_ERROR      db  "Error releasing memory for driver",0x0a,0x0d,"$"
 OLD_CONFIG_INT  dd  0
 OLD_MIDPAK_INT  dd  0
 I_FLAG          db  0
-CFGDATA         db  0x09 dup 0        ; index: 00 = midi driver, 01 = autosave, 02 = framelimiter, 03 = video driver
-                                      ;        04 = enhanced ui, 05 = gameplay fixes, 06 = sfx driver, 07 = mod, 08 = tileset id
+CFGDATA         db  0x0b dup 0        ; index: 00 = midi driver, 01 = autosave, 02 = framelimiter, 03 = video driver
+                                      ;        04 = enhanced ui, 05 = gameplay fixes, 06 = sfx driver, 07 = mod, 08-0a = theme id
 PRM_BLOCK       db  0x16 dup 0
 FCB             db  0x20 dup 0
 VIDEO_DRV_ADDR  dd  0
@@ -65,7 +65,7 @@ START:
 	mov es,ax
 
 	; read u2.cfg into cfgdata location
-	mov cx,0x0009
+	mov cx,0x000b
 	call LOAD_CFG
 
 	; set new interrupt vectors
