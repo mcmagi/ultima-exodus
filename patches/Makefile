@@ -80,10 +80,10 @@ ${U2PAT}:
 		${DIFF} -od ${U2MAP} -nd ${U2UPGRADE} -o TLK$${i} -n TLK$${i} -p ${U2PAT}; \
 	done
 	# replace PLAYER and all overworld map/mon with master copies, backing up saves to PLAYER.U2
-	${DIFF} -a replace -od ${U2MAP} -nd ${U2UPGRADE} -o PLAYER -n ${U2_SAVE_DIR}/PLAYER -p ${U2PAT}; \
+	${DIFF} -a replace -nd ${U2UPGRADE} -n PLAYER -o ${U2_SAVE_DIR}/PLAYER -p ${U2PAT}; \
 	for i in X00 X10 X20 X30 X40 G10 G20 G30 G40 G50 G60 G70 G80 G90; do \
-		${DIFF} -a replace -od ${U2MAP} -nd ${U2UPGRADE} -o MAP$${i} -n ${U2_SAVE_DIR}/MAP$${i} -p ${U2PAT}; \
-		${DIFF} -a replace -od ${U2MAP} -nd ${U2UPGRADE} -o MON$${i} -n ${U2_SAVE_DIR}/MON$${i} -p ${U2PAT}; \
+		${DIFF} -a replace -nd ${U2UPGRADE} -n MAP$${i} -o ${U2_SAVE_DIR}/MAP$${i} -p ${U2PAT}; \
+		${DIFF} -a replace -nd ${U2UPGRADE} -n MON$${i} -o ${U2_SAVE_DIR}/MON$${i} -p ${U2PAT}; \
 	done
 
 ${U3PAT}:

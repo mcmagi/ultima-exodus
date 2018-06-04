@@ -42,7 +42,7 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 			/* read next file header */
 			read_from_file(patch, &fz, sizeof(struct file_header));
 
-			if (strlen(fz.name) > 0 )
+			if (strlen(fz.name) > 0)
 			{
 				/* locate & validate old file */
 				concat_path(filename, dir, fz.name);
@@ -56,8 +56,11 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 					break;
 				}
 
-				/* open only old file */
-				open_file(old, READONLY_MODE);
+				if (fz.action != FA_REPLACE)
+				{
+					/* open only old file */
+					open_file(old, READONLY_MODE);
+				}
 			}
 
 			if (fz.action > FA_NONE)
@@ -73,6 +76,9 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 					mismatch = TRUE;
 					break;
 				}
+
+				close_file(new);
+				new = NULL;
 			}
 		}
 		else if (strncmp(hdrtype, DATA_HEADER_ID, HDR_SZ) == MATCH)
@@ -174,6 +180,15 @@ void apply_patch(File *patch, const char *dir)
 				concat_path(filename, dir, fz.name);
 				old = stat_file(filename);
 
+				if (fz.action == FA_REPLACE)
+				{
+					/* ensure target directory for backup (old) file exists */
+					fp = split_filename(fz.name);
+					if (fp->dir != NULL)
+						make_directory(fp->dir);
+					free(fp);
+				}
+
 				if (fz.action != FA_REPLACE && fz.size != old->buf.st_size)
 				{
 					printf("File not found or size mismatch on file '%s';"
@@ -229,18 +244,14 @@ void apply_patch(File *patch, const char *dir)
 					break;
 
 				case FA_REPLACE:
-					if (! old->newfile && new->newfile)
+					if (old->newfile && ! new->newfile)
 					{
-						/* if oldfile exists and newfile doesn't, create backup */
-						printf("   backing up %s -> %s\n", fz.name, fz.newname);
-						rename_file(old, new);
-						close_file(new);
+						/* if newfile exists and oldfile (backup) doesn't, create backup */
+						printf("   backing up %s -> %s\n", fz.newname, fz.name);
+						rename_file(new, old);
 					}
-					/* replace old file */
-					open_file(old, OVERWRITE_MODE);
-
-					/* the newfile is the oldfile */
-					new = old;
+					/* replace new file */
+					open_file(new, OVERWRITE_MODE);
 					break;
 
 				case FA_NONE:
@@ -405,7 +416,7 @@ void patch_file_message(struct file_header fz)
 			printf("  adding file %s\n", fz.newname);
 			break;
 		case FA_REPLACE:
-			printf("  replacing file %s\n", fz.name);
+			printf("  replacing file %s\n", fz.newname);
 			break;
 	}
 }

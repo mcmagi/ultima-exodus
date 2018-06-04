@@ -35,19 +35,9 @@ int diff(const char olddir[], const char oldfile[], const char newdir[], const c
 		open_file(old, READONLY_MODE);
 	}
 
-	if (action == FA_REPLACE)
-	{
-		/* for replacement, look at old filename in new path */
-		concat_path(newfilepath, newdir, oldfile);
-		new = stat_file(newfilepath);
-		open_file(new, READONLY_MODE);
-	}
-	else
-	{
-		concat_path(newfilepath, newdir, newfile);
-		new = stat_file(newfilepath);
-		open_file(new, READONLY_MODE);
-	}
+	concat_path(newfilepath, newdir, newfile);
+	new = stat_file(newfilepath);
+	open_file(new, READONLY_MODE);
 
 	/* create file header; wait to write it until we find our first difference */
 	fz = build_file_header(oldfile, newfile, action, old == NULL ? 0 : old->buf.st_size);

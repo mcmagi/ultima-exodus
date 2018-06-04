@@ -42,9 +42,8 @@ BOOL is_patch_applied(File *patch, const char *dir, BOOL showmsg)
 			/* read next file header */
 			read_from_file(patch, &fz, sizeof(struct file_header));
 
-			/* locate file: check old file on change & replace, otherwise check newfile */
-			concat_path(filename, dir, fz.action == FA_NONE || fz.action == FA_REPLACE
-					? fz.name : fz.newname);
+			/* locate file: check old file on change, otherwise check newfile */
+			concat_path(filename, dir, fz.action == FA_NONE ? fz.name : fz.newname);
 			file = stat_file(filename);
 
 			if (file->newfile)

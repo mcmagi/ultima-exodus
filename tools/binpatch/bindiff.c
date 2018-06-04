@@ -151,7 +151,7 @@ void print_help_message(const char *error)
 	fprintf(stderr, "\t\t\t%s - copies oldfile to newfile, no diff\n", ACTION_COPY_ONLY);
 	fprintf(stderr, "\t\t\t%s - moves oldfile to newfile, applying diff\n", ACTION_MOVE);
 	fprintf(stderr, "\t\t\t%s - moves oldfile to newfile, no diff\n", ACTION_MOVE_ONLY);
-	fprintf(stderr, "\t\t\t%s - replaces oldfile, backing up to newfile (does not unapply)\n", ACTION_REPLACE);
+	fprintf(stderr, "\t\t\t%s - replaces newfile, backing up to oldfile (does not unapply)\n", ACTION_REPLACE);
 	fprintf(stderr, "\t\t\t%s - adds newfile\n", ACTION_ADD);
 	fprintf(stderr, "\t-od\tPath to location of old (or source) file\n");
 	fprintf(stderr, "\t-o\tName of old (or source) file\n");
