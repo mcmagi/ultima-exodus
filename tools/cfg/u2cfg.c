@@ -282,7 +282,7 @@ Option * get_selected_option(List *themeList, char *selected)
 	return NULL;
 }
 
-free_options(List *list)
+void free_options(List *list)
 {
 	int i;			/* loop counter */
 	Option *o;		/* option (owned & returned) */

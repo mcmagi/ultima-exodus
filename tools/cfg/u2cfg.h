@@ -57,6 +57,7 @@ char * get_theme_prefix(int video);
 List * filter_dirlist(const char *prefix);
 List * get_theme_options(IniCfg *iniCfg, int video);
 Option * get_selected_option(List *themeList, char *selected);
+void free_options(List *list);
 void set_defaults(unsigned char data[]);
 struct u2cfg get_u2cfg(File *file, BOOL gen_defaults);
 void save_u2cfg(File *file, struct u2cfg cfg);
