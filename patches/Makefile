@@ -11,6 +11,7 @@ U5PAT = ${PATCHES}/u5up-$(call stripdots,${U5VER}).pat
 U2PAT_UC = ${PATCHES}/u2-uc.pat
 U2PAT_MAP = ${PATCHES}/u2-map.pat
 U2PAT_GOG = ${PATCHES}/u2-gog.pat
+U2PAT_V11 = ${PATCHES}/u2up-11.pat
 
 # patch save dir
 U2_SAVE_DIR = PLAYER.U2
@@ -24,7 +25,7 @@ clean:
 
 patch: ${U2PAT} ${U3PAT} ${U5PAT}
 
-patch_u2: ${U2PAT_UC} ${U2PAT_MAP} ${U2PAT_GOG} ${U2PAT}
+patch_u2: ${U2PAT_UC} ${U2PAT_MAP} ${U2PAT_GOG} ${U2PAT_V11} ${U2PAT}
 
 patch_u3: ${U3PAT}
 
@@ -72,6 +73,11 @@ ${U2PAT_GOG}:
 		${DIFF} -od ${U2MAP} -nd ${U2GOG} -o TLK$${i} -n TLK$${i} -p ${U2PAT_GOG}; \
 	done
 
+${U2PAT_V11}:
+	rm -f ${U2PAT_V11}
+	${DIFF} -a copy -od ${U2GOG} -nd ${U2UP_V11} -o ULTIMAII.EXE -n U2EGA.EXE -p ${U2PAT_V11}
+	${DIFF} -od ${U2GOG} -nd ${U2UP_V11} -o ULTIMAII.EXE -n ULTIMAII.EXE -p ${U2PAT_V11}
+
 ${U2PAT}:
 	rm -f ${U2PAT}
 	${DIFF} -od ${U2MAP} -nd ${U2UPGRADE} -o ULTIMAII.EXE -n ULTIMAII.EXE -p ${U2PAT}
@@ -113,6 +119,7 @@ package_u2: ${U2PAT}
 	cp -f ${U2PAT_UC} ${U2PKG}
 	cp -f ${U2PAT_MAP} ${U2PKG}
 	cp -f ${U2PAT_GOG} ${U2PKG}
+	cp -f ${U2PAT_V11} ${U2PKG}
 	cp -f ${U2PAT} ${U2PKG}
 
 package_u3: ${U3PAT}
