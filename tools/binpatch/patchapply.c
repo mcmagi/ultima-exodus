@@ -86,7 +86,7 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 			/* read next data header */
 			read_from_file(patch, &dz, sizeof(struct data_header));
 
-			if (fz.action != FA_ADD)
+			if (fz.action != FA_ADD && fz.action != FA_REPLACE)
 			{
 				/* perform operation based on patch type */
 				switch (dz.type)
@@ -105,7 +105,7 @@ BOOL is_patch_unapplied(File *patch, const char *dir, BOOL showmsg)
 
 				if (mismatch)
 				{
-					if (showmsg)
+					if (showmsg || DEBUG)
 						printf("is_patch_unapplied: file '%s' unexpected data at offset %u\n", old->filename, dz.offset);
 					break;
 				}

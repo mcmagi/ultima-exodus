@@ -22,6 +22,7 @@ BOOL is_patch_applied(File *patch, const char *dir, BOOL showmsg)
 	File *file = NULL;					/* file handle */
 	BOOL mismatch = FALSE;				/* indicates new data mismatch */
 	char filename[BUFSIZ] = { 0 };		/* tmp area for filename */
+	int datasize = 0;					/* size of data to skip */
 
 
 	/* read first header */
@@ -64,23 +65,35 @@ BOOL is_patch_applied(File *patch, const char *dir, BOOL showmsg)
 			/* read next data header */
 			read_from_file(patch, &dz, sizeof(struct data_header));
 
-			/* perform operation based on patch type */
-			switch (dz.type)
+			if (fz.action != FA_ADD && fz.action != FA_REPLACE)
 			{
-				case DT_APPEND:
-				case DT_REPLACE:
-					mismatch = ! compare_new_data(patch, file, dz);
-					break;
-				case DT_TRUNCATE:
-					seek_through_file(patch, dz.size, SEEK_CUR); /* skip */
-					break;
-			}
+				/* perform operation based on patch type */
+				switch (dz.type)
+				{
+					case DT_APPEND:
+					case DT_REPLACE:
+						mismatch = ! compare_new_data(patch, file, dz);
+						break;
+					case DT_TRUNCATE:
+						seek_through_file(patch, dz.size, SEEK_CUR); /* skip */
+						break;
+				}
 
-			if (mismatch)
+				if (mismatch)
+				{
+					if (showmsg || DEBUG)
+						printf("is_patch_applied: file '%s' unexpected data at offset %u\n", file->filename, dz.offset);
+					break;
+				}
+			}
+			else
 			{
-				if (showmsg)
-					printf("is_patch_applied: file '%s' unexpected data at offset %u\n", file->filename, dz.offset);
-				break;
+				/* skip over data */
+				datasize = dz.size;
+				if (dz.type == DT_REPLACE)
+					datasize *= 2;
+
+				seek_through_file(patch, datasize, SEEK_CUR);
 			}
 		}
 		else
