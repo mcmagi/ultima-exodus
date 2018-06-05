@@ -108,6 +108,7 @@ U2UC=${ROOT}/game/u2orig.uc
 U2MAP=${ROOT}/game/u2orig.map
 U2GOG=${ROOT}/game/u2orig.gog
 U2UP_V11=${ROOT}/game/u2orig.v11
+U2UP_V12=${ROOT}/game/u2orig.v12
 
 # game locations (for installation & patching)
 U2ORIGINAL=${U2MAP}
