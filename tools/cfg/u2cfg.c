@@ -306,12 +306,13 @@ void free_options(List *list)
 
 void set_defaults(unsigned char data[])
 {
-	data[MUSIC_INDEX] = OFF;
+	data[MUSIC_INDEX] = MUSIC_NONE;
 	data[AUTOSAVE_INDEX] = OFF;
 	data[FRAMELIMITER_INDEX] = ON;
 	data[VIDEO_INDEX] = VIDEO_EGA;
 	data[U2_ENHANCED_INDEX] = OFF;
 	data[GAMEPLAY_FIXES_INDEX] = ON;
+	data[SFX_INDEX] = SFX_ORIG;
 	data[MOD_INDEX] = OFF;
 	data[THEME_INDEX] = '\0';
 }
@@ -350,6 +351,7 @@ void save_u2cfg(File *file, struct u2cfg cfg)
 	set_status_bool(data, FRAMELIMITER_INDEX, cfg.framelimiter);
 	set_status_bool(data, U2_ENHANCED_INDEX, FALSE);
 	set_status(data, GAMEPLAY_FIXES_INDEX, cfg.gameplay_fixes);
+	set_status(data, SFX_INDEX, SFX_ORIG);
 	set_status(data, MOD_INDEX, OFF);
 	set_status_str(data, THEME_INDEX, cfg.theme, THEME_SZ);
 
