@@ -23,10 +23,10 @@ int main(int argc, const char *argv[])
 	BOOL gen_defaults = FALSE;		/* flag to generate defaults only */
 	int option;						/* option */
 	int sub_option;					/* sub menu option */
-	File *file;						/* File pointer */
-	File *iniFile;
-	IniCfg *iniCfg;					/* Ini option data */
-	List *themeList;				/* theme list */
+	File *file = NULL;				/* Config file pointer (owned) */
+	File *iniFile = NULL;			/* Ini file pointer (owned) */
+	IniCfg *iniCfg = NULL;			/* Ini option data (owned) */
+	List *themeList = NULL;			/* theme list (owned) */
 
 	if (argc >= 2 && strcmp(argv[1], OPT_GEN_DEFAULTS) == MATCH)
 		gen_defaults = TRUE;
@@ -84,6 +84,11 @@ int main(int argc, const char *argv[])
 				cfg.framelimiter = ! cfg.framelimiter;
 				break;
 
+			case GAMEPLAY_FIXES_OPT:
+				/* temporary until we do the submenu thing with other fixes */
+				cfg.gameplay_fixes = ! cfg.gameplay_fixes;
+				break;
+
 			case SAVE_QUIT_OPT:
 				save_u2cfg(file, cfg);
 				option = QUIT_OPT;
@@ -103,7 +108,7 @@ int main(int argc, const char *argv[])
 
 int menu(List *themeList, struct u2cfg cfg)
 {
-	Option *o;				/* selected theme option (reference) */
+	Option *o = NULL;			/* selected theme option (reference) */
 
 	/* print the menu */
 	printf("\nU2 Upgrade Configuration\n\n");
@@ -123,6 +128,7 @@ int menu(List *themeList, struct u2cfg cfg)
 
 	printf("%d - Autosave:       %s\n", AUTOSAVE_OPT, cfg.autosave ? ENABLED_STR : DISABLED_STR);
 	printf("%d - Frame Limiter:  %s\n", FRAMELIMITER_OPT, cfg.framelimiter ? ENABLED_STR : DISABLED_STR);
+	printf("%d - Stat Boost Fix: %s\n", GAMEPLAY_FIXES_OPT, cfg.gameplay_fixes ? ENABLED_STR : DISABLED_STR);
 	printf("%c - Save & Quit\n", SAVE_QUIT_OPT);
 	printf("%c - Quit without Saving\n", QUIT_OPT);
 	printf("\noption: ");
@@ -148,7 +154,7 @@ char * theme_menu(List *list, char *themeId)
 	int i;							/* loop counter */
 	int option;						/* inputted option */
 	BOOL option_valid = FALSE;		/* option validation result */
-	Option *o;						/* option entry (reference) */
+	Option *o = NULL;				/* option entry (reference) */
 
 	do
 	{
@@ -181,7 +187,7 @@ char * theme_menu(List *list, char *themeId)
 
 char * get_theme_name(IniCfg *iniCfg, char *filename)
 {
-	char *name;			/* theme name (reference) */
+	char *name = NULL;			/* theme name (reference) */
 
 	if (iniCfg != NULL)
 		name = ini_get_value(iniCfg, filename);
@@ -305,7 +311,7 @@ void set_defaults(unsigned char data[])
 	data[FRAMELIMITER_INDEX] = ON;
 	data[VIDEO_INDEX] = VIDEO_EGA;
 	data[U2_ENHANCED_INDEX] = OFF;
-	data[GAMEPLAY_FIXES_INDEX] = OFF;
+	data[GAMEPLAY_FIXES_INDEX] = ON;
 	data[MOD_INDEX] = OFF;
 	data[THEME_INDEX] = '\0';
 }
@@ -328,6 +334,7 @@ struct u2cfg get_u2cfg(File *file, BOOL gen_defaults)
 	cfg.theme[THEME_SZ] = '\0';
 	cfg.autosave = get_status_bool(data, AUTOSAVE_INDEX);
 	cfg.framelimiter = get_status_bool(data, FRAMELIMITER_INDEX);
+	cfg.gameplay_fixes = get_status(data, GAMEPLAY_FIXES_INDEX);
 
 	return cfg;
 }
@@ -342,7 +349,7 @@ void save_u2cfg(File *file, struct u2cfg cfg)
 	set_status_bool(data, AUTOSAVE_INDEX, cfg.autosave);
 	set_status_bool(data, FRAMELIMITER_INDEX, cfg.framelimiter);
 	set_status_bool(data, U2_ENHANCED_INDEX, FALSE);
-	set_status(data, GAMEPLAY_FIXES_INDEX, OFF);
+	set_status(data, GAMEPLAY_FIXES_INDEX, cfg.gameplay_fixes);
 	set_status(data, MOD_INDEX, OFF);
 	set_status_str(data, THEME_INDEX, cfg.theme, THEME_SZ);
 
