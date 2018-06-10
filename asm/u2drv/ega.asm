@@ -35,7 +35,7 @@ PIXEL_Y_OFFSET	dw		0x0010
 MONSTERS_ADDR	dd		0
 MONSTERS_DIST	db		0,0,0x80,0xc0,0xe0,0xf0,0xf8,0xfc,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
-; following section (31 bytes) is replaced by EGACOLOR if present
+; following section (32 bytes) is replaced by EGACOLOR if present
 
 ; color indices provided by MONSTERS file (8 bytes)
 MONSTERS_COLOR	db		0x0f,0x02,0x04,0x0c,0x09,0,0,0
@@ -49,6 +49,8 @@ STAR_COLOR		db		0x0f,0x09,0x0c,0x0e
 ; 00 = water, 01 = swamp, 02 = grass, 03 = forest, 04 = mountains, 05 = force,
 ; 06 = brick, 07 = moongate, 08 = poi, 09 = npcs, 0a = walls
 HELM_COLOR		db		0x01,0x03,0x02,0x0a,0x08,0x0e,0x04,0x0b,0x07,0x07,0x0f
+; color of rocket crosshairs
+CROSSHAIR_COLOR	db		0x08
 
 
 
@@ -417,6 +419,7 @@ VIEW_HELM_TILE:
 	;  dl,dh = x,y tile coordinates
 
 	pushf
+	push bx
 	push cx
 
 	cmp al,0x00
@@ -444,53 +447,55 @@ VIEW_HELM_TILE:
 	jmp VIEW_HELM_TILE_NPCS
 
   VIEW_HELM_TILE_WATER:
-	mov cl,0x01 ; blue
+	mov bx,0x0000
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_SWAMP:
-	mov cl,0x03 ; cyan
+	mov bx,0x0001
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_GRASS:
-	mov cl,0x02 ; green
+	mov bx,0x0002
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_FOREST:
-	mov cl,0x0a ; light green
+	mov bx,0x0003
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_MOUNTAINS:
-	mov cl,0x08 ; dark gray
+	mov bx,0x0004
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_FORCE:
-	mov cl,0x0e ; yellow
+	mov bx,0x0005
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_BRICK:
-	mov cl,0x04 ; red
+	mov bx,0x0006
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_MOONGATE:
-	mov cl,0x0b ; light cyan
+	mov bx,0x0007
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_ENTERABLE:
-	mov cl,0x07 ; gray
+	mov bx,0x0008
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_NPCS:
-	mov cl,0x07 ; grey
+	mov bx,0x0009
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_WALLS:
-	mov cl,0x0f ; white
+	mov bx,0x000a
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_CALL:
+	mov cl,[bx+HELM_COLOR]
 	call WRITE_HELM_BLOCK
 
 	pop cx
+	pop bx
 	popf
 	ret
 
@@ -668,26 +673,9 @@ WRITE_STAR_PIXEL:
 	push si
 	and si,0x03
 
-	cmp si,0x0003
-	jz WRITE_STAR_PIXEL_YELLOW
-	cmp si,0x0002
-	jz WRITE_STAR_PIXEL_LIGHT_BLUE
-	cmp si,0x0001
-	jz WRITE_STAR_PIXEL_BLUE
+	; cl = star color based on last 2 bites of star index
+	mov cl,[STAR_COLOR+si]
 
-	mov cl,0x0f			; white
-	jmp WRITE_STAR_PIXEL_DO
-  WRITE_STAR_PIXEL_BLUE:
-	mov cl,0x09			; light blue
-	jmp WRITE_STAR_PIXEL_DO
-  WRITE_STAR_PIXEL_LIGHT_BLUE:
-	mov cl,0x0c			; light red
-	jmp WRITE_STAR_PIXEL_DO
-  WRITE_STAR_PIXEL_YELLOW:
-	mov cl,0x0e			; yellow
-	jmp WRITE_STAR_PIXEL_DO
-
-  WRITE_STAR_PIXEL_DO:
 	call WRITE_PIXEL
 	pop si
 	pop cx
@@ -758,7 +746,7 @@ WRITE_CROSSHAIRS_PIXEL:
 	;  bx = pixel row number (y coordinate)
 
 	push cx
-	mov cl,0x08			; dark grey
+	mov cl,[CROSSHAIR_COLOR]
 	call WRITE_PIXEL
 	pop cx
 	ret
@@ -1176,8 +1164,8 @@ LOAD_COLOR_FILE:
 	mov ax,[bx+0x02]
 	mov ds,ax
 
-	; move contents of file (31 bytes) to data area
-	mov cx,0x001f
+	; move contents of file (32 bytes) to data area
+	mov cx,0x0020
 	rep movsb
 
 	; free colors file
