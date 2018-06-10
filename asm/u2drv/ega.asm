@@ -22,8 +22,9 @@ DEMO3_FILE      db      "PICCAS.IDX",0
 DEMO4_FILE      db      "PICDNG.EGA",0
 DEMO5_FILE      db      "PICSPA.EGA",0
 DEMO6_FILE      db      "PICMIN.IDX",0
-TILESET_FILE    db      "EGATILES",0,0,0
+TILESET_FILE    db      "EGATILES",0
 MONSTERS_FILE   db      "MONSTERS",0
+COLOR_FILE		db		"EGACOLOR",0
 THEME_PREFIX	db		"EGATHEME.",0
 VIDEO_SEGMENT   dw      0xa000
 DRIVER_INIT		db		0
@@ -33,9 +34,22 @@ PIXEL_X_OFFSET	dw		0x0010
 PIXEL_Y_OFFSET	dw		0x0010
 MONSTERS_ADDR	dd		0
 MONSTERS_DIST	db		0,0,0x80,0xc0,0xe0,0xf0,0xf8,0xfc,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-COLORED_PIXELS	db		0x0f,0x02,0x04,0x0c,0x09,0,0,0
+
+; following section (31 bytes) is replaced by EGACOLOR if present
+
+; color indices provided by MONSTERS file (8 bytes)
+MONSTERS_COLOR	db		0x0f,0x02,0x04,0x0c,0x09,0,0,0
+; text color indexed by text type (8 bytes)
 ; 00 = default, 01 = title, 02 = header, 03 = subheader, 04 = low value, 05 = text value, 06 = number value, 07 = highlighted
 TEXT_COLOR		db		0x0b,0x0d,0x0f,0x0d,0x0c,0x0c,0x09,0x0f
+; star colors, randomly cycled (4 bytes)
+; cycles through 4 random star colors
+STAR_COLOR		db		0x0f,0x09,0x0c,0x0e
+; view helm colors (11 bytes)
+; 00 = water, 01 = swamp, 02 = grass, 03 = forest, 04 = mountains, 05 = force,
+; 06 = brick, 07 = moongate, 08 = poi, 09 = npcs, 0a = walls
+HELM_COLOR		db		0x01,0x03,0x02,0x0a,0x08,0x0e,0x04,0x0b,0x07,0x07,0x0f
+
 
 
 ; ===== video driver functions here =====
@@ -47,6 +61,7 @@ INIT_DRIVER:
 
 	call LOAD_TILESET_FILE
 	call LOAD_MONSTERS_FILE
+	call LOAD_COLOR_FILE
 
   INIT_DRIVER_DONE:
 	mov [DRIVER_INIT],0x01
@@ -317,7 +332,7 @@ WRITE_COLORED_BLOCK:
 	; get color data from color index
 	mov ch,0x00
 	mov bp,cx
-	mov cl,[ds:COLORED_PIXELS+bp]
+	mov cl,[ds:MONSTERS_COLOR+bp]
 
 	mov dh,0x04
   WRITE_COLORED_BLOCK_ROW:
@@ -1133,6 +1148,53 @@ LOAD_MONSTERS_FILE:
     pop dx
     pop bx
     ret
+
+
+LOAD_COLOR_FILE:
+	push bx
+	push cx
+	push dx
+	push si
+	push di
+	push ds
+	push es
+
+    lea dx,[COLOR_FILE]
+    lea bx,[GRAPHIC_ADDR]
+    call LOAD_THEME_FILE
+
+	; if not found, just return
+	jc LOAD_COLOR_FILE_DONE
+
+	; set es:di => start of local color data area
+	push ds
+	pop es
+	lea di,[MONSTERS_COLOR]
+
+	; set ds:si => start of color file
+	mov si,[bx]
+	mov ax,[bx+0x02]
+	mov ds,ax
+
+	; move contents of file (31 bytes) to data area
+	mov cx,0x001f
+	rep movsb
+
+	; free colors file
+	push es
+	pop ds
+	lea bx,[GRAPHIC_ADDR]
+	call FREE_GRAPHIC_FILE
+
+  LOAD_COLOR_FILE_DONE:
+	pop es
+	pop ds
+	pop di
+	pop si
+	pop dx
+	pop cx
+	pop bx
+	ret
 
 
 LOAD_THEME_FILE:
