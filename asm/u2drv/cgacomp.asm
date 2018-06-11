@@ -1,10 +1,12 @@
 ; CGA.ASM
 ; Author: Michael C. Maggio
 ;
-; Ultima 2 Upgrade CGA driver.  The functions in the included cgacore.asm output
-; directly to the CGA video buffer at segment address B800.  Since data is
-; written directly to the video buffer, the FLUSH_* functions have no
-; implementation.
+; Ultima 2 Upgrade Composite CGA driver. Employs a dual-buffer strategy to
+; translate CGA data to CGA composite output. The functions in the included
+; cgacore.asm output to a pre-allocated buffer at some segment address. The
+; FLUSH_* functions then map the CGA data to the VGA video buffer at segment
+; address A000. Uses VGA video mode 0x13. Loads CGACOMP.PAL to configure the
+; VGApalette with CGA composite colors.
 
 ; ===== start jumps into code here =====
 include 'vidjmp.asm'
@@ -23,7 +25,8 @@ DEMO6_FILE      db      "PICMIN",0
 TILESET_FILE    db      "CGATILES",0,0,0
 MONSTERS_FILE   db      "MONSTERS",0
 THEME_PREFIX	db		"CGATHEME.",0
-VIDEO_SEGMENT   dw      0xb800
+PALETTE_FILE    db      "CGACOMP.PAL",0
+;VIDEO_SEGMENT   dw      0xb800
 DRIVER_INIT		db		0
 TILESET_ADDR	dd		0
 GRAPHIC_ADDR	dd		0
@@ -45,6 +48,20 @@ INIT_DRIVER:
 	call LOAD_TILESET_FILE
 	call LOAD_MONSTERS_FILE
 
+	; load composite cga palette from file
+    lea dx,[PALETTE_FILE]
+    call LOAD_VGA_PALETTE
+
+	; allocate cga video buffer
+    call SETUP_CGA_BUFFER
+
+    ; build row lookup tables
+    call BUILD_CGA_ROW_LOOKUP_TABLE
+    call BUILD_VGA_ROW_LOOKUP_TABLE
+
+    ; build composite color lookup table
+    call BUILD_COMPOSITE_LOOKUP_TABLE
+
   INIT_DRIVER_DONE:
 	mov [DRIVER_INIT],0x01
 	ret
@@ -60,6 +77,9 @@ CLOSE_DRIVER:
 	; free monsters
 	lea bx,[MONSTERS_ADDR]
 	call FREE_GRAPHIC_FILE
+
+    ; free cga video buffer
+	call FREE_CGA_BUFFER
 
 	pop bx
 	ret
@@ -78,39 +98,57 @@ SET_TEXT_DISPLAY_MODE:
 
 SET_GRAPHIC_DISPLAY_MODE:
 	push ax
-	push bx
 
-	; set display mode 320x200 color (CGA)
-	mov ah,0x00
-	mov al,0x04
+	; set VGA video mode
+	mov ax,0x0013
 	int 0x10
 
-	; set background to black
-	mov ah,0x0b
-	mov bh,0x00
-	mov bl,0x00
-	int 0x10
-
-	; set palette to CMW
-	mov ah,0x0b
-	mov bh,0x01
-	mov bl,0x01
-	int 0x10
-
-	pop bx
 	pop ax
 	ret
 
 
-; This has no implementation in the CGA (4-color) driver
-FLUSH_GAME_MAP:
-FLUSH_BUFFER:
-	ret
+; ===== Buffer functions =====
 
+FLUSH_GAME_MAP:
+    ; parameters:
+    ;  ah = height in tiles
+    ;  al = width in tiles
+    ;  bx = starting pixel column of game map
+    ;  dl = starting pixel row of game map
+
+    pushf
+    push cx
+    push dx
+
+    ; save cl=width, dh=height (in tiles)
+    mov cl,al
+    mov dh,ah
+
+    ; set cx = width in pixels
+    mov ax,0x0010
+    mul cl
+    mov cx,ax
+
+    ; set dh = height in pixels
+    mov ax,0x0010
+    mul dh
+    mov dh,al
+
+    call FLUSH_BUFFER_RECT
+
+    pop dx
+    pop cx 
+    popf
+    ret
+
+
+; ===== CGA core =====
 
 ; include the core CGA driver functions
 include 'cgacore.asm'
 
+
+; ===== CGA/VGA offset functions =====
 
 ; Calculates the offset to the pixel coordinates in the video segment.
 GET_VIDEO_OFFSET:
@@ -128,7 +166,7 @@ GET_VIDEO_OFFSET:
 	; adapt params to library function
 	mov dl,bl
 	mov bx,ax
-	call GET_CGA_OFFSET
+	call LOOKUP_CGA_OFFSET
 
 	pop dx
 	mov dh,cl			; return param: dh = bit offset
@@ -139,7 +177,8 @@ GET_VIDEO_OFFSET:
 
 ; ===== supporting libraries =====
 
-include '../common/video/cga.asm'
+include '../common/video/cgacomp.asm'
+include '../common/video/palette.asm'
 include '../common/vidfile.asm'
 
 
