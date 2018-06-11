@@ -112,7 +112,7 @@ DRAW_TILE:
 
 	; es:di => offset to x,y in video segment
 	mov es,[VIDEO_SEGMENT]
-	call GET_VGA_OFFSET
+	call GET_VIDEO_OFFSET
 
 	; ds:si => tile in shapes file
 	call GET_TILE_ADDRESS
@@ -126,7 +126,7 @@ DRAW_TILE:
   DRAW_TILE_COLUMN_LOOP:
 	; read bye from ds:si (shapes), unpack, and write word to es:di (video)
 	lodsb
-	call UNPACK_VIDEO_DATA
+	call UNPACK_EGA_VIDEO_DATA
 	stosw
 	dec dl
 	jnz DRAW_TILE_COLUMN_LOOP
@@ -289,7 +289,7 @@ WRITE_PIXEL:
 
 	; es:di => offset to x,y in video segment
 	mov es,[VIDEO_SEGMENT]
-	call GET_VGA_OFFSET
+	call GET_VIDEO_OFFSET
 
 	; write pixel to video buffer
 	mov al,cl
@@ -379,7 +379,7 @@ INVERT_TILE:
 
 	; es:di => offset to x,y in video segment
 	mov es,[VIDEO_SEGMENT]
-	call GET_VGA_OFFSET
+	call GET_VIDEO_OFFSET
 
 	; ds:si => tile in shapes file
 	call GET_TILE_ADDRESS
@@ -389,7 +389,7 @@ INVERT_TILE:
 	mov dh,0x08
   INVERT_TILE_COLUMN:
 	mov al,[si]
-	call UNPACK_VIDEO_DATA
+	call UNPACK_EGA_VIDEO_DATA
 	xor [es:di],ax
 	inc si
 	inc di
@@ -953,7 +953,7 @@ INVERT_CHAR:
 
 	; es:di => offset in video segment
 	mov es,[VIDEO_SEGMENT]
-	call GET_VGA_OFFSET
+	call GET_VIDEO_OFFSET
 
 	; prepare to xor lo-nibble
 	mov al,0x0f
@@ -1028,48 +1028,24 @@ GET_TILE_ADDRESS:
 
 
 ; Calculates the offset to the pixel row+col in the video segment
-GET_VGA_OFFSET:
+GET_VIDEO_OFFSET:
 	; parameters:
 	;  ax = pixel x coordinate of tile
 	;  bx = pixel y coordinate of tile
 	; returns:
 	;  di = video offset
 
-	pushf
-	push ax
+	push bx
 	push dx
 
-	; di = y * 320 + x
-	mov di,ax
-	mov ax,0x0140
-	mul bx
-	add di,ax
-	
+	; adapt params to library function
+	mov dl,bl
+	mov bx,ax
+	call GET_VGA_OFFSET
+
 	pop dx
-	pop ax
-	popf
+	pop bx
 	ret
-
-
-; Ega video data is 4bpp, thus 2 pixels/byte
-; the current video mode (13h) is 8bpp, thus 1 pixel/byte
-; we must move the upper nybble to the high-order byte
-UNPACK_VIDEO_DATA:
-    ; parameters:
-    ;  al = packed (ega) video data
-    ; returns:
-	;  ax = unpacked (vga) video data
-
-    mov ah,al       ; get copy of data
-    and ah,0x0f     ; clear upper nybble of ah
-
-    ; right-shift 4 times (also clears lower nybble of al)
-    shr al,1
-    shr al,1
-    shr al,1
-    shr al,1
-
-    ret
 
 
 SET_VGA_VIDEO_MODE:
@@ -1195,6 +1171,9 @@ LOAD_THEME_FILE:
 	ret
 
 
+; ===== supporting libraries =====
+
+include '../common/video/vga.asm'
 include '../common/vidfile.asm'
 
 

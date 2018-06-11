@@ -127,7 +127,7 @@ DRAW_TILE:
 	mov cx,0x0010
   DRAW_TILE_LOOP:
 	; es:di => offset to x,y in video segment, dh = bit number
-	call GET_CGA_OFFSET
+	call GET_VIDEO_OFFSET
 
 	; transfer pixel row (4 bytes) to video segment
 	movsw
@@ -320,7 +320,7 @@ WRITE_PIXEL:
 
 	; es:di => offset to x,y in video segment, dh = bit number
 	mov es,[VIDEO_SEGMENT]
-	call GET_CGA_OFFSET
+	call GET_VIDEO_OFFSET
 
 	; clear pixel at location
 	mov al,0x3
@@ -392,7 +392,7 @@ WRITE_COLORED_BLOCK:
 	mov ch,0x04
   WRITE_COLORED_BLOCK_ROW:
 	; es:di => offset to x,y in video segment, dh = bit number
-	call GET_CGA_OFFSET
+	call GET_VIDEO_OFFSET
 
 	; write all 4 pixels of cl @ ax,bx
 	mov [es:di],cl
@@ -437,7 +437,7 @@ INVERT_TILE:
 	mov cx,0x0010
   INVERT_TILE_LOOP:
 	; es:di => offset to x,y in video segment, dh = bit number
-	call GET_CGA_OFFSET
+	call GET_VIDEO_OFFSET
 
 	; xor pixel row (4 bytes) into video segment
 	push ax
@@ -963,8 +963,8 @@ GET_TILE_ADDRESS:
 	ret
 
 
-; Calculates the offset to the pixel row+col in the video segment
-GET_CGA_OFFSET:
+; Calculates the offset to the pixel coordinates in the video segment.
+GET_VIDEO_OFFSET:
 	; parameters:
 	;  ax = pixel x coordinate of tile
 	;  bx = pixel y coordinate of tile
@@ -972,47 +972,20 @@ GET_CGA_OFFSET:
 	;  di = video offset
 	;  dh = bit offset
 
-    pushf
-    push ax
-    push bx
+	push bx
+	push cx
+	push dx
 
-    ; get dh = number of bits into byte
-    mov dh,al
-    and dh,0x03             ; last two bits are pixel index w/i byte
-	xor dh,0x03				; and invert
-    shl dh,1                ; two bits per pixel
+	; adapt params to library function
+	mov dl,bl
+	mov bx,ax
+	call GET_CGA_OFFSET
 
-    ; set di = 0000 = offset of first page
-    xor di,di
-
-    ; determine which CGA page to write to
-    shr bl,1                ; right-shift by 1 to get row # in page
-
-    ; if carry was not set, it's the first page
-    jnc GET_CGA_OFFSET_FIRST_PAGE
-
-    ; set di = 2000 = offset of second page
-    mov di,0x2000
-
-  GET_CGA_OFFSET_FIRST_PAGE:
-    ; calculate offset to row
-	push ax
-    mov al,0x50             ; size of CGA row = 80 bytes
-    mul bl                  ; get row offset w/i page
-    add di,ax               ; di => row offset within video buffer
-	pop ax
-
-    ; calculate column offset (there are 4 pixels per byte)
-    shr ax,1
-    shr ax,1
-
-    ; di = offset to pixel in video buffer
-    add di,ax
-
-    pop bx
-    pop ax
-    popf
-    ret
+	pop dx
+	mov dh,cl			; return param: dh = bit offset
+	pop cx
+	pop bx
+	ret
 
 
 ; ===== file handling functions here =====
@@ -1053,6 +1026,9 @@ LOAD_THEME_FILE:
 	ret
 
 
+; ===== supporting libraries =====
+
+include '../common/video/cga.asm'
 include '../common/vidfile.asm'
 
 

@@ -5,18 +5,19 @@ compile: ${U3BIN}/cga.drv ${U3BIN}/cgacomp.drv ${U3BIN}/ega.drv ${U3BIN}/vga.drv
         ${U3BIN}/midpak.drv ${U3BIN}/nomidi.drv ${U3BIN}/sfx.drv ${U3BIN}/sfxtimed.drv ${U3BIN}/sfxtest.com
 
 VIDDEPS=vidjmp.asm ../common/vidfile.asm vidfar.asm ../common/loadfile.asm \
-    ../common/xchgs.asm ../common/memory.asm
+    ../common/xchgs.asm ../common/memory.asm ../common/video/palette.asm ../common/video/cgacomp.asm \
+	../common/video/cga.asm ../common/video/vga.asm
 
 ${U3BIN}/cga.drv: cga.asm cgacore.asm ${VIDDEPS} | ${U3BIN}
 	${ASM} cga.asm ${U3BIN}/cga.drv
 
-${U3BIN}/cgacomp.drv: cgacomp.asm cgacore.asm ${VIDDEPS} palette.asm | ${U3BIN}
+${U3BIN}/cgacomp.drv: cgacomp.asm cgacore.asm ${VIDDEPS} | ${U3BIN}
 	${ASM} cgacomp.asm ${U3BIN}/cgacomp.drv
 
 ${U3BIN}/ega.drv: ega.asm ${VIDDEPS} | ${U3BIN}
 	${ASM} ega.asm ${U3BIN}/ega.drv
 
-${U3BIN}/vga.drv: vga.asm ${VIDDEPS} palette.asm | ${U3BIN}
+${U3BIN}/vga.drv: vga.asm ${VIDDEPS} | ${U3BIN}
 	${ASM} vga.asm ${U3BIN}/vga.drv
 
 ${U3BIN}/midpak.drv: midpak.asm | ${U3BIN}

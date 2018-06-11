@@ -112,60 +112,22 @@ include 'cgacore.asm'
 
 ; Returns the byte offset (and bit offset within the byte) into the CGA video
 ; buffer for a requested pixel.
-GET_CGA_OFFSET:
-    ; parameters:
-    ;  bx = pixel column
-    ;  dl = pixel row
-    ; returns:
-    ;  di = video offset
-    ;  cl = bit offset
-
-    pushf
-    push ax
-    push bx
-    push dx
-
-    ; set di = offset of first page
-    xor di,di
-
-    ; determine which CGA page to write to
-    shr dl,1                ; right-shift by 1 to get row # in page
-
-    ; if carry was not set, it's the first page
-    jnc GET_VIDEO_OFFSET_FIRST_PAGE
-
-    ; set di = offset of second page
-    mov di,0x2000
-
-  GET_VIDEO_OFFSET_FIRST_PAGE:
-    ; calculate offset to row
-    mov al,0x50             ; size of CGA row = 0x50
-    mul dl                  ; get row offset w/i page
-    add di,ax               ; di => row offset within video buffer
-
-    ; get cl = number of bits into byte
-    mov cl,bl
-    and cl,0x03             ; last two bits are pixel index w/i byte
-    shl cl,1                ; two bits per pixel
-
-    ; calculate column offset (there are 4 pixels per byte)
-    shr bx,1
-    shr bx,1
-
-    ; di = offset to pixel in video buffer
-    add di,bx
-
-    pop dx
-    pop bx
-    pop ax
-    popf
-    ret
+GET_VIDEO_OFFSET:
+	; parameters:
+	;  bx = pixel x coordinate
+	;  dl = pixel y coordinate
+	; returns:
+	;  di = video offset
+	;  cl = bit offset
+	
+	call GET_CGA_OFFSET
+	ret
 
 
 ; ===== supporting libraries =====
 
+include '../common/video/cga.asm'
 include '../common/vidfile.asm'
-
 include '../common/xchgs.asm'
 
 

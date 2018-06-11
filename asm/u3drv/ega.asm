@@ -271,7 +271,7 @@ WRITE_GEM_BLOCK:
 
     ; unpack color information
     mov al,ah
-    call UNPACK_VIDEO_DATA
+    call UNPACK_EGA_VIDEO_DATA
 
     ; toggle top row into video buffer
     xor [es:bx],ax
@@ -651,7 +651,7 @@ DISPLAY_CHAR_COMMON:
   DISPLAY_CHAR_COL_LOOP:
     ; read a byte, unpack, and write a word
     lodsb
-    call UNPACK_VIDEO_DATA
+    call UNPACK_EGA_VIDEO_DATA
 
     mov [es:bx+di],ax
     add di,0x0002       ; move DI forward by one word
@@ -835,7 +835,7 @@ DISPLAY_TILE:
   DISPLAY_TILE_COLUMN:
     ; read byte from ds:si (shapes), unpack, and write word to es:di (video)
     lodsb
-    call UNPACK_VIDEO_DATA
+    call UNPACK_EGA_VIDEO_DATA
     stosw
     loop DISPLAY_TILE_COLUMN
 
@@ -1311,7 +1311,7 @@ DISPLAY_BLANK_INTRO:
   DISPLAY_BLANK_INTRO_LOOP:
     ; load byte, unpack to word, write word
     lodsb
-    call UNPACK_VIDEO_DATA
+    call UNPACK_EGA_VIDEO_DATA
     stosw
     loop DISPLAY_BLANK_INTRO_LOOP
 
@@ -1371,7 +1371,7 @@ DISPLAY_EXOD_LINE:
   DISPLAY_EXOD_LOOP:
     ; read byte, unpack, and output 2 pixels
     lodsb
-    call UNPACK_VIDEO_DATA
+    call UNPACK_EGA_VIDEO_DATA
     stosw
     loop DISPLAY_EXOD_LOOP
 
@@ -1510,7 +1510,7 @@ DISPLAY_ANIMATION_FRAME:
   DISPLAY_ANIMATION_FRAME_COL_LOOP:
     ; read a byte, unpack, it and store as word
     lodsb
-    call UNPACK_VIDEO_DATA
+    call UNPACK_EGA_VIDEO_DATA
     stosw
 
     ; advance to next column
@@ -1711,60 +1711,6 @@ DRAW_PIXEL:
     ret
 
 
-; Returns the byte offset into the VGA video buffer for a requested pixel.
-GET_VGA_OFFSET:
-    ; parameters:
-    ;  bx = pixel column
-    ;  dl = pixel row
-    ; returns:
-    ;  di = video offset
-
-    pushf
-    push ax
-    push bx
-    push dx
-
-    ; set di = offset of column (in first row)
-    mov di,dx
-
-    ; calculate offset of starting row
-    xor dh,dh
-    mov ax,0x0140           ; size of EGA row = 0x0140
-    mul dx                  ; di => row offset within video buffer
-
-    ; add offset of starting column
-    add ax,bx
-
-    ; di = offset to pixel in video buffer
-    mov di,ax
-
-    pop dx
-    pop bx
-    pop ax
-    popf
-    ret
-
-
-; Ega video data is 4bpp, thus 2 pixels/byte
-; the current video mode (13h) is 8bpp, thus 1 pixel/byte
-; we must move the upper nybble to the high-order byte
-UNPACK_VIDEO_DATA:
-    ; parameters
-    ; al = packed (ega) video data
-    ; returns ax = unpacked (vga) video data
-
-    mov ah,al       ; get copy of data
-    and ah,0x0f     ; clear upper nybble of ah
-
-    ; right-shift 4 times (also clears lower nybble of al)
-    shr al,1
-    shr al,1
-    shr al,1
-    shr al,1
-
-    ret
-
-
 ; ===== file handling functions here =====
 
 LOAD_SHAPES_FILE:
@@ -1842,8 +1788,10 @@ LOAD_ANIMATE_FILE:
     ret
 
 
-include '../common/vidfile.asm'
+; ===== supporting libraries =====
 
+include '../common/video/vga.asm'
+include '../common/vidfile.asm'
 include '../common/xchgs.asm'
 
 
