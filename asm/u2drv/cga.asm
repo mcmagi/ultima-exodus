@@ -20,7 +20,7 @@ DEMO3_FILE      db      "PICCAS",0
 DEMO4_FILE      db      "PICDNG",0
 DEMO5_FILE      db      "PICSPA",0
 DEMO6_FILE      db      "PICMIN",0
-TILESET_FILE    db      "CGATILES",0,0,0
+TILESET_FILE    db      "CGATILES",0
 MONSTERS_FILE   db      "MONSTERS",0
 THEME_PREFIX	db		"CGATHEME.",0
 VIDEO_SEGMENT   dw      0xb800

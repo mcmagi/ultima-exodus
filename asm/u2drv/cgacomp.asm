@@ -22,7 +22,7 @@ DEMO3_FILE      db      "PICCAS",0
 DEMO4_FILE      db      "PICDNG",0
 DEMO5_FILE      db      "PICSPA",0
 DEMO6_FILE      db      "PICMIN",0
-TILESET_FILE    db      "CGATILES",0,0,0
+TILESET_FILE    db      "CGATILES",0
 MONSTERS_FILE   db      "MONSTERS",0
 THEME_PREFIX	db		"CGATHEME.",0
 PALETTE_FILE    db      "CGACOMP.PAL",0
@@ -42,15 +42,13 @@ TEXT_COLOR		db		0x0f,0x0f,0x0f,0x0f,0x02,0x0f,0x0f,0x70
 ; ===== video driver functions here =====
 
 INIT_DRIVER:
+	push dx
+
 	cmp [DRIVER_INIT],0x01
 	jz INIT_DRIVER_DONE
 
 	call LOAD_TILESET_FILE
 	call LOAD_MONSTERS_FILE
-
-	; load composite cga palette from file
-    lea dx,[PALETTE_FILE]
-    call LOAD_VGA_PALETTE
 
 	; allocate cga video buffer
     call SETUP_CGA_BUFFER
@@ -64,6 +62,8 @@ INIT_DRIVER:
 
   INIT_DRIVER_DONE:
 	mov [DRIVER_INIT],0x01
+
+	pop dx
 	ret
 
 
@@ -102,6 +102,10 @@ SET_GRAPHIC_DISPLAY_MODE:
 	; set VGA video mode
 	mov ax,0x0013
 	int 0x10
+
+	; load composite cga palette from file
+    lea dx,[PALETTE_FILE]
+    call LOAD_VGA_PALETTE
 
 	pop ax
 	ret
