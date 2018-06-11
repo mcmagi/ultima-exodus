@@ -86,6 +86,11 @@ CLOSE_DRIVER:
 	ret
 
 
+; no buffer in EGA mode
+FLUSH_GAME_MAP:
+	ret
+
+
 SET_TEXT_DISPLAY_MODE:
 	call SET_VGA_VIDEO_MODE
 	ret

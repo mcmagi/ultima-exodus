@@ -191,3 +191,12 @@ SET_CURSOR_POSITION_FAR:
 	pop es
 	pop ds
 	retf
+
+FLUSH_GAME_MAP_FAR:
+	push ds
+	push es
+	call SET_SEGMENT
+	call FLUSH_GAME_MAP
+	pop es
+	pop ds
+	retf
