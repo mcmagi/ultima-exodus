@@ -42,8 +42,6 @@ TEXT_COLOR		db		0x0f,0x0f,0x0f,0x0f,0x02,0x0f,0x0f,0x70
 ; ===== video driver functions here =====
 
 INIT_DRIVER:
-	push dx
-
 	cmp [DRIVER_INIT],0x01
 	jz INIT_DRIVER_DONE
 
@@ -62,8 +60,6 @@ INIT_DRIVER:
 
   INIT_DRIVER_DONE:
 	mov [DRIVER_INIT],0x01
-
-	pop dx
 	ret
 
 
@@ -98,6 +94,9 @@ SET_TEXT_DISPLAY_MODE:
 
 SET_GRAPHIC_DISPLAY_MODE:
 	push ax
+	push cx
+	push di
+	push es
 
 	; set VGA video mode
 	mov ax,0x0013
@@ -107,42 +106,45 @@ SET_GRAPHIC_DISPLAY_MODE:
     lea dx,[PALETTE_FILE]
     call LOAD_VGA_PALETTE
 
+	; clear screen
+	mov es,[VIDEO_SEGMENT]
+
+	; blacks out CGA video buffer
+	mov di,0x0000
+	mov al,0x00
+	mov cx,0x1f40
+	rep stosb
+	mov di,0x2000
+	mov cx,0x1f40
+	rep stosb
+
+	pop es
+	pop di
+	pop cx
 	pop ax
 	ret
 
 
 ; ===== Buffer functions =====
 
+; Flushes the game map area to the VGA video buffer.
 FLUSH_GAME_MAP:
-    ; parameters:
-    ;  ah = height in tiles
-    ;  al = width in tiles
-    ;  bx = starting pixel column of game map
-    ;  dl = starting pixel row of game map
-
-    pushf
+    push bx
     push cx
     push dx
 
-    ; save cl=width, dh=height (in tiles)
-    mov cl,al
-    mov dh,ah
-
-    ; set cx = width in pixels
-    mov ax,0x0010
-    mul cl
-    mov cx,ax
-
-    ; set dh = height in pixels
-    mov ax,0x0010
-    mul dh
-    mov dh,al
+	; x = 320 columns
+	mov bx,0x0000
+	mov cx,0x0140
+	; y = 160 rows
+	mov dl,0x00
+	mov dh,0xa0
 
     call FLUSH_BUFFER_RECT
 
     pop dx
     pop cx 
-    popf
+    pop bx
     ret
 
 

@@ -6,10 +6,10 @@ compile: ${U2BIN}/cga.drv ${U2BIN}/cgacomp.drv ${U2BIN}/ega.drv
 VIDDEPS=vidjmp.asm ../common/vidfile.asm vidfar.asm ../common/loadfile.asm \
     ../common/memory.asm ../common/video/cga.asm ../common/video/vga.asm
 
-${U2BIN}/cga.drv: cga.asm ${VIDDEPS} | ${U2BIN}
+${U2BIN}/cga.drv: cga.asm cgacore.asm ${VIDDEPS} | ${U2BIN}
 	${ASM} cga.asm ${U2BIN}/cga.drv
 
-${U2BIN}/cgacomp.drv: cgacomp.asm ${VIDDEPS} | ${U2BIN}
+${U2BIN}/cgacomp.drv: cgacomp.asm cgacore.asm ${VIDDEPS} | ${U2BIN}
 	${ASM} cgacomp.asm ${U2BIN}/cgacomp.drv
 
 ${U2BIN}/ega.drv: ega.asm ${VIDDEPS} | ${U2BIN}

@@ -121,9 +121,12 @@ INVERT_GAME_SCREEN:
 	mov es,ax
 	call INVERT_GAME_SCREEN_PAGE
 
+	call FLUSH_GAME_MAP
+
 	pop es
 	pop ax
 	ret
+
 
 INVERT_GAME_SCREEN_PAGE:
 	pushf
@@ -163,9 +166,12 @@ CLEAR_GAME_SCREEN:
 	mov es,ax
 	call CLEAR_GAME_SCREEN_PAGE
 
+	call FLUSH_GAME_MAP
+
 	pop es
 	pop ax
 	ret
+
 
 CLEAR_GAME_SCREEN_PAGE:
 	pushf
