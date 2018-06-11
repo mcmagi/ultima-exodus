@@ -61,7 +61,7 @@ int main(int argc, const char *argv[])
 				{
 					sub_option = video_menu(cfg.video);
 				}
-				while (sub_option != VIDEO_CGA_OPT && sub_option != VIDEO_EGA_OPT && sub_option != MAIN_MENU_OPT);
+				while ((sub_option < VIDEO_CGA_OPT || sub_option > VIDEO_EGA_OPT) && sub_option != MAIN_MENU_OPT);
 
 				if (sub_option != MAIN_MENU_OPT)
 				{
@@ -139,9 +139,11 @@ int menu(List *themeList, struct u2cfg cfg)
 int video_menu(int video)
 {
 	printf("\nU2 Upgrade Configuration - Video Mode\n\n");
-	printf("%d - CGA (4-color) %s\n", VIDEO_CGA_OPT,
+	printf("%d - %s %s\n", VIDEO_CGA_OPT, VIDEO_CGA_STR,
 		 video == VIDEO_CGA ? SELECTED_STR : EMPTY_STR);
-	printf("%d - EGA (16-color) %s\n", VIDEO_EGA_OPT,
+	printf("%d - %s %s\n", VIDEO_CGA_COMP_OPT, VIDEO_CGA_COMP_STR,
+		 video == VIDEO_CGA_COMP ? SELECTED_STR : EMPTY_STR);
+	printf("%d - %s %s\n", VIDEO_EGA_OPT, VIDEO_EGA_STR,
 		 video == VIDEO_EGA ? SELECTED_STR : EMPTY_STR);
 	printf("%c - Return to Main Menu\n", MAIN_MENU_OPT);
 	printf("\noption: ");
