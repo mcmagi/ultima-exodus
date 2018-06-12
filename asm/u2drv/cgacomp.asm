@@ -36,7 +36,7 @@ MONSTERS_ADDR	dd		0
 MONSTERS_DIST	db		0,0,0x80,0xc0,0xe0,0xf0,0xf8,0xfc,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 MONSTERS_COLOR	db		0xff,0x11,0x88,0xcc,0x33,0,0,0
 ; 00 = default, 01 = title, 02 = header, 03 = subheader, 04 = low value, 05 = text value, 06 = number value, 07 = highlighted
-TEXT_COLOR		db		0x0f,0x0f,0x0f,0x0f,0x02,0x0f,0x0f,0x70
+TEXT_COLOR		db		0x0f,0x0f,0x0f,0x0f,0x0a,0x0f,0x0f,0x70
 
 
 ; ===== video driver functions here =====
@@ -146,6 +146,30 @@ FLUSH_GAME_MAP:
     pop cx 
     pop bx
     ret
+
+
+FLUSH_PIXEL:
+	; parameters:
+	;  ax = pixel x coord
+	;  bx = pixel y coord
+
+	push bx
+	push dx
+
+	; map x/y params
+	mov dx,bx
+	mov bx,ax
+
+	; offset by display origin
+	add bx,[PIXEL_X_OFFSET]
+	add dx,[PIXEL_Y_OFFSET]
+
+	; flush
+	call FLUSH_BUFFER_PIXEL
+
+	pop dx
+	pop bx
+	ret
 
 
 ; ===== CGA core =====

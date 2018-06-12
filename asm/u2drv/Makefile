@@ -4,7 +4,8 @@ include ${ROOT}/Makefile.include
 compile: ${U2BIN}/cga.drv ${U2BIN}/cgacomp.drv ${U2BIN}/ega.drv
 
 VIDDEPS=vidjmp.asm ../common/vidfile.asm vidfar.asm ../common/loadfile.asm \
-    ../common/memory.asm ../common/video/cga.asm ../common/video/vga.asm
+    ../common/memory.asm ../common/video/cga.asm ../common/video/vga.asm \
+	../common/video/cgacomp.asm ../common/video/palette.asm
 
 ${U2BIN}/cga.drv: cga.asm cgacore.asm ${VIDDEPS} | ${U2BIN}
 	${ASM} cga.asm ${U2BIN}/cga.drv

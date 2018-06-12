@@ -268,6 +268,8 @@ CLEAR_PIXEL:
 	mov cl,0x00
 	call WRITE_PIXEL
 
+	call FLUSH_PIXEL
+
 	pop cx
 	ret
 
@@ -339,6 +341,9 @@ INVERT_TILE:
 	push ds
 	push es
 
+	; push for flush
+	push bx
+
 	mov es,[VIDEO_SEGMENT]
 
 	; ds:si => tile in shapes file
@@ -361,6 +366,16 @@ INVERT_TILE:
 
 	inc bx		; advance to next row
 	loop INVERT_TILE_LOOP
+
+	; restore bx for flush
+	pop bx
+
+	; flush 16x16 tile
+	mov dl,bl
+	mov dh,0x10
+	mov bx,ax
+	mov cx,0x0010
+	call FLUSH_BUFFER_RECT
 
 	pop es
 	pop ds
@@ -644,8 +659,12 @@ WRITE_STAR_PIXEL:
 	;  si = star index
 
 	push cx
+
 	mov cl,0x03			; white
 	call WRITE_PIXEL
+
+	call FLUSH_PIXEL
+
 	pop cx
 	ret
 
@@ -713,8 +732,12 @@ WRITE_CROSSHAIRS_PIXEL:
 	;  bx = pixel row number (y coordinate)
 
 	push cx
+
 	mov cl,0x03			; white
 	call WRITE_PIXEL
+
+	call FLUSH_PIXEL
+
 	pop cx
 	ret
 

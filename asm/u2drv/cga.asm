@@ -104,7 +104,9 @@ SET_GRAPHIC_DISPLAY_MODE:
 
 ; This has no implementation in the CGA (4-color) driver
 FLUSH_GAME_MAP:
+FLUSH_PIXEL:
 FLUSH_BUFFER:
+FLUSH_BUFFER_RECT:
 	ret
 
 
