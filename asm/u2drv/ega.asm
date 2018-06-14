@@ -48,7 +48,7 @@ STAR_COLOR		db		0x0f,0x09,0x0c,0x0e
 ; view helm colors (11 bytes)
 ; 00 = water, 01 = swamp, 02 = grass, 03 = forest, 04 = mountains, 05 = force,
 ; 06 = brick, 07 = moongate, 08 = poi, 09 = npcs, 0a = walls
-HELM_COLOR		db		0x01,0x03,0x02,0x0a,0x08,0x0e,0x04,0x0b,0x07,0x07,0x0f
+HELM_COLOR		db		0x01,0x03,0x02,0x0a,0x08,0x0e,0x04,0x0b,0x0d,0x07,0x0f
 ; color of rocket crosshairs
 CROSSHAIR_COLOR	db		0x08
 
@@ -444,7 +444,7 @@ VIEW_HELM_TILE:
 	cmp al,0xc0
 	jz VIEW_HELM_TILE_MOONGATE
 	cmp al,0x28
-	jz VIEW_HELM_TILE_ENTERABLE
+	jbe VIEW_HELM_TILE_ENTERABLE
 	cmp al,0x6c
 	jbe VIEW_HELM_TILE_NPCS
 	cmp al,0xec
