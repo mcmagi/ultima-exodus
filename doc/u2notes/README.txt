@@ -31,3 +31,5 @@ Notes:
     *) DPMI is no longer needed to run the upgrade tools.
     *) The install may fail from U2 Upgrade v1.1. If so you will need to
        reinstall the game. Apologies, but v1.1 is a bit of a special case.
+    *) If upgrading a floppy release, please only apply to the Program Master.
+       The upgrade will add all data files from the Player and Galactic disks.

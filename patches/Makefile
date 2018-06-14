@@ -8,6 +8,7 @@ U3PAT = ${PATCHES}/u3up-$(call stripdots,${U3VER}).pat
 U5PAT = ${PATCHES}/u5up-$(call stripdots,${U5VER}).pat
 
 # incremental patch filenames
+U2PAT_U16 = ${PATCHES}/u2-u16.pat
 U2PAT_UC = ${PATCHES}/u2-uc.pat
 U2PAT_MAP = ${PATCHES}/u2-map.pat
 U2PAT_GOG = ${PATCHES}/u2-gog.pat
@@ -26,11 +27,34 @@ clean:
 
 patch: ${U2PAT} ${U3PAT} ${U5PAT}
 
-patch_u2: ${U2PAT_UC} ${U2PAT_MAP} ${U2PAT_GOG} ${U2PAT_V11} ${U2PAT_V12} ${U2PAT}
+patch_u2: ${U2PAT_U16} ${U2PAT_UC} ${U2PAT_MAP} ${U2PAT_GOG} ${U2PAT_V11} ${U2PAT_V12} ${U2PAT}
 
 patch_u3: ${U3PAT}
 
 patch_u5: ${U5PAT}
+
+${U2PAT_U16}:
+	# the T123-to-U16 patch applies only to the Program Master
+	rm -f ${U2PAT_U16}
+	${DIFF} -od ${U2T123} -nd ${U2U16} -o ULTIMAII.EXE -n ULTIMAII.EXE -p ${U2PAT_U16}
+	# replace galactic files with earth files from player master
+	for i in 10 15 20 30 32 40 41 45; do \
+		${DIFF} -od ${U2T123} -nd ${U2U16} -o MAPX$${i} -n MAPX$${i} -p ${U2PAT_U16}; \
+		${DIFF} -od ${U2T123} -nd ${U2U16} -o MONX$${i} -n MONX$${i} -p ${U2PAT_U16}; \
+	done
+	for i in 32 41; do \
+		${DIFF} -od ${U2T123} -nd ${U2U16} -o TLKX$${i} -n TLKX$${i} -p ${U2PAT_U16}; \
+	done
+	# add earth files exclusive to player master
+	for i in 00 03 11 21 22 23 24 25 31 33 34 35; do \
+		${DIFF} -a add -nd ${U2U16} -n MAPX$${i} -p ${U2PAT_U16}; \
+		${DIFF} -a add -nd ${U2U16} -n MONX$${i} -p ${U2PAT_U16}; \
+	done
+	for i in 03 11 21 22 23 31 33; do \
+		${DIFF} -a add -nd ${U2U16} -n TLKX$${i} -p ${U2PAT_U16}; \
+	done
+	# add monsters file
+	${DIFF} -a add -nd ${U2U16} -n MONSTERS -p ${U2PAT_U16}
 
 ${U2PAT_UC}:
 	rm -f ${U2PAT_UC}
@@ -121,6 +145,7 @@ package: package_u2 package_u3 package_u5
 
 package_u2: ${U2PAT}
 	echo "Packaging Patches for U2"
+	cp -f ${U2PAT_U16} ${U2PKG}
 	cp -f ${U2PAT_UC} ${U2PKG}
 	cp -f ${U2PAT_MAP} ${U2PKG}
 	cp -f ${U2PAT_GOG} ${U2PKG}
