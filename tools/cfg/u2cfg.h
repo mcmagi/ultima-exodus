@@ -15,6 +15,7 @@
 #define	THEME_OPT               2
 #define	AUTOSAVE_OPT            3
 #define	FRAMELIMITER_OPT        4
+#define	GAMEPLAY_FIXES_OPT      5
 #define	SAVE_QUIT_OPT           'S'
 #define	QUIT_OPT                'Q'
 #define MAIN_MENU_OPT           'M'
@@ -38,7 +39,7 @@ struct u2cfg {
     BOOL autosave;
     BOOL framelimiter;
     BOOL enhanced_ui;
-    BOOL gameplay_fixes;
+    int gameplay_fixes;
     int sfx;
     int mod;
 };

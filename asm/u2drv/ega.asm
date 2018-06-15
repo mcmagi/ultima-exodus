@@ -22,8 +22,9 @@ DEMO3_FILE      db      "PICCAS.IDX",0
 DEMO4_FILE      db      "PICDNG.EGA",0
 DEMO5_FILE      db      "PICSPA.EGA",0
 DEMO6_FILE      db      "PICMIN.IDX",0
-TILESET_FILE    db      "EGATILES",0,0,0
+TILESET_FILE    db      "EGATILES",0
 MONSTERS_FILE   db      "MONSTERS",0
+COLOR_FILE		db		"EGACOLOR",0
 THEME_PREFIX	db		"EGATHEME.",0
 VIDEO_SEGMENT   dw      0xa000
 DRIVER_INIT		db		0
@@ -33,9 +34,24 @@ PIXEL_X_OFFSET	dw		0x0010
 PIXEL_Y_OFFSET	dw		0x0010
 MONSTERS_ADDR	dd		0
 MONSTERS_DIST	db		0,0,0x80,0xc0,0xe0,0xf0,0xf8,0xfc,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-COLORED_PIXELS	db		0x0f,0x02,0x04,0x0c,0x09,0,0,0
+
+; following section (32 bytes) is replaced by EGACOLOR if present
+
+; color indices provided by MONSTERS file (8 bytes)
+MONSTERS_COLOR	db		0x0f,0x02,0x04,0x0c,0x09,0,0,0
+; text color indexed by text type (8 bytes)
 ; 00 = default, 01 = title, 02 = header, 03 = subheader, 04 = low value, 05 = text value, 06 = number value, 07 = highlighted
 TEXT_COLOR		db		0x0b,0x0d,0x0f,0x0d,0x0c,0x0c,0x09,0x0f
+; star colors, randomly cycled (4 bytes)
+; cycles through 4 random star colors
+STAR_COLOR		db		0x0f,0x09,0x0c,0x0e
+; view helm colors (11 bytes)
+; 00 = water, 01 = swamp, 02 = grass, 03 = forest, 04 = mountains, 05 = force,
+; 06 = brick, 07 = moongate, 08 = poi, 09 = npcs, 0a = walls
+HELM_COLOR		db		0x01,0x03,0x02,0x0a,0x08,0x0e,0x04,0x0b,0x0d,0x07,0x0f
+; color of rocket crosshairs
+CROSSHAIR_COLOR	db		0x08
+
 
 
 ; ===== video driver functions here =====
@@ -47,6 +63,7 @@ INIT_DRIVER:
 
 	call LOAD_TILESET_FILE
 	call LOAD_MONSTERS_FILE
+	call LOAD_COLOR_FILE
 
   INIT_DRIVER_DONE:
 	mov [DRIVER_INIT],0x01
@@ -66,6 +83,11 @@ CLOSE_DRIVER:
 	call FREE_GRAPHIC_FILE
 
 	pop bx
+	ret
+
+
+; no buffer in EGA mode
+FLUSH_GAME_MAP:
 	ret
 
 
@@ -95,7 +117,7 @@ DRAW_TILE:
 
 	; es:di => offset to x,y in video segment
 	mov es,[VIDEO_SEGMENT]
-	call GET_VGA_OFFSET
+	call GET_VIDEO_OFFSET
 
 	; ds:si => tile in shapes file
 	call GET_TILE_ADDRESS
@@ -109,7 +131,7 @@ DRAW_TILE:
   DRAW_TILE_COLUMN_LOOP:
 	; read bye from ds:si (shapes), unpack, and write word to es:di (video)
 	lodsb
-	call UNPACK_VIDEO_DATA
+	call UNPACK_EGA_VIDEO_DATA
 	stosw
 	dec dl
 	jnz DRAW_TILE_COLUMN_LOOP
@@ -272,7 +294,7 @@ WRITE_PIXEL:
 
 	; es:di => offset to x,y in video segment
 	mov es,[VIDEO_SEGMENT]
-	call GET_VGA_OFFSET
+	call GET_VIDEO_OFFSET
 
 	; write pixel to video buffer
 	mov al,cl
@@ -317,7 +339,7 @@ WRITE_COLORED_BLOCK:
 	; get color data from color index
 	mov ch,0x00
 	mov bp,cx
-	mov cl,[ds:COLORED_PIXELS+bp]
+	mov cl,[ds:MONSTERS_COLOR+bp]
 
 	mov dh,0x04
   WRITE_COLORED_BLOCK_ROW:
@@ -362,7 +384,7 @@ INVERT_TILE:
 
 	; es:di => offset to x,y in video segment
 	mov es,[VIDEO_SEGMENT]
-	call GET_VGA_OFFSET
+	call GET_VIDEO_OFFSET
 
 	; ds:si => tile in shapes file
 	call GET_TILE_ADDRESS
@@ -372,7 +394,7 @@ INVERT_TILE:
 	mov dh,0x08
   INVERT_TILE_COLUMN:
 	mov al,[si]
-	call UNPACK_VIDEO_DATA
+	call UNPACK_EGA_VIDEO_DATA
 	xor [es:di],ax
 	inc si
 	inc di
@@ -402,6 +424,7 @@ VIEW_HELM_TILE:
 	;  dl,dh = x,y tile coordinates
 
 	pushf
+	push bx
 	push cx
 
 	cmp al,0x00
@@ -421,7 +444,7 @@ VIEW_HELM_TILE:
 	cmp al,0xc0
 	jz VIEW_HELM_TILE_MOONGATE
 	cmp al,0x28
-	jz VIEW_HELM_TILE_ENTERABLE
+	jbe VIEW_HELM_TILE_ENTERABLE
 	cmp al,0x6c
 	jbe VIEW_HELM_TILE_NPCS
 	cmp al,0xec
@@ -429,53 +452,55 @@ VIEW_HELM_TILE:
 	jmp VIEW_HELM_TILE_NPCS
 
   VIEW_HELM_TILE_WATER:
-	mov cl,0x01 ; blue
+	mov bx,0x0000
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_SWAMP:
-	mov cl,0x03 ; cyan
+	mov bx,0x0001
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_GRASS:
-	mov cl,0x02 ; green
+	mov bx,0x0002
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_FOREST:
-	mov cl,0x0a ; light green
+	mov bx,0x0003
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_MOUNTAINS:
-	mov cl,0x08 ; dark gray
+	mov bx,0x0004
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_FORCE:
-	mov cl,0x0e ; yellow
+	mov bx,0x0005
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_BRICK:
-	mov cl,0x04 ; red
+	mov bx,0x0006
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_MOONGATE:
-	mov cl,0x0b ; light cyan
+	mov bx,0x0007
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_ENTERABLE:
-	mov cl,0x07 ; gray
+	mov bx,0x0008
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_NPCS:
-	mov cl,0x07 ; grey
+	mov bx,0x0009
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_WALLS:
-	mov cl,0x0f ; white
+	mov bx,0x000a
 	jmp VIEW_HELM_TILE_CALL
 
   VIEW_HELM_TILE_CALL:
+	mov cl,[bx+HELM_COLOR]
 	call WRITE_HELM_BLOCK
 
 	pop cx
+	pop bx
 	popf
 	ret
 
@@ -653,26 +678,9 @@ WRITE_STAR_PIXEL:
 	push si
 	and si,0x03
 
-	cmp si,0x0003
-	jz WRITE_STAR_PIXEL_YELLOW
-	cmp si,0x0002
-	jz WRITE_STAR_PIXEL_LIGHT_BLUE
-	cmp si,0x0001
-	jz WRITE_STAR_PIXEL_BLUE
+	; cl = star color based on last 2 bites of star index
+	mov cl,[STAR_COLOR+si]
 
-	mov cl,0x0f			; white
-	jmp WRITE_STAR_PIXEL_DO
-  WRITE_STAR_PIXEL_BLUE:
-	mov cl,0x09			; light blue
-	jmp WRITE_STAR_PIXEL_DO
-  WRITE_STAR_PIXEL_LIGHT_BLUE:
-	mov cl,0x0c			; light red
-	jmp WRITE_STAR_PIXEL_DO
-  WRITE_STAR_PIXEL_YELLOW:
-	mov cl,0x0e			; yellow
-	jmp WRITE_STAR_PIXEL_DO
-
-  WRITE_STAR_PIXEL_DO:
 	call WRITE_PIXEL
 	pop si
 	pop cx
@@ -743,7 +751,7 @@ WRITE_CROSSHAIRS_PIXEL:
 	;  bx = pixel row number (y coordinate)
 
 	push cx
-	mov cl,0x08			; dark grey
+	mov cl,[CROSSHAIR_COLOR]
 	call WRITE_PIXEL
 	pop cx
 	ret
@@ -950,7 +958,7 @@ INVERT_CHAR:
 
 	; es:di => offset in video segment
 	mov es,[VIDEO_SEGMENT]
-	call GET_VGA_OFFSET
+	call GET_VIDEO_OFFSET
 
 	; prepare to xor lo-nibble
 	mov al,0x0f
@@ -1025,48 +1033,24 @@ GET_TILE_ADDRESS:
 
 
 ; Calculates the offset to the pixel row+col in the video segment
-GET_VGA_OFFSET:
+GET_VIDEO_OFFSET:
 	; parameters:
 	;  ax = pixel x coordinate of tile
 	;  bx = pixel y coordinate of tile
 	; returns:
 	;  di = video offset
 
-	pushf
-	push ax
+	push bx
 	push dx
 
-	; di = y * 320 + x
-	mov di,ax
-	mov ax,0x0140
-	mul bx
-	add di,ax
-	
+	; adapt params to library function
+	mov dl,bl
+	mov bx,ax
+	call GET_VGA_OFFSET
+
 	pop dx
-	pop ax
-	popf
+	pop bx
 	ret
-
-
-; Ega video data is 4bpp, thus 2 pixels/byte
-; the current video mode (13h) is 8bpp, thus 1 pixel/byte
-; we must move the upper nybble to the high-order byte
-UNPACK_VIDEO_DATA:
-    ; parameters:
-    ;  al = packed (ega) video data
-    ; returns:
-	;  ax = unpacked (vga) video data
-
-    mov ah,al       ; get copy of data
-    and ah,0x0f     ; clear upper nybble of ah
-
-    ; right-shift 4 times (also clears lower nybble of al)
-    shr al,1
-    shr al,1
-    shr al,1
-    shr al,1
-
-    ret
 
 
 SET_VGA_VIDEO_MODE:
@@ -1135,6 +1119,53 @@ LOAD_MONSTERS_FILE:
     ret
 
 
+LOAD_COLOR_FILE:
+	push bx
+	push cx
+	push dx
+	push si
+	push di
+	push ds
+	push es
+
+    lea dx,[COLOR_FILE]
+    lea bx,[GRAPHIC_ADDR]
+    call LOAD_THEME_FILE
+
+	; if not found, just return
+	jc LOAD_COLOR_FILE_DONE
+
+	; set es:di => start of local color data area
+	push ds
+	pop es
+	lea di,[MONSTERS_COLOR]
+
+	; set ds:si => start of color file
+	mov si,[bx]
+	mov ax,[bx+0x02]
+	mov ds,ax
+
+	; move contents of file (32 bytes) to data area
+	mov cx,0x0020
+	rep movsb
+
+	; free colors file
+	push es
+	pop ds
+	lea bx,[GRAPHIC_ADDR]
+	call FREE_GRAPHIC_FILE
+
+  LOAD_COLOR_FILE_DONE:
+	pop es
+	pop ds
+	pop di
+	pop si
+	pop dx
+	pop cx
+	pop bx
+	ret
+
+
 LOAD_THEME_FILE:
 	push ax
 
@@ -1145,6 +1176,9 @@ LOAD_THEME_FILE:
 	ret
 
 
+; ===== supporting libraries =====
+
+include '../common/video/vga.asm'
 include '../common/vidfile.asm'
 
 

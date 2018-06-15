@@ -38,6 +38,7 @@ typedef struct {
 /* Function prototypes */
 void examine_upgrade_patches(PatchData *r, const char *upgrade_type);
 void examine_release_patches(PatchData *r, const IniCfg *iniCfg);
+BOOL can_patch_be_applied(PatchData *r);
 PatchData *create_patchdata(const char *path);
 void free_patchdata(PatchData *data);
 void do_upgrade(IniCfg *iniCfg, PatchData *data);

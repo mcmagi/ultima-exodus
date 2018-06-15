@@ -30,6 +30,7 @@
 int main(int argc, const char ** argv)
 {
 	PatchData *data;			/* upgrade patch data */
+	BOOL applyable = TRUE;		/* flag to indicate first patch is applyable */
 	BOOL unapply = FALSE;		/* unapply mode flag */
 	IniCfg *iniCfg = NULL;		/* upgrade ini cfg data */
 	char *readme;				/* readme filename */
@@ -59,15 +60,25 @@ int main(int argc, const char ** argv)
 	if (! data->has_upgrade && iniCfg != NULL)
 		examine_release_patches(data, iniCfg);
 
+	/* if no release patches applied, check if we can apply the first one */
+	if (data->applied == NULL)
+		applyable = can_patch_be_applied(data);
+
 	/* Print game versions */
-	printf("  Current Game Version:  %s\n", get_patch_version(iniCfg, data->applied));
+	printf("  Current Game Version:  %s\n", applyable ? get_patch_version(iniCfg, data->applied) : "(unknown version)");
 	printf("Latest Upgrade Version:  %s\n\n", get_patch_version(iniCfg, data->latest));
 
 	/* check if latest/applied filenames match, switch to unapply mode */
 	unapply = data->applied != NULL && strcmp(data->applied->filename, data->latest->filename) == MATCH;
 
 	/* get confirmation & do the work */
-	if (unapply)
+	if (! applyable)
+	{
+		printf("Upgrade aborted! -- Game version could not be identified.\n");
+		printf("Please contact The Exodus Project for support.\n");
+		press_enter();
+	}
+	else if (unapply)
 	{
 		printf("Latest patch is already applied.\n");
 		printf("Unapply? (Y/N): %s", args.yes ? "Y\n" : "");
@@ -162,7 +173,7 @@ void examine_release_patches(PatchData *r, const IniCfg *iniCfg)
 	releases = ini_get_value_list(iniCfg, INI_KEY_RELEASES);
 	base = ini_get_value(iniCfg, INI_KEY_BASE);
 
-	/* examine patch files */
+	/* examine patch files in reverse order */
 	for (i = releases->size - 1; i >= 0; i--)
 	{
 		patch = stat_file(releases->entries[i]);
@@ -213,6 +224,38 @@ void examine_release_patches(PatchData *r, const IniCfg *iniCfg)
 		r->applied = stat_file(r->applied->filename);
 
 	free_strlist(releases);
+}
+
+BOOL can_patch_be_applied(PatchData *r)
+{
+	File *firstPatch = NULL;
+	BOOL applyable = TRUE;
+
+	/* determine first patch to apply */
+	if (r->num_below > 0)
+	{
+		/* if has unapplied release patches, check first one */
+		firstPatch = r->below[0];
+	}
+	else if (r->num_above == 0)
+	{
+		/* if we're not rolling back a release patch (which is already validated to work),
+		 * check the upgrade patch */
+		firstPatch = r->latest;
+	}
+
+	if (firstPatch != NULL)
+	{
+		firstPatch = stat_file(firstPatch->filename);
+		open_file(firstPatch, READONLY_MODE);
+		verify_patch_header(firstPatch);
+
+		applyable = is_patch_unapplied(firstPatch, r->dir, FALSE);
+
+		close_file(firstPatch);
+	}
+
+	return applyable;
 }
 
 PatchData *create_patchdata(const char *path)

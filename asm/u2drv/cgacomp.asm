@@ -1,10 +1,12 @@
 ; CGA.ASM
 ; Author: Michael C. Maggio
 ;
-; Ultima 2 Upgrade CGA driver.  The functions in the included cgacore.asm output
-; directly to the CGA video buffer at segment address B800.  Since data is
-; written directly to the video buffer, the FLUSH_* functions have no
-; implementation.
+; Ultima 2 Upgrade Composite CGA driver. Employs a dual-buffer strategy to
+; translate CGA data to CGA composite output. The functions in the included
+; cgacore.asm output to a pre-allocated buffer at some segment address. The
+; FLUSH_* functions then map the CGA data to the VGA video buffer at segment
+; address A000. Uses VGA video mode 0x13. Loads CGACOMP.PAL to configure the
+; VGApalette with CGA composite colors.
 
 ; ===== start jumps into code here =====
 include 'vidjmp.asm'
@@ -23,7 +25,8 @@ DEMO6_FILE      db      "PICMIN",0
 TILESET_FILE    db      "CGATILES",0
 MONSTERS_FILE   db      "MONSTERS",0
 THEME_PREFIX	db		"CGATHEME.",0
-VIDEO_SEGMENT   dw      0xb800
+PALETTE_FILE    db      "CGACOMP.PAL",0
+;VIDEO_SEGMENT   dw      0xb800
 DRIVER_INIT		db		0
 TILESET_ADDR	dd		0
 GRAPHIC_ADDR	dd		0
@@ -33,7 +36,7 @@ MONSTERS_ADDR	dd		0
 MONSTERS_DIST	db		0,0,0x80,0xc0,0xe0,0xf0,0xf8,0xfc,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 MONSTERS_COLOR	db		0xff,0x11,0x88,0xcc,0x33,0,0,0
 ; 00 = default, 01 = title, 02 = header, 03 = subheader, 04 = low value, 05 = text value, 06 = number value, 07 = highlighted
-TEXT_COLOR		db		0x0f,0x0f,0x0f,0x0f,0x02,0x0f,0x0f,0x70
+TEXT_COLOR		db		0x0f,0x0f,0x0f,0x0f,0x0a,0x0f,0x0f,0x70
 
 
 ; ===== video driver functions here =====
@@ -44,6 +47,16 @@ INIT_DRIVER:
 
 	call LOAD_TILESET_FILE
 	call LOAD_MONSTERS_FILE
+
+	; allocate cga video buffer
+    call SETUP_CGA_BUFFER
+
+    ; build row lookup tables
+    call BUILD_CGA_ROW_LOOKUP_TABLE
+    call BUILD_VGA_ROW_LOOKUP_TABLE
+
+    ; build composite color lookup table
+    call BUILD_COMPOSITE_LOOKUP_TABLE
 
   INIT_DRIVER_DONE:
 	mov [DRIVER_INIT],0x01
@@ -60,6 +73,9 @@ CLOSE_DRIVER:
 	; free monsters
 	lea bx,[MONSTERS_ADDR]
 	call FREE_GRAPHIC_FILE
+
+    ; free cga video buffer
+	call FREE_CGA_BUFFER
 
 	pop bx
 	ret
@@ -78,41 +94,91 @@ SET_TEXT_DISPLAY_MODE:
 
 SET_GRAPHIC_DISPLAY_MODE:
 	push ax
-	push bx
+	push cx
+	push di
+	push es
 
-	; set display mode 320x200 color (CGA)
-	mov ah,0x00
-	mov al,0x04
+	; set VGA video mode
+	mov ax,0x0013
 	int 0x10
 
-	; set background to black
-	mov ah,0x0b
-	mov bh,0x00
-	mov bl,0x00
-	int 0x10
+	; load composite cga palette from file
+    lea dx,[PALETTE_FILE]
+    call LOAD_VGA_PALETTE
 
-	; set palette to CMW
-	mov ah,0x0b
-	mov bh,0x01
-	mov bl,0x01
-	int 0x10
+	; clear screen
+	mov es,[VIDEO_SEGMENT]
 
-	pop bx
+	; blacks out CGA video buffer
+	mov di,0x0000
+	mov al,0x00
+	mov cx,0x1f40
+	rep stosb
+	mov di,0x2000
+	mov cx,0x1f40
+	rep stosb
+
+	pop es
+	pop di
+	pop cx
 	pop ax
 	ret
 
 
-; This has no implementation in the CGA (4-color) driver
+; ===== Buffer functions =====
+
+; Flushes the game map area to the VGA video buffer.
 FLUSH_GAME_MAP:
+    push bx
+    push cx
+    push dx
+
+	; x = 320 columns
+	mov bx,0x0000
+	mov cx,0x0140
+	; y = 160 rows
+	mov dl,0x00
+	mov dh,0xa0
+
+    call FLUSH_BUFFER_RECT
+
+    pop dx
+    pop cx 
+    pop bx
+    ret
+
+
 FLUSH_PIXEL:
-FLUSH_BUFFER:
-FLUSH_BUFFER_RECT:
+	; parameters:
+	;  ax = pixel x coord
+	;  bx = pixel y coord
+
+	push bx
+	push dx
+
+	; map x/y params
+	mov dx,bx
+	mov bx,ax
+
+	; offset by display origin
+	add bx,[PIXEL_X_OFFSET]
+	add dx,[PIXEL_Y_OFFSET]
+
+	; flush
+	call FLUSH_BUFFER_PIXEL
+
+	pop dx
+	pop bx
 	ret
 
+
+; ===== CGA core =====
 
 ; include the core CGA driver functions
 include 'cgacore.asm'
 
+
+; ===== CGA/VGA offset functions =====
 
 ; Calculates the offset to the pixel coordinates in the video segment.
 GET_VIDEO_OFFSET:
@@ -130,7 +196,7 @@ GET_VIDEO_OFFSET:
 	; adapt params to library function
 	mov dl,bl
 	mov bx,ax
-	call GET_CGA_OFFSET
+	call LOOKUP_CGA_OFFSET
 
 	pop dx
 	mov dh,cl			; return param: dh = bit offset
@@ -141,7 +207,8 @@ GET_VIDEO_OFFSET:
 
 ; ===== supporting libraries =====
 
-include '../common/video/cga.asm'
+include '../common/video/cgacomp.asm'
+include '../common/video/palette.asm'
 include '../common/vidfile.asm'
 
 

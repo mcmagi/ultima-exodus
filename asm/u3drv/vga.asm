@@ -1881,60 +1881,6 @@ DRAW_PIXEL:
     ret
 
 
-; Returns the byte offset into the VGA video buffer for a requested pixel.
-GET_VGA_OFFSET:
-    ; parameters:
-    ;  bx = pixel column
-    ;  dl = pixel row
-    ; returns:
-    ;  di = video offset
-
-    pushf
-    push ax
-    push bx
-    push dx
-
-    ; set di = offset of column (in first row)
-    mov di,dx
-
-    ; calculate offset of starting row
-    xor dh,dh
-    mov ax,0x0140           ; size of VGA row = 0x0140
-    mul dx                  ; di => row offset within video buffer
-
-    ; add offset of starting column
-    add ax,bx
-
-    ; di = offset to pixel in video buffer
-    mov di,ax
-
-    pop dx
-    pop bx
-    pop ax
-    popf
-    ret
-
-
-; Ega video data is 4bpp, thus 2 pixels/byte
-; the current video mode (13h) is 8bpp, thus 1 pixel/byte
-; we must move the upper nybble to the high-order byte
-UNPACK_VIDEO_DATA:
-    ; parameters
-    ; al = packed (ega) video data
-    ; returns ax = unpacked (vga) video data
-
-    mov ah,al       ; get copy of data
-    and ah,0x0f     ; clear upper nybble of ah
-
-    ; right-shift 4 times (also clears lower nybble of al)
-    shr al,1
-    shr al,1
-    shr al,1
-    shr al,1
-
-    ret
-
-
 ; ===== file handling functions here =====
 
 LOAD_SHAPES_FILE:
@@ -2015,10 +1961,9 @@ LOAD_ANIMATE_FILE:
 
 ; ===== supporting libraries =====
 
-include 'palette.asm'
-
+include '../common/video/vga.asm'
+include '../common/video/palette.asm'
 include '../common/vidfile.asm'
-
 include '../common/xchgs.asm'
 
 

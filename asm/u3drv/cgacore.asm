@@ -22,15 +22,15 @@ DRAW_GEM_BLOCK:
     ; Color information for all 4 pixels to be output is condensed within ah
     ; while which pixel gets written is contained within dx.
 
-    ; set ah = 00 (color = BBBB)
+    ; set ah = black
     xor ah,ah
 
     ; if al == 00 (water)
     cmp al,0x00
     jz DRAW_GEM_END
 
-    ; set ah = 40 (color = BWBB)
-    mov ah,0x40
+    ; set ah = green
+    mov ah,0x01
 
     ; if al == 04 (grass)
     cmp al,0x04
@@ -44,8 +44,8 @@ DRAW_GEM_BLOCK:
     cmp al,0x0c
     jz DRAW_GEM_FOREST
 
-    ; set ah = c0 (color = WBBB)
-    mov ah,0xc0
+    ; set ah = white
+    mov ah,0x03
 
     ; if al = 10 (mountain)
     cmp al,0x10
@@ -148,8 +148,8 @@ CYCLE_GEM_BLOCK:
     push ax
     push dx
 
-    ; set color = WBBB
-    mov ah,0xc0
+    ; set color = white
+    mov ah,0x03
 
     ; first ensure steps are constrained to values 0-3
     and al,0x03
@@ -177,7 +177,7 @@ CYCLE_GEM_BLOCK:
 ;   Which one gets written is based on dx
 WRITE_GEM_PIXEL:
     ; parameters:
-    ;  ah = color to write
+    ;  ah = color (0-3) to write
     ;  cl = map column
     ;  ch = map row
     ;  dl = 0 - left column, 1 - right column
@@ -215,12 +215,12 @@ WRITE_GEM_PIXEL:
 
     ; es:di => offset to gem block in video buffer
     ; cl = bit index in byte of pixel
-    call GET_CGA_OFFSET
+    call GET_VIDEO_OFFSET
 
     ; shift ah to pixel
-    shr ah,cl
+    shl ah,cl
 
-    ; write byte to bx
+    ; write byte to di
     xor [es:di],ah
 
     ; flush pixel
@@ -421,7 +421,7 @@ DRAW_VERTICAL_BORDER:
 
     ; bx => starting offset (ignore bit offset)
     push cx
-    call GET_CGA_OFFSET
+    call GET_VIDEO_OFFSET
     mov bx,di
     pop cx
 
@@ -446,7 +446,7 @@ DRAW_HORIZONTAL_BORDER:
     push di
 
     push cx
-    call GET_CGA_OFFSET
+    call GET_VIDEO_OFFSET
     mov bx,di
     pop cx
 
@@ -655,7 +655,7 @@ DISPLAY_CHAR_COMMON:
     ; move 8 words (8 pixels each) at ds:si into first page of video buffer
     mov dh,0x04
   DISPLAY_CHAR_EVEN_ROWS:
-    call GET_CGA_OFFSET
+    call GET_VIDEO_OFFSET
     movsw
     add dl,0x02
     dec dh
@@ -667,7 +667,7 @@ DISPLAY_CHAR_COMMON:
     ; move 8 words (8 pixels each) at ds:si into second page of video buffer
     mov dh,0x04
   DISPLAY_CHAR_ODD_ROWS:
-    call GET_CGA_OFFSET
+    call GET_VIDEO_OFFSET
     movsw
     add dl,0x02
     dec dh
@@ -826,7 +826,7 @@ DISPLAY_TILE:
     add bx,cx
 
     ; set di = starting offset of game map in video buffer
-    call GET_CGA_OFFSET
+    call GET_VIDEO_OFFSET
 
     ; make sure direction flag is clear
     cld
@@ -1145,7 +1145,7 @@ INVERT_PARTY_MEMBER_BOX:
     ; pixel column = 00c0
     mov bx,0x00c0
 
-    call GET_CGA_OFFSET
+    call GET_VIDEO_OFFSET
 
     ; loop 12 times across rows (2 rows at a time - one per page)
     mov dh,0x0c
@@ -1301,7 +1301,7 @@ INVERT_PARTY_MEMBER_NUMBER:
     ; bx = pixel column
     mov bx,0x00f8
 
-    call GET_CGA_OFFSET
+    call GET_VIDEO_OFFSET
 
     ; do inversion on first page
     xor word [di],0xffff
@@ -1389,13 +1389,13 @@ DISPLAY_EXOD_LINE:
     cld
 
     ; si = offset of pixel within EXOD.IBM
-    call GET_CGA_OFFSET
+    call GET_VIDEO_OFFSET
     mov si,di
 
     ; es:di => video buffer
     xchg dl,dh
     mov es,[VIDEO_SEGMENT]
-    call GET_CGA_OFFSET
+    call GET_VIDEO_OFFSET
 
     ; check if we are writing zero
     and ax,ax
@@ -1479,17 +1479,12 @@ WRITE_PIXEL:
     ; make sure it's a 2-bit color
     and al,ah
 
-    ; shift pixel (& mask) to left so it's at the first pixel in byte
-    mov cl,0x06
-    shl al,cl
-    shl ah,cl
-
     ; get cga offset
-    call GET_CGA_OFFSET
+    call GET_VIDEO_OFFSET
 
     ; shift pixel (& mask) to appropriate bit
-    shr al,cl
-    shr ah,cl
+    shl al,cl
+    shl ah,cl
 
     ; write mask to clear pixel
     not ah
@@ -1562,7 +1557,7 @@ DISPLAY_ANIMATION_FRAME:
     push cx
 
     ; es:di => animation location in the video buffer
-    call GET_CGA_OFFSET
+    call GET_VIDEO_OFFSET
 
     ; clear byte before frame row
     mov byte [es:di-0x01],0x00
@@ -1630,19 +1625,19 @@ DRAW_VERTICAL_LINE:
     mov bh,0x00
 
     ; es:di => location to write line
-    call GET_CGA_OFFSET
+    call GET_VIDEO_OFFSET
 
     ; if ah == 20 (in doorway), handle it differently
     cmp ah,0x20
     jz DRAW_VERTICAL_LINE_DOOR
 
     ; set al = offset pixel by bit location w/i byte
-    mov al,0xc0
-    shr al,cl
+    mov al,0x03
+    shl al,cl
 
   DRAW_VERTICAL_LINE_WALL_LOOP:
     ; recalc offset
-    call GET_CGA_OFFSET
+    call GET_VIDEO_OFFSET
 
     ; or pixel into video buffer
     or [es:di],al
@@ -1661,12 +1656,12 @@ DRAW_VERTICAL_LINE:
   DRAW_VERTICAL_LINE_DOOR:
 
     ; shift al to pixel (and wrap)
-    mov al,0x3f
-    ror al,cl
+    mov al,0xfc
+    rol al,cl
 
   DRAW_VERTICAL_LINE_DOOR_LOOP:
     ; recalc offset
-    call GET_CGA_OFFSET
+    call GET_VIDEO_OFFSET
 
     ; and pixel into video buffer
     and [es:di],al

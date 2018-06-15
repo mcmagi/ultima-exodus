@@ -97,8 +97,9 @@ LOAD_GRAPHIC_FILE_THEME:
 	;  ax => theme prefix
 	;  bx => file address
 	;  dx => graphic file name
+	; returns:
+	;  cf = clear on success, set on error
 
-	pushf
 	push dx
 	push si
 
@@ -131,7 +132,6 @@ LOAD_THEME_FILE_LOAD_DEFAULT:
 LOAD_THEME_FILE_DONE:
 	pop si
 	pop dx
-	popf
 	ret
 
 
