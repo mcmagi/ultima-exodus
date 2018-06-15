@@ -15,6 +15,7 @@
 #include	"IniCfg.h"				/* IniCfg */
 #include	"stringutil.h"
 #include "filepath.h"			/* strclone */
+#include "debug.h"
 
 
 int main(int argc, const char *argv[])
@@ -30,6 +31,9 @@ int main(int argc, const char *argv[])
 
 	if (argc >= 2 && strcmp(argv[1], OPT_GEN_DEFAULTS) == MATCH)
 		gen_defaults = TRUE;
+
+	if (argc >= 2 && strcmp(argv[1], OPT_VERBOSE) == MATCH)
+		DEBUG = TRUE;
 
 	/* get ini data */
 	iniFile = stat_file("u2up.ini");
@@ -101,6 +105,7 @@ int main(int argc, const char *argv[])
 	close_file(file);
 
 	free_options(themeList);
+	ini_free(iniCfg);
 
 	return SUCCESS;
 }

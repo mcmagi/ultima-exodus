@@ -1,6 +1,7 @@
 /* IniCfg.c */
 
-#include <stdio.h>		/* NULL */
+#include <stdio.h>		/* printf */
+#include <stdlib.h>		/* NULL */
 #include <malloc.h>		/* malloc, free, realloc */
 #include <string.h>		/* strlen, strncpy, strcmp */
 
@@ -10,7 +11,7 @@
 #include "File.h"
 #include "debug.h"
 
-#define ENTRY_SIZE_INC		10
+#define ENTRY_SIZE_INC		20
 
 
 char * ini_get_value(const IniCfg *cfg, const char *key)
@@ -22,6 +23,7 @@ char * ini_get_value(const IniCfg *cfg, const char *key)
 
 	for (i = 0; i < cfg->size; i++)
 	{
+		//printf("comparing '%s'='%s'->'%s'\n", upperkey, cfg->entries[i]->key, cfg->entries[i]->value);
 		if (strcmp(upperkey, cfg->entries[i]->key) == MATCH)
 			return cfg->entries[i]->value;
 	}
@@ -46,7 +48,7 @@ StrList * ini_get_value_list(const IniCfg *cfg, const char *key)
 IniCfg * ini_load(File *f)
 {
 	IniCfg *cfg;
-	char *line;
+	char *line = NULL;
 	int i, linelen, valuestart;
 	IniCfgEntry *entry;
 	int entrysize = ENTRY_SIZE_INC;
@@ -57,6 +59,9 @@ IniCfg * ini_load(File *f)
 
 	do
 	{
+		if (line != NULL)
+			free(line);
+
 		/* loop initialization*/
 		valuestart = 0;
 		entry = NULL;
@@ -107,6 +112,9 @@ IniCfg * ini_load(File *f)
 		}
 	}
 	while (line != NULL);
+
+	if (line != NULL)
+		free(line);
 
 	/* resize pointer array to actual size */
 	cfg->entries = (IniCfgEntry **) realloc(cfg->entries, sizeof(IniCfgEntry *) * cfg->size);

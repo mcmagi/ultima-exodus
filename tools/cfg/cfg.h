@@ -18,6 +18,7 @@ void save_cfg_data(File *file, const unsigned char *data);
 
 /* command line options */
 #define OPT_GEN_DEFAULTS		"--gen-defaults"
+#define OPT_VERBOSE				"-v"
 
 /* file size */
 #define	CFG_SZ                  11
