@@ -10,6 +10,7 @@
 #include	"gendefs.h"
 #include	"patch.h"
 #include	"patchadd.h"
+#include	"debug.h"
 
 
 /* DIFF Functions */
@@ -155,6 +156,10 @@ long patch_add_one(File *in, File *patch, long idx, int type)
 	/* build data header */
 	dz = build_data_header(idx, data_size, type);
 
+	if (DEBUG)
+		printf("offset 0x%x: %s %d bytes\n", dz.offset,
+				dz.type == DT_APPEND ? "append" : "truncate", dz.size);
+
 	/* allocate space for new data */
 	data = malloc(data_size);
 
@@ -180,13 +185,14 @@ long patch_add_replace(File *old, File *new, File *patch, long idx)
 	int data_size;						/* data size */
 
 
-	//printf("replace\n");
-
 	/* get size of data */
 	data_size = get_replace_size(old, new, idx);
 
 	/* build data header */
 	dz = build_data_header(idx, data_size, DT_REPLACE);
+
+	if (DEBUG)
+		printf("offset 0x%x: replace %d bytes\n", dz.offset, dz.size);
 
 	/* allocate space for old and new data */
 	olddata = malloc(data_size);

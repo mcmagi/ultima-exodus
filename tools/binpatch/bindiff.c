@@ -10,6 +10,7 @@
 #include	"patch.h"
 #include	"patchadd.h"
 #include	"bindiff.h"
+#include	"debug.h"
 
 
 int main(int argc, char *argv[])
@@ -116,6 +117,8 @@ PatchArgs get_args(int argc, char *argv[])
 				args.newfile = argv[++i];
 			else if (strcmp(argv[i], "-p") == MATCH)
 				args.patchfile = argv[++i];
+			else if (strcmp(argv[i], "-v") == MATCH)
+				DEBUG = TRUE;
 			else
 				print_help_message("unrecognized argument");
 		}
