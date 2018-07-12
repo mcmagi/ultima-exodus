@@ -121,7 +121,7 @@ U5UPGRADE=${ROOT}/game/u5up
 
 # upgrade package versions
 U2VER=2.1
-U3VER=3.3
+U3VER=3.4
 U5VER=1.0
 
 # upgrade package directories
