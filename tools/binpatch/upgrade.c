@@ -60,7 +60,11 @@ int main(int argc, const char ** argv)
 	if (! data->has_upgrade && iniCfg != NULL)
 		examine_release_patches(data, iniCfg);
 
-	/* if no release patches applied, check if we can apply the first one */
+	/* if no release patches applied, check if we have a rollback patch */
+	if (data->applied == NULL)
+		examine_rollback_patches(data, iniCfg);
+
+	/* if no release or rollback patches applied, check if we can apply the first one */
 	if (data->applied == NULL)
 		applyable = can_patch_be_applied(data);
 
@@ -224,6 +228,44 @@ void examine_release_patches(PatchData *r, const IniCfg *iniCfg)
 		r->applied = stat_file(r->applied->filename);
 
 	free_strlist(releases);
+}
+
+void examine_rollback_patches(PatchData *r, const IniCfg *iniCfg)
+{
+	StrList *rollback;			/* rollback patch filenames */
+	File *patch = NULL;			/* patch file */
+	int i, j;					/* counter */
+	int appliedLevel = -1;
+	int baseLevel = -1;
+
+	rollback = ini_get_value_list(iniCfg, INI_KEY_ROLLBACK);
+
+	if (rollback == NULL)
+		return;
+
+	/* examine patch files in reverse order */
+	for (i = rollback->size - 1; i >= 0; i--)
+	{
+		patch = stat_file(rollback->entries[i]);
+		open_file(patch, READONLY_MODE);
+
+		if (DEBUG)
+			printf("Found patch %s\n", patch->filename);
+		verify_patch_header(patch);
+
+		/* find latest applied release patch version */
+		if (r->applied == NULL && is_patch_applied(patch, r->dir, FALSE))
+		{
+			r->applied = patch;
+			break;
+		}
+	}
+
+	/* get new file instances before freeing strlist */
+	if (r->applied != NULL)
+		r->applied = stat_file(r->applied->filename);
+
+	free_strlist(rollback);
 }
 
 BOOL can_patch_be_applied(PatchData *r)

@@ -10,6 +10,7 @@
 
 #define INI_KEY_NONE		"none"
 #define INI_KEY_RELEASES	"releases"
+#define INI_KEY_ROLLBACK	"rollback"
 #define INI_KEY_BASE		"base"
 #define INI_KEY_README		"readme"
 #define INI_KEY_CONFIG		"config"
@@ -38,6 +39,7 @@ typedef struct {
 /* Function prototypes */
 void examine_upgrade_patches(PatchData *r, const char *upgrade_type);
 void examine_release_patches(PatchData *r, const IniCfg *iniCfg);
+void examine_rollback_patches(PatchData *r, const IniCfg *iniCfg);
 BOOL can_patch_be_applied(PatchData *r);
 PatchData *create_patchdata(const char *path);
 void free_patchdata(PatchData *data);
