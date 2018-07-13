@@ -14,6 +14,14 @@ U2PAT_MAP = ${PATCHES}/u2-map.pat
 U2PAT_GOG = ${PATCHES}/u2-gog.pat
 U2PAT_V11 = ${PATCHES}/u2up-11.pat
 U2PAT_V12 = ${PATCHES}/u2up-12.pat
+U3PAT_R1X = ${PATCHES}/u3-r1x.pat
+U3PAT_R2 = ${PATCHES}/u3-r2.pat
+U3PAT_R2X = ${PATCHES}/u3-r2x.pat
+U3PAT_R3 = ${PATCHES}/u3-r3.pat
+U3PAT_R3X = ${PATCHES}/u3-r3x.pat
+U3PAT_T123 = ${PATCHES}/u3-t123.pat
+U3PAT_T123X = ${PATCHES}/u3-t123x.pat
+U3PAT_U16 = ${PATCHES}/u3-u16.pat
 
 # patch save dir
 U2_SAVE_DIR = PLAYER.U2
@@ -29,9 +37,11 @@ patch: ${U2PAT} ${U3PAT} ${U5PAT}
 
 patch_u2: ${U2PAT_U16} ${U2PAT_UC} ${U2PAT_MAP} ${U2PAT_GOG} ${U2PAT_V11} ${U2PAT_V12} ${U2PAT}
 
-patch_u3: ${U3PAT}
+patch_u3: ${U3PAT_R1X} ${U3PAT_R2} ${U3PAT_R2X} ${U3PAT_R3} ${U3PAT_R3X} ${U3PAT_T123} ${U3PAT_T123X} ${U3PAT_U16} ${U3PAT}
 
 patch_u5: ${U5PAT}
+
+# --- Ultima 2 Patches ---
 
 ${U2PAT_U16}:
 	# the T123-to-U16 patch applies only to the Program Master
@@ -121,12 +131,92 @@ ${U2PAT}:
 		${DIFF} -a replace -nd ${U2UPGRADE} -n MON$${i} -o ${U2_SAVE_DIR}/MON$${i} -p ${U2PAT}; \
 	done
 
+# --- Ultima 3 Patches ---
+
+${U3PAT_R1X}:
+	# Jan 22, 1985
+	rm -f ${U3PAT_R1X}
+	# patch out floppy copy protection
+	${DIFF} -od ${U3R1} -nd ${U3R1X} -o COMMAND.COM -n COMMAND.COM -p ${U3PAT_R1X}
+	${DIFF} -od ${U3R1} -nd ${U3R1X} -o BOOTUP.COM -n BOOTUP.COM -p ${U3PAT_R1X}
+
+${U3PAT_R2}:
+	# Jan 22, 1985
+	rm -f ${U3PAT_R2}
+	# patch bugfixes in game binary
+	${DIFF} -od ${U3R1} -nd ${U3R2} -o EXODUS.COM -n EXODUS.COM -p ${U3PAT_R2}
+
+${U3PAT_R2X}:
+	# Jan 22, 1985
+	rm -f ${U3PAT_R2X}
+	# patch out floppy copy protection
+	${DIFF} -od ${U3R2} -nd ${U3R2X} -o COMMAND.COM -n COMMAND.COM -p ${U3PAT_R2X}
+	${DIFF} -od ${U3R2} -nd ${U3R2X} -o BOOTUP.COM -n BOOTUP.COM -p ${U3PAT_R2X}
+
+${U3PAT_R3}:
+	# Mar 8, 1985
+	rm -f ${U3PAT_R3}
+	# patch all binaries
+	${DIFF} -od ${U3R2} -nd ${U3R3} -o COMMAND.COM -n COMMAND.COM -p ${U3PAT_R3}
+	${DIFF} -od ${U3R2} -nd ${U3R3} -o BOOTUP.COM -n BOOTUP.COM -p ${U3PAT_R3}
+	${DIFF} -od ${U3R2} -nd ${U3R3} -o EXODUS.COM -n EXODUS.COM -p ${U3PAT_R3}
+	${DIFF} -od ${U3R2} -nd ${U3R3} -o DUNGEON.DAT -n DUNGEON.DAT -p ${U3PAT_R3}
+
+${U3PAT_R3X}:
+	# Jan 22, 1985
+	rm -f ${U3PAT_R3X}
+	# patch out floppy copy protection
+	${DIFF} -od ${U3R3} -nd ${U3R3X} -o COMMAND.COM -n COMMAND.COM -p ${U3PAT_R3X}
+	${DIFF} -od ${U3R3} -nd ${U3R3X} -o BOOTUP.COM -n BOOTUP.COM -p ${U3PAT_R3X}
+
+${U3PAT_T123}:
+	# Mar 3, 1987
+	rm -f ${U3PAT_T123}
+	# patch main binary & rename
+	${DIFF} -a move -od ${U3R3} -nd ${U3T123} -o COMMAND.COM -n ULTIMA.COM -p ${U3PAT_T123}
+	# patch other binary files
+	${DIFF} -od ${U3R3} -nd ${U3T123} -o BOOTUP.COM -n BOOTUP.COM -p ${U3PAT_T123}
+	${DIFF} -od ${U3R3} -nd ${U3T123} -o EXODUS.COM -n EXODUS.COM -p ${U3PAT_T123}
+	${DIFF} -od ${U3R3} -nd ${U3T123} -o DUNGEON.DAT -n DUNGEON.DAT -p ${U3PAT_T123}
+	# add padding to name.dat
+	${DIFF} -od ${U3R3} -nd ${U3T123} -o NAME.DAT -n NAME.DAT -p ${U3PAT_T123}
+
+${U3PAT_T123X}:
+	# Jan 22, 1985
+	rm -f ${U3PAT_T123X}
+	# patch out floppy copy protection
+	${DIFF} -od ${U3T123} -nd ${U3T123X} -o ULTIMA.COM -n ULTIMA.COM -p ${U3PAT_T123X}
+	${DIFF} -od ${U3T123} -nd ${U3T123X} -o BOOTUP.COM -n BOOTUP.COM -p ${U3PAT_T123X}
+
+${U3PAT_U16}:
+	# Sep 30, 1991
+	rm -f ${U3PAT_U16}
+	# patch main binary
+	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o ULTIMA.COM -n ULTIMA.COM -p ${U3PAT_U16}
+	# patch other binary files & rename to .bin and
+	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o BOOTUP.COM -n BOOTUP.BIN -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o EXODUS.COM -n EXODUS.BIN -p ${U3PAT_U16}
+	# rename filenames with dashes to underscores
+	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o MONTOR-E.ULT -n MONTOR_E.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o MONTOR-W.ULT -n MONTOR_W.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-A.ULT -n CNFLCT_A.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-B.ULT -n CNFLCT_B.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-C.ULT -n CNFLCT_C.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-F.ULT -n CNFLCT_F.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-G.ULT -n CNFLCT_G.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-M.ULT -n CNFLCT_M.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-Q.ULT -n CNFLCT_Q.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-R.ULT -n CNFLCT_R.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-S.ULT -n CNFLCT_S.ULT -p ${U3PAT_U16}
+
 ${U3PAT}:
 	rm -f ${U3PAT}
 	${DIFF} -od ${U3ORIGINAL} -nd ${U3UPGRADE} -o ULTIMA.COM -n ULTIMA.COM -p ${U3PAT}
 	${DIFF} -od ${U3ORIGINAL} -nd ${U3UPGRADE} -o BOOTUP.BIN -n BOOTUP.BIN -p ${U3PAT}
 	${DIFF} -od ${U3ORIGINAL} -nd ${U3UPGRADE} -o EXODUS.BIN -n EXODUS.BIN -p ${U3PAT}
 	${DIFF} -od ${U3ORIGINAL} -nd ${U3UPGRADE} -o DUNGEON.DAT -n DUNGEON.DAT -p ${U3PAT}
+
+# --- Ultima 5 Patches ---
 
 ${U5PAT}:
 	rm -f ${U5PAT}
@@ -155,6 +245,14 @@ package_u2: ${U2PAT}
 
 package_u3: ${U3PAT}
 	echo "Packaging Patches for U3"
+	cp -f ${U3PAT_R1X} ${U3PKG}
+	cp -f ${U3PAT_R2} ${U3PKG}
+	cp -f ${U3PAT_R2X} ${U3PKG}
+	cp -f ${U3PAT_R3} ${U3PKG}
+	cp -f ${U3PAT_R3X} ${U3PKG}
+	cp -f ${U3PAT_T123} ${U3PKG}
+	cp -f ${U3PAT_T123X} ${U3PKG}
+	cp -f ${U3PAT_U16} ${U3PKG}
 	cp -f ${U3PAT} ${U3PKG}
 
 package_u5: ${U5PAT}

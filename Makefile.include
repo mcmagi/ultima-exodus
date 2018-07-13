@@ -111,9 +111,20 @@ U2GOG=${ROOT}/game/u2orig.gog
 U2UP_V11=${ROOT}/game/u2orig.v11
 U2UP_V12=${ROOT}/game/u2orig.v12
 
+# U3 game locations
+U3R1=${ROOT}/game/u3orig.r1
+U3R1X=${ROOT}/game/u3orig.r1x
+U3R2=${ROOT}/game/u3orig.r2
+U3R2X=${ROOT}/game/u3orig.r2x
+U3R3=${ROOT}/game/u3orig.r3
+U3R3X=${ROOT}/game/u3orig.r3x
+U3T123=${ROOT}/game/u3orig.t3
+U3T123X=${ROOT}/game/u3orig.t3x
+U3U16=${ROOT}/game/u3orig
+
 # game locations (for installation & patching)
 U2ORIGINAL=${U2MAP}
-U3ORIGINAL=${ROOT}/game/u3orig
+U3ORIGINAL=${U3U16}
 U5ORIGINAL=${ROOT}/game/u5orig
 U2UPGRADE=${ROOT}/game/u2up
 U3UPGRADE=${ROOT}/game/u3up
