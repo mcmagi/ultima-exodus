@@ -17,6 +17,7 @@ package_u2: ${U2PKG}
 
 package_u3: ${U3PKG}
 	echo "Packaging Data for U3"
+	cp -f ${DATA}/u3up.ini ${U3PKG}
 	cp -f ${DATA}/u3gfx/* ${U3PKG}
 	cp -f ${DATA}/u3midi/* ${U3PKG}
 	cp -fR ${DATA}/u3mod/* ${U3PKG}
