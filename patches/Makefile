@@ -192,7 +192,7 @@ ${U3PAT_U16}:
 	# Sep 30, 1991
 	rm -f ${U3PAT_U16}
 	# patch main binary
-	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o ULTIMA.COM -n ULTIMA.COM -p ${U3PAT_U16}
+	${DIFF} -od ${U3T123} -nd ${U3U16} -o ULTIMA.COM -n ULTIMA.COM -p ${U3PAT_U16}
 	# patch other binary files & rename to .bin and
 	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o BOOTUP.COM -n BOOTUP.BIN -p ${U3PAT_U16}
 	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o EXODUS.COM -n EXODUS.BIN -p ${U3PAT_U16}
