@@ -10,7 +10,7 @@
 
 #define INI_KEY_NONE		"none"
 #define INI_KEY_RELEASES	"releases"
-#define INI_KEY_ROLLBACK	"rollback"
+#define INI_KEY_ROLLBACK	"rollback."
 #define INI_KEY_BASE		"base"
 #define INI_KEY_README		"readme"
 #define INI_KEY_CONFIG		"config"
@@ -29,10 +29,8 @@ typedef struct {
 	BOOL has_upgrade;		/* true if applied patch is an upgrade */
 	File *applied;			/* currently applied patch level */
 	File *latest;			/* latest upgrade level */
-	int num_below;			/* number of patches below base */
-	File **below;			/* release patches below base */
-	int num_above;			/* number of patches above base */
-	File **above;			/* release patches above base */
+	List *below;			/* release patches below base */
+	List *above;			/* release patches above base */
 } PatchData;
 
 

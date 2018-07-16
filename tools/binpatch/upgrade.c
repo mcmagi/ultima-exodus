@@ -60,9 +60,8 @@ int main(int argc, const char ** argv)
 	if (! data->has_upgrade && iniCfg != NULL)
 		examine_release_patches(data, iniCfg);
 
-	/* if no release patches applied, check if we have a rollback patch */
-	if (data->applied == NULL)
-		examine_rollback_patches(data, iniCfg);
+	/* check if we have a rollback patch */
+	examine_rollback_patches(data, iniCfg);
 
 	/* if no release or rollback patches applied, check if we can apply the first one */
 	if (data->applied == NULL)
@@ -198,28 +197,31 @@ void examine_release_patches(PatchData *r, const IniCfg *iniCfg)
 			baseLevel = i;
 	}
 
+	if (r->below != NULL)
+		list_free(r->below);
+	r->below = list_create();
+	if (r->above != NULL)
+		list_free(r->above);
+	r->above = list_create();
+
 	if (appliedLevel < baseLevel)
 	{
 		/* we are under base level needed for upgrade patch */
-		r->num_below = baseLevel - appliedLevel;
-		r->below = malloc(sizeof(File*) * r->num_below);
 		for (i = appliedLevel+1, j = 0; i <= baseLevel; i++)
 		{
 			if (DEBUG)
 				printf("Under-applied release patch: %s\n", releases->entries[i]);
-			r->below[j++] = stat_file(releases->entries[i]);
+			list_add(r->below, stat_file(releases->entries[i]));
 		}
 	}
 	else if (appliedLevel > baseLevel)
 	{
 		/* we are over base level needed for upgrade patch and need to rollback */
-		r->num_above = appliedLevel - baseLevel;
-		r->above = malloc(sizeof(File*) * r->num_above);
 		for (i = baseLevel+1, j = 0; i <= appliedLevel; i++)
 		{
 			if (DEBUG)
 				printf("Over-applied release patch: %s\n", releases->entries[i]);
-			r->above[j++] = stat_file(releases->entries[i]);
+			list_add(r->above, stat_file(releases->entries[i]));
 		}
 	}
 
@@ -232,40 +234,45 @@ void examine_release_patches(PatchData *r, const IniCfg *iniCfg)
 
 void examine_rollback_patches(PatchData *r, const IniCfg *iniCfg)
 {
-	StrList *rollback;			/* rollback patch filenames */
-	File *patch = NULL;			/* patch file */
-	int i, j;					/* counter */
-	int appliedLevel = -1;
-	int baseLevel = -1;
+	int prefix_len;				/* ini key prefix length */
+	char ini_key[32];			/* rollback ini key */
+	char *rollback;				/* rollback patch filenames (reference) */
+	File *patch = NULL;			/* patch file (owned) */
 
-	rollback = ini_get_value_list(iniCfg, INI_KEY_ROLLBACK);
+	// build ini key
+	prefix_len = strlen(INI_KEY_ROLLBACK);
+	strcpy(ini_key, INI_KEY_ROLLBACK);
+	if (r->applied != NULL)
+		strcpy(&ini_key[prefix_len], r->applied->filename);
+	else
+		strcpy(&ini_key[prefix_len], INI_KEY_NONE);
+
+	rollback = ini_get_value(iniCfg, ini_key);
 
 	if (rollback == NULL)
 		return;
 
-	/* examine patch files in reverse order */
-	for (i = rollback->size - 1; i >= 0; i--)
+	/* examine patch file */
+	patch = stat_file(rollback);
+	open_file(patch, READONLY_MODE);
+
+	if (DEBUG)
+		printf("Found patch %s\n", patch->filename);
+	verify_patch_header(patch);
+
+	/* if rollback patch is applied, set it a latest applied */
+	if (is_patch_applied(patch, r->dir, FALSE))
 	{
-		patch = stat_file(rollback->entries[i]);
-		open_file(patch, READONLY_MODE);
-
+		close_file(r->applied);
+		r->applied = patch;
+		r->has_upgrade = TRUE;
 		if (DEBUG)
-			printf("Found patch %s\n", patch->filename);
-		verify_patch_header(patch);
-
-		/* find latest applied release patch version */
-		if (r->applied == NULL && is_patch_applied(patch, r->dir, FALSE))
-		{
-			r->applied = patch;
-			break;
-		}
+			printf("Patch to rollback: %s\n", rollback);
 	}
-
-	/* get new file instances before freeing strlist */
-	if (r->applied != NULL)
-		r->applied = stat_file(r->applied->filename);
-
-	free_strlist(rollback);
+	else
+	{
+		close_file(patch);
+	}
 }
 
 BOOL can_patch_be_applied(PatchData *r)
@@ -274,12 +281,12 @@ BOOL can_patch_be_applied(PatchData *r)
 	BOOL applyable = TRUE;
 
 	/* determine first patch to apply */
-	if (r->num_below > 0)
+	if (r->below->size > 0)
 	{
 		/* if has unapplied release patches, check first one */
-		firstPatch = r->below[0];
+		firstPatch = (File *) r->below->entries[0];
 	}
-	else if (r->num_above == 0)
+	else if (r->above->size == 0)
 	{
 		/* if we're not rolling back a release patch (which is already validated to work),
 		 * check the upgrade patch */
@@ -309,10 +316,8 @@ PatchData *create_patchdata(const char *path)
 	r->has_upgrade = FALSE;
 	r->applied = NULL;
 	r->latest = NULL;
-	r->below = NULL;
-	r->num_below = 0;
-	r->above = NULL;
-	r->num_above = 0;
+	r->below = list_create();
+	r->above = list_create();
 	r->dir = path;
 
 	return r;
@@ -329,19 +334,8 @@ void free_patchdata(PatchData *data)
 	if (data->latest != NULL && data->latest != data->applied)
 		close_file(data->latest);
 
-	if (data->below)
-	{
-		for (i = 0; i < data->num_below; i++)
-			close_file(data->below[i]);
-		free(data->below);
-	}
-
-	if (data->above)
-	{
-		for (i = 0; i < data->num_above; i++)
-			close_file(data->above[i]);
-		free(data->above);
-	}
+	list_free(data->below);
+	list_free(data->above);
 
 	free(data);
 }
@@ -361,17 +355,17 @@ void do_upgrade(IniCfg *iniCfg, PatchData *data)
 		examine_release_patches(data, iniCfg);
 	}
 
-	if (data->num_below > 0)
+	if (data->below->size > 0)
 	{
 		/* apply any release patches below base */
-		for (i = 0; i < data->num_below; i++)
-			upgrade_patch(iniCfg, data->below[i], data->dir);
+		for (i = 0; i < data->below->size; i++)
+			upgrade_patch(iniCfg, (File *) data->below->entries[i], data->dir);
 	}
-	else if (data->num_above > 0)
+	else if (data->above->size > 0)
 	{
 		/* unapply any release patches above base */
-		for (i = 0; i < data->num_above; i++)
-			downgrade_patch(iniCfg, data->above[i], data->dir);
+		for (i = 0; i < data->above->size; i++)
+			downgrade_patch(iniCfg, (File *) data->above->entries[i], data->dir);
 	}
 
 	/* apply latest patch */
