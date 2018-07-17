@@ -12,7 +12,7 @@ Installation:
     2) Edit dosbox.conf (dosboxULTIMA3.conf for GOG) and change these values:
         * cycles=10000   (or greater)
         * cputype=auto
-    3) Run ULTIMA2.COM in DOSBOX to start the game.
+    3) Run ULTIMA3.COM in DOSBOX to start the game.
         * For GOG, edit dosboxULTIMA3_single.conf and change the line that
           reads 'ultima.com' to 'ULTIMA3.COM'.
 
