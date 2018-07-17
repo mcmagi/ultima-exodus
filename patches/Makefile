@@ -134,7 +134,7 @@ ${U2PAT}:
 # --- Ultima 3 Patches ---
 
 ${U3PAT_R1X}:
-	# Jan 22, 1985
+	# May 22, 1984
 	rm -f ${U3PAT_R1X}
 	# patch out floppy copy protection
 	${DIFF} -od ${U3R1} -nd ${U3R1X} -o COMMAND.COM -n COMMAND.COM -p ${U3PAT_R1X}
@@ -163,7 +163,7 @@ ${U3PAT_R3}:
 	${DIFF} -od ${U3R2} -nd ${U3R3} -o DUNGEON.DAT -n DUNGEON.DAT -p ${U3PAT_R3}
 
 ${U3PAT_R3X}:
-	# Jan 22, 1985
+	# Mar 8, 1985
 	rm -f ${U3PAT_R3X}
 	# patch out floppy copy protection
 	${DIFF} -od ${U3R3} -nd ${U3R3X} -o COMMAND.COM -n COMMAND.COM -p ${U3PAT_R3X}
@@ -182,7 +182,7 @@ ${U3PAT_T123}:
 	${DIFF} -od ${U3R3} -nd ${U3T123} -o NAME.DAT -n NAME.DAT -p ${U3PAT_T123}
 
 ${U3PAT_T123X}:
-	# Jan 22, 1985
+	# Mar 3, 1987
 	rm -f ${U3PAT_T123X}
 	# patch out floppy copy protection
 	${DIFF} -od ${U3T123} -nd ${U3T123X} -o ULTIMA.COM -n ULTIMA.COM -p ${U3PAT_T123X}
@@ -192,22 +192,22 @@ ${U3PAT_U16}:
 	# Sep 30, 1991
 	rm -f ${U3PAT_U16}
 	# patch main binary
-	${DIFF} -od ${U3T123} -nd ${U3U16} -o ULTIMA.COM -n ULTIMA.COM -p ${U3PAT_U16}
+	${DIFF} -od ${U3T123X} -nd ${U3U16} -o ULTIMA.COM -n ULTIMA.COM -p ${U3PAT_U16}
 	# patch other binary files & rename to .bin and
-	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o BOOTUP.COM -n BOOTUP.BIN -p ${U3PAT_U16}
-	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o EXODUS.COM -n EXODUS.BIN -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123X} -nd ${U3U16} -o BOOTUP.COM -n BOOTUP.BIN -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123X} -nd ${U3U16} -o EXODUS.COM -n EXODUS.BIN -p ${U3PAT_U16}
 	# rename filenames with dashes to underscores
-	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o MONTOR-E.ULT -n MONTOR_E.ULT -p ${U3PAT_U16}
-	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o MONTOR-W.ULT -n MONTOR_W.ULT -p ${U3PAT_U16}
-	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-A.ULT -n CNFLCT_A.ULT -p ${U3PAT_U16}
-	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-B.ULT -n CNFLCT_B.ULT -p ${U3PAT_U16}
-	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-C.ULT -n CNFLCT_C.ULT -p ${U3PAT_U16}
-	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-F.ULT -n CNFLCT_F.ULT -p ${U3PAT_U16}
-	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-G.ULT -n CNFLCT_G.ULT -p ${U3PAT_U16}
-	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-M.ULT -n CNFLCT_M.ULT -p ${U3PAT_U16}
-	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-Q.ULT -n CNFLCT_Q.ULT -p ${U3PAT_U16}
-	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-R.ULT -n CNFLCT_R.ULT -p ${U3PAT_U16}
-	${DIFF} -a move -od ${U3T123} -nd ${U3U16} -o CNFLCT-S.ULT -n CNFLCT_S.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123X} -nd ${U3U16} -o MONTOR-E.ULT -n MONTOR_E.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123X} -nd ${U3U16} -o MONTOR-W.ULT -n MONTOR_W.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123X} -nd ${U3U16} -o CNFLCT-A.ULT -n CNFLCT_A.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123X} -nd ${U3U16} -o CNFLCT-B.ULT -n CNFLCT_B.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123X} -nd ${U3U16} -o CNFLCT-C.ULT -n CNFLCT_C.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123X} -nd ${U3U16} -o CNFLCT-F.ULT -n CNFLCT_F.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123X} -nd ${U3U16} -o CNFLCT-G.ULT -n CNFLCT_G.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123X} -nd ${U3U16} -o CNFLCT-M.ULT -n CNFLCT_M.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123X} -nd ${U3U16} -o CNFLCT-Q.ULT -n CNFLCT_Q.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123X} -nd ${U3U16} -o CNFLCT-R.ULT -n CNFLCT_R.ULT -p ${U3PAT_U16}
+	${DIFF} -a move -od ${U3T123X} -nd ${U3U16} -o CNFLCT-S.ULT -n CNFLCT_S.ULT -p ${U3PAT_U16}
 
 ${U3PAT}:
 	rm -f ${U3PAT}
