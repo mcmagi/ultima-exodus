@@ -189,12 +189,14 @@ void examine_release_patches(PatchData *r, const IniCfg *iniCfg)
 		/* find latest applied release patch version */
 		if (r->applied == NULL && is_patch_applied(patch, r->dir, FALSE))
 		{
-			r->applied = patch;
+			r->applied = stat_file(patch->filename);
 			appliedLevel = i;
 		}
 
 		if (strcmp(patch->filename, base) == MATCH)
 			baseLevel = i;
+
+		close_file(patch);
 	}
 
 	if (r->below != NULL)
@@ -224,10 +226,6 @@ void examine_release_patches(PatchData *r, const IniCfg *iniCfg)
 			list_add(r->above, stat_file(releases->entries[i]));
 		}
 	}
-
-	/* get new file instances before freeing strlist */
-	if (r->applied != NULL)
-		r->applied = stat_file(r->applied->filename);
 
 	free_strlist(releases);
 }
