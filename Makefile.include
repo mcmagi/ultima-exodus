@@ -46,7 +46,7 @@ else
     	TARGET_ARCH := ${TARGET_ARCH_LINUX}
 
     	# compilation programs
-    	CC=${WATCOM}/binnt/wcc386 -q -i=$(call dospath,${WATCOM}/h) -i=. -i=$(call dospath,${COMMON}) -bt=linux -5 -dTARGET_ID=3
+    	CC=${WATCOM}/binnt/wcc386 -q -i=$(call dospath,${WATCOM}/lh) -i=. -i=$(call dospath,${COMMON}) -bt=linux -5 -dTARGET_ID=3
     	AR=ar
     	LD=${WATCOM}/binnt/wlink system linux option noextension
 
